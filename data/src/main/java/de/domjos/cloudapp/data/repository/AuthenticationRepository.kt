@@ -8,6 +8,7 @@ import javax.inject.Inject
 interface AuthenticationRepository {
     val authentications: Flow<List<Authentication>>
 
+    suspend fun check(authentication: Authentication)
     suspend fun insert(authentication: Authentication): String
     suspend fun update(authentication: Authentication): String
     suspend fun delete(authentication: Authentication): String
@@ -19,6 +20,17 @@ class DefaultAuthenticationRepository @Inject constructor(
 
     override var authentications: Flow<List<Authentication>> =
         authenticationDAO.getAll()
+
+    override suspend fun check(authentication: Authentication) {
+        authenticationDAO.getAll().collect {
+            it.forEach { item ->
+                item.selected = false
+                authenticationDAO.updateAuthentication(authentication)
+            }
+        }
+        authentication.selected = true
+        authenticationDAO.updateAuthentication(authentication)
+    }
 
     override suspend fun insert(authentication: Authentication): String {
         this.authenticationDAO.insertAuthentication(authentication)

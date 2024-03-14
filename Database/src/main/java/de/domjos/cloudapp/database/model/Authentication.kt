@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey
         Index(value = ["title"], orders = [Index.Order.ASC], name = "title_index", unique = true)
     ]
 )
-data class Authentication(@PrimaryKey(autoGenerate = true) var id: Long, var title: String, var url: String, var userName: String, var password: String, var description: String?, var thumbNail: ByteArray?) {
+data class Authentication(@PrimaryKey(autoGenerate = true) var id: Long, var title: String, var url: String, var userName: String, var password: String, var selected: Boolean, var description: String?, var thumbNail: ByteArray?) {
 
     override fun toString(): String {
         return "$title($userName)"
@@ -28,6 +28,7 @@ data class Authentication(@PrimaryKey(autoGenerate = true) var id: Long, var tit
         if (url != other.url) return false
         if (userName != other.userName) return false
         if (password != other.password) return false
+        if(selected != other.selected) return false
         if (description != other.description) return false
         if (!thumbNail.contentEquals(other.thumbNail)) return false
 
