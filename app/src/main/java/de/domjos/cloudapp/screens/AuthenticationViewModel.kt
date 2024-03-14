@@ -21,11 +21,9 @@ class AuthenticationViewModel @Inject constructor(
         .authentications.map<List<Authentication>, AuthenticationUiState> {AuthenticationUiState.Success(data = it)}
         .catch { emit(AuthenticationUiState.Error(it)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AuthenticationUiState.Loading)
-    fun getAuthentications(onSuccess: (List<Authentication>) -> Unit) {
+    fun checkAuthentications(authentication: Authentication) {
         viewModelScope.launch {
-            authenticationRepository.authentications.collect {
-                onSuccess(it)
-            }
+            authenticationRepository.check(authentication)
         }
     }
 
