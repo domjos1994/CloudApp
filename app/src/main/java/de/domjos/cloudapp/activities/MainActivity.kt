@@ -21,6 +21,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -45,11 +46,13 @@ import androidx.navigation.compose.rememberNavController
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
+import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp.features.calendars.screens.CalendarScreen
 import de.domjos.cloudapp.features.chats.screens.ChatScreen
 import de.domjos.cloudapp.features.contacts.screens.ContactScreen
 import de.domjos.cloudapp.features.data.screens.DataScreen
 import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
+import de.domjos.cloudapp.screens.AuthenticationScreen
 
 data class TabBarItem(
     val title: String,
@@ -58,6 +61,8 @@ data class TabBarItem(
     val badgeAmount: Int? = null
 )
 
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -72,6 +77,7 @@ class MainActivity : ComponentActivity() {
 
             // creating a list of all the tabs
             val tabBarItems = listOf(notificationsTab, dataTab, calendarsTab, contactsTab, chatsTab)
+            val authentications = stringResource(id = R.string.login_authentications)
 
             // creating our navController
             val navController = rememberNavController()
@@ -89,8 +95,21 @@ class MainActivity : ComponentActivity() {
                     Scaffold(bottomBar = { TabView(tabBarItems, navController) }, topBar = { TopAppBar(colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),title={Text(title)})}) {
+                    ),title={Text(title)}, actions = {
+                        IconButton(onClick = {
+                            navController.navigate(authentications)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Person,
+                                contentDescription = stringResource(R.string.login)
+                            )
+                        }
+                    })}) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
+                            composable(authentications) {
+                                AuthenticationScreen()
+                                title = authentications
+                            }
                             composable(notificationsTab.title) {
                                 NotificationScreen()
                                 title = notificationsTab.title

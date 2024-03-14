@@ -6,12 +6,13 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import de.domjos.cloudapp.database.model.Authentication
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AuthenticationDAO {
 
     @Query("SELECT * FROM authentications")
-    fun getAll(): List<Authentication>
+    fun getAll(): Flow<List<Authentication>>
 
     @Query("SELECT * FROM authentications WHERE title=:title")
     fun getItemByTitle(title: String): Authentication

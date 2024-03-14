@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.database"
+    namespace = "de.domjos.cloudapp.data"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {
@@ -26,20 +26,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = rootProject.extra["java_jvm"] as JavaVersion
-        targetCompatibility = rootProject.extra["java_jvm"] as JavaVersion
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = rootProject.extra["java_version"] as String
+        jvmTarget = "1.8"
     }
 }
 
 dependencies {
-    // room
-    ksp(libs.room.compiler)
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    annotationProcessor(libs.room.compiler)
+    implementation(project(":Database"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -52,5 +48,4 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.room.testing)
 }

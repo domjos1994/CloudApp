@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
+    alias(libs.plugins.hiltLibrary)
+    alias(libs.plugins.kaptLibrary)
 }
 
 android {
@@ -50,6 +52,9 @@ android {
 }
 
 dependencies {
+    implementation(project(":data"))
+    implementation(project(":Database"))
+
     implementation(project(":AppBasics"))
     implementation(project(":CalendarFeature"))
     implementation(project(":ChatFeature"))
@@ -69,6 +74,11 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.navigation.compose)
     implementation(libs.material)
+
+    // hilt
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
 
     // testing
     testImplementation(libs.junit)
