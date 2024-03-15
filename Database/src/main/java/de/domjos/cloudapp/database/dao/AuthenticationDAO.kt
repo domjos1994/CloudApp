@@ -15,7 +15,13 @@ interface AuthenticationDAO {
     fun getAll(): Flow<List<Authentication>>
 
     @Query("SELECT * FROM authentications WHERE title=:title")
-    fun getItemByTitle(title: String): Authentication
+    fun getItemByTitle(title: String): Authentication?
+
+    @Query("SELECT * FROM authentications WHERE selected=1")
+    fun getSelectedItem(): Authentication?
+
+    @Query("UPDATE authentications SET selected=0")
+    fun unCheck()
 
     @Insert
     fun insertAuthentication(authentication: Authentication): Long

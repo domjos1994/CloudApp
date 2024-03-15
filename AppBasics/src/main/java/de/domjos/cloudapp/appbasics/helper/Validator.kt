@@ -25,7 +25,7 @@ class Validator {
                 "{$length,$maxLength}"
             }
 
-            return if(text.matches(Regex("[a-zA-Z0-9]$param"))) {
+            return if(text.matches(Regex("[a-zA-Z0-9-/:_.]$param"))) {
                 ""
             } else {
                 validation

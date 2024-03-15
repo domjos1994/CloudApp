@@ -16,6 +16,7 @@ kapt = "1.9.22-1.0.17"
 dav4jvm = "2.2.1"
 hilt = "2.51"
 hilt-compose = "1.2.0"
+webrtc = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -43,6 +44,7 @@ dav4jvm = { group = "com.github.bitfireAT", name = "dav4jvm", version.ref = "dav
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-compose" }
+webrtc = { group = "io.getstream", name = "stream-webrtc-android", version.ref = "webrtc" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

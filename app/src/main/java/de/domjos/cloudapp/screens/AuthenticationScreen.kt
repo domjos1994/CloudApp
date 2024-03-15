@@ -1,7 +1,10 @@
 package de.domjos.cloudapp.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +23,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -50,8 +54,6 @@ import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.helper.Validator
 
-private var msg: String = ""
-
 @Composable
 fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -68,18 +70,24 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
     if (
         authentications is AuthenticationUiState.Success) {
 
+        val context = LocalContext.current
+
         AuthenticationScreen(
             onSaveClick = {auth ->
                 if(auth.id == 0L) {
-                    viewModel.insertAuthentication(auth) { msg = it }
+                    viewModel.insertAuthentication(auth, context) {
+                        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                    }
                 } else {
-                    viewModel.updateAuthentication(auth) { msg = it }
+                    viewModel.updateAuthentication(auth, context) {
+                        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                    }
                 }
-                msg
             },
             onDeleteClick = { auth ->
-                viewModel.deleteAuthentication(auth) { msg = it }
-                msg
+                viewModel.deleteAuthentication(auth) {
+                    Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+                }
             },
             select = { auth -> viewModel.checkAuthentications(auth)},
             (authentications as AuthenticationUiState.Success).data
@@ -89,8 +97,8 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
 
 @Composable
 fun AuthenticationScreen(
-    onSaveClick: (Authentication) -> String,
-    onDeleteClick: (Authentication) -> String,
+    onSaveClick: (Authentication) -> Unit,
+    onDeleteClick: (Authentication) -> Unit,
     select: (Authentication) -> Unit,
     authentications: List<Authentication>) {
 
@@ -147,22 +155,28 @@ fun AuthenticationList(authentications: List<Authentication>, onSelect: (Authent
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit) {
     Column(modifier = Modifier
         .fillMaxWidth()
         .wrapContentHeight()
         .background(color = MaterialTheme.colorScheme.primaryContainer)
-        .clickable { onSelect(authentication) }) {
+        .combinedClickable(
+            onClick = {onSelect(authentication)},
+            onLongClick = {select(authentication)}
+        )) {
 
 
         Row(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.weight(1f).wrapContentHeight()) {
-                RadioButton(selected = authentication.selected, onClick = {
-                    select(authentication)
-                })
+            Column(modifier = Modifier
+                .weight(1f)
+                .wrapContentHeight()) {
+                Checkbox(checked = authentication.selected, onCheckedChange = {}, enabled = false)
             }
-            Column(modifier = Modifier.weight(9f).wrapContentHeight()) {
+            Column(modifier = Modifier
+                .weight(9f)
+                .wrapContentHeight()) {
                 Row(modifier = Modifier
                     .wrapContentHeight()
                     .padding(all = 5.dp), Arrangement.Center) {
@@ -196,20 +210,20 @@ fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication
 private fun EditDialog(
     authentication: Authentication?,
     setShowDialog: (Boolean) -> Unit,
-    onSaveClick: (Authentication) -> String,
-    onDeleteClick: (Authentication) -> String) {
+    onSaveClick: (Authentication) -> Unit,
+    onDeleteClick: (Authentication) -> Unit) {
 
+    val context = LocalContext.current
 
     var id by remember { mutableLongStateOf(0L) }
     var title by remember { mutableStateOf(TextFieldValue("")) }
-    var titleVal by remember { mutableStateOf("") }
+    var titleVal by remember { mutableStateOf("")}
     var url by remember { mutableStateOf(TextFieldValue("")) }
-    var urlVal by remember { mutableStateOf("") }
+    var urlVal by remember { mutableStateOf("")}
     var user by remember { mutableStateOf(TextFieldValue("")) }
     var pwd by remember { mutableStateOf(TextFieldValue("")) }
     var description by remember { mutableStateOf(TextFieldValue("")) }
-    var color by remember { mutableStateOf(Color.White) }
-    val context = LocalContext.current
+
 
     if(authentication != null) {
         id = authentication.id
@@ -218,6 +232,8 @@ private fun EditDialog(
         user = TextFieldValue(authentication.userName)
         pwd = TextFieldValue(authentication.password)
         description = TextFieldValue(authentication.description ?: "")
+        titleVal = Validator.validateTextNotEmpty(title.text, 3, 255, context)
+        urlVal = Validator.validateTextNotEmpty(url.text, 10, 500, context)
     }
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
@@ -290,19 +306,12 @@ private fun EditDialog(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(text = msg, color = color, fontWeight = FontWeight.Bold)
-                }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                     if(authentication?.id != 0L) {
                         Column(modifier = Modifier.weight(1F)) {
                             IconButton(onClick = {
-                                msg = onDeleteClick(authentication!!)
-                                if(msg.isEmpty()) {
-                                    setShowDialog(false)
-                                } else {
-                                    color = Color.Red
-                                }
+                                onDeleteClick(authentication!!)
+                                setShowDialog(false)
                             }) {
                                 Icon(Icons.Default.Delete, stringResource(R.string.login_delete))
                             }
@@ -324,12 +333,8 @@ private fun EditDialog(
                                     id, title.text, url.text, user.text, pwd.text, false, description.text, null
                                 )
 
-                                msg = onSaveClick(auth)
-                                if(msg.isEmpty()) {
-                                    setShowDialog(false)
-                                } else {
-                                    color = Color.Red
-                                }
+                                onSaveClick(auth)
+                                setShowDialog(false)
                             }) {
                                 Icon(Icons.Default.CheckCircle, stringResource(R.string.login_close))
                             }
@@ -354,7 +359,7 @@ fun AuthenticationItemPreview() {
 @Preview(showBackground = true)
 @Composable
 fun AuthenticationScreenPreview() {
-    AuthenticationScreen({""}, {""}, {}, listOf(fake(1L), fake(2L)))
+    AuthenticationScreen({}, {}, {}, listOf(fake(1L), fake(2L)))
 }
 
 @Preview(showBackground = true)
@@ -363,7 +368,7 @@ fun DialogPreview() {
     EditDialog(
         authentication = fake(1L),
         setShowDialog = {},
-        onSaveClick = {""},
-        onDeleteClick = {""}
+        onSaveClick = {},
+        onDeleteClick = {}
     )
 }

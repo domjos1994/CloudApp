@@ -1,5 +1,7 @@
 package de.domjos.cloudapp.data.repository
 
+import android.content.Context
+import de.domjos.cloudapp.data.R
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.model.Authentication
 import kotlinx.coroutines.flow.Flow
@@ -9,9 +11,11 @@ interface AuthenticationRepository {
     val authentications: Flow<List<Authentication>>
 
     suspend fun check(authentication: Authentication)
-    suspend fun insert(authentication: Authentication): String
-    suspend fun update(authentication: Authentication): String
+    suspend fun insert(authentication: Authentication, context: Context): String
+    suspend fun update(authentication: Authentication, context: Context): String
     suspend fun delete(authentication: Authentication): String
+
+    suspend fun getLoggedInUser(): Authentication?
 }
 
 class DefaultAuthenticationRepository @Inject constructor(
@@ -22,27 +26,37 @@ class DefaultAuthenticationRepository @Inject constructor(
         authenticationDAO.getAll()
 
     override suspend fun check(authentication: Authentication) {
-        authenticationDAO.getAll().collect {
-            it.forEach { item ->
-                item.selected = false
-                authenticationDAO.updateAuthentication(authentication)
-            }
-        }
+        authenticationDAO.unCheck()
         authentication.selected = true
         authenticationDAO.updateAuthentication(authentication)
     }
 
-    override suspend fun insert(authentication: Authentication): String {
-        this.authenticationDAO.insertAuthentication(authentication)
+    override suspend fun insert(authentication: Authentication, context: Context): String {
+        val auth = this.authenticationDAO.getItemByTitle(authentication.title)
+        if(auth == null) {
+            this.authenticationDAO.insertAuthentication(authentication)
+        } else {
+            return context.getString(R.string.validate_auth)
+        }
+        return ""
+    }
+
+    override suspend fun update(authentication: Authentication, context: Context): String {
+        val auth = this.authenticationDAO.getItemByTitle(authentication.title)
+        if(auth == null) {
+            this.authenticationDAO.updateAuthentication(authentication)
+        } else {
+            return context.getString(R.string.validate_auth)
+        }
+
 
         return ""
     }
 
-    override suspend fun update(authentication: Authentication): String {
-        this.authenticationDAO.updateAuthentication(authentication)
-
-        return ""
+    override suspend fun getLoggedInUser(): Authentication? {
+        return this.authenticationDAO.getSelectedItem()
     }
+
     override suspend fun delete(authentication: Authentication): String {
         this.authenticationDAO.deleteAuthentication(authentication)
 
