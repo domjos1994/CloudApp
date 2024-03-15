@@ -13,10 +13,11 @@ material = "1.11.0"
 navigation = "2.7.7"
 room = "2.6.1"
 kapt = "1.9.22-1.0.17"
-dav4jvm = "2.2.1"
 hilt = "2.51"
 hilt-compose = "1.2.0"
-webrtc = "1.0.0"
+okhttp3 = "4.12.0"
+json = "1.6.3"
+rules = "1.5.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,11 +41,14 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 room-testing = { group = "androidx.room", name = "room-testing", version.ref = "room" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
-dav4jvm = { group = "com.github.bitfireAT", name = "dav4jvm", version.ref = "dav4jvm" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-compose" }
-webrtc = { group = "io.getstream", name = "stream-webrtc-android", version.ref = "webrtc" }
+okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
+kotlin-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "json" }
+kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "json" }
+androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -52,3 +56,4 @@ jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "k
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kaptLibrary = { id = "com.google.devtools.ksp", version.ref = "kapt" }
 hiltLibrary = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+serializationLibrary = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

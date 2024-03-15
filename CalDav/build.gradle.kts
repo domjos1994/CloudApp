@@ -52,10 +52,10 @@ configurations.all {
 
 dependencies {
     implementation(project(":Database"))
-    implementation(libs.dav4jvm)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

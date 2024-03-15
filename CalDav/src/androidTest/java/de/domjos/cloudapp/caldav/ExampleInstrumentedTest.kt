@@ -18,9 +18,6 @@ import org.junit.Assert.*
 class ExampleInstrumentedTest {
     //@Test
     fun useAppContext() {
-        val auth = Authentication(0, "Cloud", "https://cloud.dojodev.de", "domjos", "wRsesbg2M9D7CW3Uc68E", null, null)
 
-        val calDav = CalDav(auth)
-        calDav.getMonth(2)
     }
 }

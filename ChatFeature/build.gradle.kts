@@ -42,6 +42,8 @@ android {
 
 dependencies {
     implementation(project(":AppBasics"))
+    implementation(project(":data"))
+    implementation(project(":WebRTC"))
 
     implementation(libs.androidx.core.ktx)
 
@@ -57,9 +59,6 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
-
-    // chat
-    implementation(libs.webrtc)
 
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

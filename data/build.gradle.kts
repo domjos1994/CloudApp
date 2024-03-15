@@ -36,6 +36,7 @@ android {
 
 dependencies {
     implementation(project(":Database"))
+    implementation(project(":WebRTC"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

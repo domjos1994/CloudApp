@@ -6,6 +6,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
 import de.domjos.cloudapp.data.repository.DefaultAuthenticationRepository
+import de.domjos.cloudapp.data.repository.DefaultRoomRepository
+import de.domjos.cloudapp.data.repository.RoomRepository
 import javax.inject.Singleton
 
 @Module
@@ -17,4 +19,10 @@ interface DataModule {
     fun bindsAuthenticationRepository(
         authenticationRepository: DefaultAuthenticationRepository
     ): AuthenticationRepository
+
+    @Singleton
+    @Binds
+    fun bindsRoomRepository(
+        roomRepository: DefaultRoomRepository
+    ): RoomRepository
 }
