@@ -20,30 +20,21 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(
     private val dataRepository: DataRepository
 ) : ViewModel() {
-    var uiState: StateFlow<DataUiState> = dataRepository.list()
+    var uiState: StateFlow<DataUiState> = dataRepository.items
         .map<List<Item>, DataUiState> { DataUiState.Success(data = it)}
         .distinctUntilChanged()
         .catch { emit(DataUiState.Error(it)) }
         .stateIn(viewModelScope.plus(Dispatchers.IO), SharingStarted.WhileSubscribed(5000), DataUiState.Loading)
 
-    fun init() {
-        viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.init()
-            dataRepository.list()
-        }
-    }
-
     fun openFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.openFolder(item)
-            dataRepository.list()
         }
     }
 
     fun back() {
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.back()
-            dataRepository.list()
         }
     }
 
