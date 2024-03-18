@@ -1,16 +1,14 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.kaptLibrary)
-    alias(libs.plugins.hiltLibrary)
 }
 
 android {
-    namespace = "de.domjos.cloudapp.data"
-    compileSdk = rootProject.extra["sdk_compile"] as Int
+    namespace = "de.domjos.cloudapp.webdav"
+    compileSdk = 34
 
     defaultConfig {
-        minSdk = rootProject.extra["sdk_min"] as Int
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -36,16 +34,12 @@ android {
 
 dependencies {
     implementation(project(":Database"))
-    implementation(project(":WebRTC"))
-    implementation(project(":WebDav"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
 
-    // hilt
-    ksp(libs.hilt.android.compiler)
-    implementation(libs.hilt.android)
+    implementation(libs.sardine)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

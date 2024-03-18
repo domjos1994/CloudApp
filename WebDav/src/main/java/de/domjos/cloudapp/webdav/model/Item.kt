@@ -1,0 +1,9 @@
+package de.domjos.cloudapp.webdav.model
+
+data class Item(var name: String, var directory: Boolean, val type: String, val path: String) {
+
+
+    fun getUrl(url: String): String {
+        return "$url$path"
+    }
+}

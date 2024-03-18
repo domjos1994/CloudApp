@@ -19,6 +19,7 @@ okhttp3 = "4.12.0"
 json = "1.6.3"
 rules = "1.5.0"
 coil = "2.6.0"
+sardine = "0.9"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -51,7 +52,7 @@ kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-s
 androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
-
+sardine = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardine" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

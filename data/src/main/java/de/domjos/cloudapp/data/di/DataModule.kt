@@ -5,7 +5,9 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
+import de.domjos.cloudapp.data.repository.DataRepository
 import de.domjos.cloudapp.data.repository.DefaultAuthenticationRepository
+import de.domjos.cloudapp.data.repository.DefaultDataRepository
 import de.domjos.cloudapp.data.repository.DefaultNotificationsRepository
 import de.domjos.cloudapp.data.repository.DefaultRoomRepository
 import de.domjos.cloudapp.data.repository.NotificationsRepository
@@ -33,4 +35,10 @@ interface DataModule {
     fun bindsNotificationsRepository(
         notificationsRepository: DefaultNotificationsRepository
     ): NotificationsRepository
+
+    @Singleton
+    @Binds
+    fun bindsDataRepository(
+        dataRepository: DefaultDataRepository
+    ): DataRepository
 }
