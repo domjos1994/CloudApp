@@ -232,8 +232,8 @@ private fun EditDialog(
         user = TextFieldValue(authentication.userName)
         pwd = TextFieldValue(authentication.password)
         description = TextFieldValue(authentication.description ?: "")
-        titleVal = Validator.validateTextNotEmpty(title.text, 3, 255, context)
-        urlVal = Validator.validateTextNotEmpty(url.text, 10, 500, context)
+        titleVal = "" //Validator.validateTextNotEmpty(title.text, 3, 255, context)
+        urlVal = "" //Validator.validateTextNotEmpty(url.text, 10, 500, context)
     }
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
@@ -247,7 +247,7 @@ private fun EditDialog(
                         value = title,
                         onValueChange = {
                             title = it
-                            titleVal = Validator.validateTextNotEmpty(title.text, 3, 255, context)
+                            //titleVal = Validator.validateTextNotEmpty(title.text, 3, 255, context)
                         },
                         label = {Text(stringResource(id = R.string.login_title))},
                         modifier = Modifier.fillMaxWidth(),
@@ -264,7 +264,7 @@ private fun EditDialog(
                         value = url,
                         onValueChange = {
                             url = it
-                            urlVal = Validator.validateTextNotEmpty(url.text, 10, 500, context)
+                            //urlVal = Validator.validateTextNotEmpty(url.text, 10, 500, context)
                         },
                         label = {Text(stringResource(id = R.string.login_url))},
                         modifier = Modifier.fillMaxWidth(),

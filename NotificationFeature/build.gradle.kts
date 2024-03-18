@@ -42,6 +42,8 @@ android {
 
 dependencies {
     implementation(project(":AppBasics"))
+    implementation(project(":data"))
+    implementation(project(":WebRTC"))
 
     implementation(libs.androidx.core.ktx)
 
@@ -52,6 +54,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.coil)
+    implementation(libs.coil.svg)
 
     // hilt
     ksp(libs.hilt.android.compiler)
