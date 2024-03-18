@@ -20,7 +20,7 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(
     private val dataRepository: DataRepository
 ) : ViewModel() {
-    var uiState: StateFlow<DataUiState> = dataRepository.uiState
+    var uiState: StateFlow<DataUiState> = dataRepository.list()
         .map<List<Item>, DataUiState> { DataUiState.Success(data = it)}
         .distinctUntilChanged()
         .catch { emit(DataUiState.Error(it)) }

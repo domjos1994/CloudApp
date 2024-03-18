@@ -51,7 +51,6 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
 
     if(items is DataUiState.Success) {
         viewModel.init()
-        viewModel.
 
         DataScreen((items as DataUiState.Success).data) {
             if(it.directory) {

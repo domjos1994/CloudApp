@@ -34,22 +34,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.net.toUri
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp.features.calendars.screens.CalendarScreen
 import de.domjos.cloudapp.features.chats.screens.ChatScreen
+import de.domjos.cloudapp.features.chats.screens.RoomScreen
 import de.domjos.cloudapp.features.contacts.screens.ContactScreen
 import de.domjos.cloudapp.features.data.screens.DataScreen
 import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
@@ -74,10 +77,11 @@ class MainActivity() : ComponentActivity() {
             val dataTab = TabBarItem(title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
             val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
             val contactsTab = TabBarItem(title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
+            val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
             val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
 
             // creating a list of all the tabs
-            val tabBarItems = listOf(notificationsTab, dataTab, calendarsTab, contactsTab, chatsTab)
+            val tabBarItems = listOf(notificationsTab, dataTab, calendarsTab, contactsTab, roomTab)
             val authentications = stringResource(id = R.string.login_authentications)
 
             // creating our navController
@@ -127,8 +131,18 @@ class MainActivity() : ComponentActivity() {
                                 ContactScreen()
                                 title = contactsTab.title
                             }
+                            composable(
+                                roomTab.title
+                            ) {
+                                RoomScreen(onChatScreen = { x, y ->
+                                    it.arguments?.putInt("lookIntoFuture", x)
+                                    it.arguments?.putString("token", y)
+                                    navController.navigate("android-app://androidx.navigation/Chats".toUri())
+                                })
+                                title = chatsTab.title
+                            }
                             composable(chatsTab.title) {
-                                ChatScreen()
+                                ChatScreen(lookIntoFuture = 0, token = "")
                                 title = chatsTab.title
                             }
                         }

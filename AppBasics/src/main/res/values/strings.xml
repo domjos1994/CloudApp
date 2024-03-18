@@ -9,6 +9,10 @@
     <string name="data">Data</string>
 
     <string name="chats">Chats</string>
+    <string name="chats_room">Rooms</string>
+    <string name="chats_rooms_type">Type</string>
+    <string name="chats_rooms_name">Name</string>
+    <string name="chats_rooms_description">Description</string>
 
     <string name="login">Login</string>
     <string name="login.authentications">Authentications</string>
