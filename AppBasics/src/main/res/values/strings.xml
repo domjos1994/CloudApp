@@ -9,10 +9,13 @@
     <string name="data">Data</string>
 
     <string name="chats">Chats</string>
+    <string name="chats_msg">Message</string>
+    <string name="chats_send">Send</string>
     <string name="chats_room">Rooms</string>
     <string name="chats_rooms_type">Type</string>
     <string name="chats_rooms_name">Name</string>
     <string name="chats_rooms_description">Description</string>
+
 
     <string name="login">Login</string>
     <string name="login.authentications">Authentications</string>
@@ -29,4 +32,6 @@
     <string name="validation.notEmpty.min">Field should be longer than %d characters!</string>
     <string name="validation.notEmpty.max">Field should be less than %d characters!</string>
     <string name="validation.notEmpty.min_max">Field should be between %d and %d characters!</string>
+
+    <string name="sys_format">yyyy-MM-dd HH:mm:ss</string>
 </resources>

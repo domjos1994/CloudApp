@@ -46,6 +46,7 @@ dependencies {
     implementation(project(":REST"))
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.constraint)
 
     // compose
     implementation(libs.androidx.activity.compose)
@@ -54,6 +55,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     // hilt
     ksp(libs.hilt.android.compiler)

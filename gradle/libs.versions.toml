@@ -20,6 +20,8 @@ json = "1.6.3"
 rules = "1.5.0"
 coil = "2.6.0"
 sardine = "0.9"
+lifecycleRuntimeCompose = "2.7.0"
+constraint = "1.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,6 +55,8 @@ androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 sardine = { group = "com.github.thegrizzlylabs", name = "sardine-android", version.ref = "sardine" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
+androidx-constraint = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraint" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -32,3 +32,6 @@ data class Message(var id: Int, var token: String, var actorType: String, var ac
         return result
     }
 }
+
+@Serializable
+data class InputMessage(var message: String)

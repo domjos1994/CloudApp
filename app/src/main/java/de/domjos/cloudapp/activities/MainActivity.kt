@@ -87,9 +87,8 @@ class MainActivity() : ComponentActivity() {
             // creating our navController
             val navController = rememberNavController()
 
-            var title by rememberSaveable {
-                mutableStateOf("")
-            }
+            var title by rememberSaveable { mutableStateOf("") }
+            var header by rememberSaveable { mutableStateOf("") }
 
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -100,7 +99,7 @@ class MainActivity() : ComponentActivity() {
                     Scaffold(bottomBar = { TabView(tabBarItems, navController) }, topBar = { TopAppBar(colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         titleContentColor = MaterialTheme.colorScheme.primary,
-                    ),title={Text(title)}, actions = {
+                    ),title={Text(header)}, actions = {
                         IconButton(onClick = {
                             navController.navigate(authentications)
                         }) {
@@ -109,41 +108,52 @@ class MainActivity() : ComponentActivity() {
                                 contentDescription = stringResource(R.string.login)
                             )
                         }
-                    })}) {
+                    })}) { it ->
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
                                 AuthenticationScreen()
                                 title = authentications
+                                header = authentications
                             }
                             composable(notificationsTab.title) {
                                 NotificationScreen()
                                 title = notificationsTab.title
+                                header = notificationsTab.title
                             }
                             composable(dataTab.title) {
                                 DataScreen()
                                 title = dataTab.title
+                                header = dataTab.title
                             }
                             composable(calendarsTab.title) {
                                 CalendarScreen()
                                 title = calendarsTab.title
+                                header = calendarsTab.title
                             }
                             composable(contactsTab.title) {
                                 ContactScreen()
                                 title = contactsTab.title
+                                header = contactsTab.title
                             }
-                            composable(
-                                roomTab.title
-                            ) {
+                            composable(roomTab.title) {
                                 RoomScreen(onChatScreen = { x, y ->
-                                    it.arguments?.putInt("lookIntoFuture", x)
-                                    it.arguments?.putString("token", y)
-                                    navController.navigate("android-app://androidx.navigation/Chats".toUri())
+                                    navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
                                 })
                                 title = chatsTab.title
+                                header = roomTab.title
                             }
-                            composable(chatsTab.title) {
-                                ChatScreen(lookIntoFuture = 0, token = "")
+                            composable(
+                                "${chatsTab.title}/{lookIntoFuture}/{token}",
+                                    arguments = listOf(
+                                        navArgument("lookIntoFuture") { type = NavType.IntType },
+                                        navArgument("token") { type = NavType.StringType }
+                                    )
+                                ) { stack ->
+                                val x = stack.arguments?.getInt("lookIntoFuture")!!
+                                val y = stack.arguments?.getString("token")!!
+                                ChatScreen(lookIntoFuture = x, token = y)
                                 title = chatsTab.title
+                                header = chatsTab.title
                             }
                         }
                     }

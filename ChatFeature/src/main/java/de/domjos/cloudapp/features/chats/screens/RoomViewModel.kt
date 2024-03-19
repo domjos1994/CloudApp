@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.features.chats.screens
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,6 +50,13 @@ class RoomViewModel @Inject constructor(
     fun deleteRoom(room: Room) {
         viewModelScope.launch {
             roomRepository.deleteRoom(room.token)
+        }
+    }
+
+    @Throws(Exception::class)
+    fun getAvatar(room: Room, onGet: (Bitmap?)->Unit) {
+        viewModelScope.launch {
+            onGet(roomRepository.getAvatar(room.token))
         }
     }
 }

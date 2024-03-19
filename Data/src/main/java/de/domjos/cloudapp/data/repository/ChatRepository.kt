@@ -11,7 +11,8 @@ interface ChatRepository {
     var lookIntoFuture: Int
     var token: String
 
-    fun initChats(): Flow<List<Message>>
+    fun initChats(): List<Message>
+    fun postChat(msg: String): List<Message>
 }
 
 class DefaultChatRepository @Inject constructor(
@@ -22,9 +23,11 @@ class DefaultChatRepository @Inject constructor(
     override var lookIntoFuture: Int = 0
     override var token: String = ""
 
-    override fun initChats(): Flow<List<Message>> {
+    override fun initChats(): List<Message> {
         return request.getChats(lookIntoFuture, token)
     }
 
-
+    override fun postChat(msg: String): List<Message> {
+        return request.insertChats(token, msg)
+    }
 }

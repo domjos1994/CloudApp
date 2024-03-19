@@ -1,6 +1,8 @@
 package de.domjos.cloudapp.features.chats.screens
 
+import android.graphics.drawable.BitmapDrawable
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
@@ -113,9 +117,6 @@ fun RoomScreen(
     val showDialog =  remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Room?>(null) }
 
-    // creating our navController
-    val chat = stringResource(id = R.string.chats)
-
     if(showDialog.value) {
         EditDialog(
             room = selectedItem.value,
@@ -137,11 +138,11 @@ fun RoomScreen(
             rooms.forEach { room ->
                 RoomItem(room, {
                     selectedItem.value = it
-                    onChatScreen(0, it.token)
-                }) {
+                    onChatScreen(1, it.token)
+                }, {
                     selectedItem.value = it
                     showDialog.value = true
-                }
+                })
             }
         }
 
@@ -150,7 +151,9 @@ fun RoomScreen(
                 showDialog.value = true
                 selectedItem.value = null
             },
-            modifier = Modifier.align(Alignment.End).padding(5.dp)) {
+            modifier = Modifier
+                .align(Alignment.End)
+                .padding(5.dp)) {
             Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
         }
     }
@@ -159,6 +162,14 @@ fun RoomScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
+    val context = LocalContext.current
+    val img by remember {
+        mutableStateOf(
+            (AppCompatResources.getDrawable(context, R.drawable.baseline_person_24) as BitmapDrawable)
+                .bitmap.asImageBitmap()
+        )
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -168,7 +179,7 @@ fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
                 onClick = { onClick(room) },
                 onLongClick = { onLongClick(room) })
     ) {
-        Image(painterResource(R.drawable.baseline_person_24), room.name, modifier = Modifier.padding(5.dp))
+        Image(img, room.name, modifier = Modifier.padding(5.dp))
         Column {
             Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp))
             Text(
@@ -320,22 +331,22 @@ fun DialogNewPreview() {
 @Preview(showBackground = true)
 @Composable
 fun DialogUpdatePreview() {
-    EditDialog(fake(1), {}, {}, {})
+    EditDialog(fakeRoom(1), {}, {}, {})
 }
 
 @Preview(showBackground = true)
 @Composable
-fun ChatScreenPreview() {
-    RoomScreen({}, {}, listOf(fake(0), fake(1), fake(2)), {x,y->})
+fun RoomScreenPreview() {
+    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)), {x,y->})
 }
 
 @Preview(showBackground = true)
 @Composable
-fun ChatItemPreview() {
-    RoomItem(fake(1), {}, {})
+fun RoomItemPreview() {
+    RoomItem(fakeRoom(1), {}, {})
 }
 
-fun fake(no: Int): Room {
+fun fakeRoom(no: Int): Room {
     val msg =
         Message(
             no,
