@@ -42,7 +42,7 @@ android {
 
 dependencies {
     implementation(project(":AppBasics"))
-    implementation(project(":data"))
+    implementation(project(":Data"))
     implementation(project(":WebDav"))
 
     implementation(libs.androidx.core.ktx)

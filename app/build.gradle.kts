@@ -52,7 +52,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":data"))
+    implementation(project(":Data"))
     implementation(project(":Database"))
 
     implementation(project(":AppBasics"))

@@ -1,9 +1,10 @@
 package de.domjos.cloudapp.database.dao
 
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.domjos.cloudapp.database.BaseTest
 import de.domjos.cloudapp.database.model.Authentication
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.toList
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,29 +27,29 @@ class AuthenticationDaoTest : BaseTest() {
     }
 
     @Test
-    fun testCreation() {
-        val auth = Authentication(0, "test", "https://test.de", "test", "test",null,null)
+    suspend fun testCreation() {
+        val auth = Authentication(0, "test", "https://test.de", "test", "test",false,null, null)
 
-        var items = authenticationDAO.getAll()
+        var items = authenticationDAO.getAll().toList()
         assertEquals(0, items.size)
 
         val id = authenticationDAO.insertAuthentication(auth)
         assertNotEquals(0, id)
 
-        items = authenticationDAO.getAll()
+        items = authenticationDAO.getAll().toList()
         assertEquals(1, items.size)
 
         auth.id = id
         authenticationDAO.deleteAuthentication(auth)
-        items = authenticationDAO.getAll()
+        items = authenticationDAO.getAll().toList()
         assertEquals(0, items.size)
     }
 
     @Test
-    fun testUpdate() {
-        val auth = Authentication(0, "test", "https://test.de", "test", "test",null,null)
+    suspend fun testUpdate() {
+        val auth = Authentication(0, "test", "https://test.de", "test", "test",false,null, null)
 
-        var items = authenticationDAO.getAll()
+        var items = authenticationDAO.getAll().toList()
         assertEquals(0, items.size)
 
         val id = authenticationDAO.insertAuthentication(auth)
@@ -56,13 +57,13 @@ class AuthenticationDaoTest : BaseTest() {
 
         var item = authenticationDAO.getItemByTitle("test")
         assertNotNull(item)
-        item.title = "test2"
-        authenticationDAO.updateAuthentication(item)
+        item?.title = "test2"
+        authenticationDAO.updateAuthentication(item!!)
         item = authenticationDAO.getItemByTitle("test2")
         assertNotNull(item)
 
-        authenticationDAO.deleteAuthentication(item)
-        items = authenticationDAO.getAll()
+        authenticationDAO.deleteAuthentication(item!!)
+        items = authenticationDAO.getAll().toList()
         assertEquals(0, items.size)
     }
 }

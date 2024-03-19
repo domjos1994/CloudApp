@@ -42,8 +42,8 @@ android {
 
 dependencies {
     implementation(project(":AppBasics"))
-    implementation(project(":data"))
-    implementation(project(":WebRTC"))
+    implementation(project(":Data"))
+    implementation(project(":REST"))
 
     implementation(libs.androidx.core.ktx)
 

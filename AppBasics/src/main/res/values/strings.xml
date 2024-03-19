@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="notifications">Notifications</string>
+    <string name="notifications">News</string>
 
-    <string name="calendars">Calendars</string>
+    <string name="calendars">Calendar</string>
 
     <string name="contacts">Contacts</string>
 
     <string name="data">Data</string>
 
     <string name="chats">Chats</string>
+    <string name="chats_room">Rooms</string>
+    <string name="chats_rooms_type">Type</string>
+    <string name="chats_rooms_name">Name</string>
+    <string name="chats_rooms_description">Description</string>
 
     <string name="login">Login</string>
     <string name="login.authentications">Authentications</string>
