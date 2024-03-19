@@ -17,43 +17,30 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.webdav.model.Item
 
 @Composable
 fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val items by produceState<DataUiState>(
-        initialValue = DataUiState.Loading,
-        key1 = lifecycle,
-        key2 = viewModel
-    ) {
-        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
-            viewModel.uiState.collect { value = it }
-        }
-    }
+    val items by viewModel.items.collectAsStateWithLifecycle()
+    viewModel.init()
 
-    if(items is DataUiState.Success) {
-        DataScreen((items as DataUiState.Success).data) {
-            if(it.directory) {
-                if(it.name == "..") {
-                    viewModel.back()
-                } else {
-                    viewModel.openFolder(it)
-                }
+    DataScreen(items) {
+        if(it.directory) {
+            if(it.name == "..") {
+                viewModel.back()
             } else {
-                viewModel.loadFile(it, "")
+                viewModel.openFolder(it)
             }
+        } else {
+            viewModel.loadFile(it, "")
         }
     }
 }

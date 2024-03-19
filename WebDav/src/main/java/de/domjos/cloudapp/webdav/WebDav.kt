@@ -29,27 +29,24 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
         }
     }
 
-    fun getList(): Flow<MutableList<Item>> {
-        return flow {
-            try {
-                val items = LinkedList<Item>()
-                if(url != "${authenticationDAO.getSelectedItem()?.url}${basePath}") {
-                    items.add(Item("..", true, "", ""))
-                }
-                list.forEach {
-                    var name = it.displayName
-                    if(name == null) {
-                        name = it.path
-                    }
-
-                    val item = Item(name, it.isDirectory, it.contentType, it.path)
-                    items.add(item)
-                }
-                emit(items)
-            } catch(ex: Exception) {
-                emit(mutableListOf())
-                throw ex
+    fun getList(): MutableList<Item> {
+        try {
+            val items = LinkedList<Item>()
+            if(url != "${authenticationDAO.getSelectedItem()?.url}${basePath}") {
+                items.add(Item("..", true, "", ""))
             }
+            list.forEach {
+                var name = it.displayName
+                if(name == null) {
+                    name = it.path
+                }
+
+                val item = Item(name, it.isDirectory, it.contentType, it.path)
+                items.add(item)
+            }
+            return items
+        } catch(ex: Exception) {
+            return mutableListOf()
         }
     }
 

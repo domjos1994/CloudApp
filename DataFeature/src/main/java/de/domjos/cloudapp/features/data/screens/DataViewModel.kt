@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.DataRepository
 import de.domjos.cloudapp.webdav.model.Item
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -20,21 +21,26 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(
     private val dataRepository: DataRepository
 ) : ViewModel() {
-    var uiState: StateFlow<DataUiState> = dataRepository.items
-        .map<List<Item>, DataUiState> { DataUiState.Success(data = it)}
-        .distinctUntilChanged()
-        .catch { emit(DataUiState.Error(it)) }
-        .stateIn(viewModelScope.plus(Dispatchers.IO), SharingStarted.WhileSubscribed(5000), DataUiState.Loading)
+    private val _items = MutableStateFlow(listOf<Item>())
+    val items: StateFlow<List<Item>> get() = _items
+
+    fun init() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _items.value = dataRepository.items
+        }
+    }
 
     fun openFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.openFolder(item)
+            _items.value = dataRepository.items
         }
     }
 
     fun back() {
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.back()
+            _items.value = dataRepository.items
         }
     }
 
