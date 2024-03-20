@@ -32,29 +32,19 @@ android {
     }
 }
 
-configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        with(substitute(module("org.hamcrest:hamcrest-core:1.3"))) {
-            module("junit:junit:4.7")
-        }
-    }
-    resolutionStrategy.eachDependency {
-        if (requested.name == "groovy-all") {
-            useTarget("${requested.group}:groovy:${requested.version}")
-            because("prefer 'groovy' over 'groovy-all'")
-        }
-        if (requested.name == "log4j") {
-            useTarget("org.slf4j:log4j-over-slf4j:1.7.10")
-            because("prefer 'log4j-over-slf4j' 1.7.10 over any version of 'log4j'")
-        }
-    }
-}
-
 dependencies {
     implementation(project(":Database"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
+
+    // caldav
+    implementation(libs.ical4j)
+    implementation(libs.ical4j.connector)
+    implementation(libs.ical4j.connector.dav)
+    implementation(libs.ical4j.extensions)
+    implementation(libs.caldav4j)
+    implementation(libs.sardine)
 
     implementation(libs.material)
     testImplementation(libs.junit)

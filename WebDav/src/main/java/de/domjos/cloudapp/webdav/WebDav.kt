@@ -3,6 +3,7 @@ package de.domjos.cloudapp.webdav
 import com.thegrizzlylabs.sardineandroid.DavResource
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
+import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.webdav.model.Item
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -15,34 +16,69 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
     private var sardine: OkHttpSardine
     private var list: List<DavResource>
     private var url = ""
+    private var currentUrl = ""
+    private var lastUrl = ""
     private var basePath = ""
+    private val authentication: Authentication?
 
     init {
         this.list = LinkedList()
-        val authentication = authenticationDAO.getSelectedItem()
+        this.authentication = authenticationDAO.getSelectedItem()
         this.sardine = OkHttpSardine()
         if(authentication != null) {
             this.sardine.setCredentials(authentication.userName, authentication.password)
-            this.basePath = "/remote.php/dav/files/${authentication.userName}/"
+            this.basePath = "/remote.php/dav/files/${authentication.userName}"
             this.list = this.sardine.list("${authentication.url}${this.basePath}")
             this.url = authentication.url
+            this.currentUrl = "$url$basePath"
         }
     }
 
-    fun getList(): MutableList<Item> {
+    fun getPath(): String {
+        var tmp = this.currentUrl
+        tmp = tmp.replace("$url$basePath", "")
+        if(tmp.endsWith("/")) {
+            tmp = "$tmp-".replace("/-", "")
+        }
+        if(tmp == "") {
+            tmp = "/"
+        }
+        return tmp
+    }
+
+    fun getList(): List<Item> {
         try {
             val items = LinkedList<Item>()
-            if(url != "${authenticationDAO.getSelectedItem()?.url}${basePath}") {
+            if(currentUrl != "${authentication?.url}${basePath}") {
                 items.add(Item("..", true, "", ""))
             }
             list.forEach {
-                var name = it.displayName
-                if(name == null) {
-                    name = it.path
+                val path: String
+                var name: String?
+                if(it.isDirectory) {
+                    path = "${it.path}-".replace("/-", "")
+                    name = it.displayName
+                    if(name == null) {
+                        name = path.split("/")[path.split("/").size-1]
+                    }
+                } else {
+                    path = it.path
+                    name = it.displayName
+                    if(name == null) {
+                        name = path.split("/")[path.split("/").size-1]
+                    }
                 }
 
-                val item = Item(name, it.isDirectory, it.contentType, it.path)
-                items.add(item)
+
+                val item = Item(name, it.isDirectory, it.contentType, path)
+
+                var tmp = currentUrl
+                if(tmp.endsWith("/")) {
+                    tmp = "$tmp-".replace("/-", "")
+                }
+                if(!(tmp.endsWith(name) && it.isDirectory)) {
+                    items.add(item)
+                }
             }
             return items
         } catch(ex: Exception) {
@@ -52,18 +88,34 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
 
     fun openFolder(item: Item) {
         if(item.directory) {
-            this.list = this.sardine.list(item.getUrl(url))
+            if(this.currentUrl != item.getUrl(this.url)) {
+                this.lastUrl = this.currentUrl
+                this.currentUrl = item.getUrl(url)
+                this.list = this.sardine.list(this.currentUrl)
+            }
         }
     }
 
     fun back() {
-        this.sardine.list(this.url.replace(this.url.split("/")[this.url.split("/").size - 1], ""))
+        try {
+            if(this.lastUrl.endsWith("/")) {
+                this.lastUrl = "$lastUrl-".replace("/-","")
+            }
+
+            this.currentUrl = this.lastUrl
+            this.lastUrl = this.lastUrl.replace(this.lastUrl.split("/")[this.lastUrl.split("/").size-1], "")
+            this.list = this.sardine.list(this.currentUrl)
+        } catch (ex: Exception) {
+            this.currentUrl = "$url$basePath"
+            this.lastUrl = ""
+            this.list = this.sardine.list(this.currentUrl)
+        }
     }
 
     fun openResource(item: Item, path: String) {
         if(!item.directory) {
             this.sardine.get(item.getUrl(this.url)).use { input ->
-                val file = File(path)
+                val file = File("$path/${item.name.replace(" ", "_")}")
                 FileOutputStream(file).use { output ->
                     val buffer = ByteArray(4 * 1024) // or other buffer size
                     var read: Int
