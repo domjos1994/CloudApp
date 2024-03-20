@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.caldav
 
+import de.domjos.cloudapp.database.model.Authentication
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -12,6 +13,6 @@ import org.junit.Assert.*
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+        val cal = Calendar(Authentication(0L, "Cloud", "https://cloud.dojodev.de", "domjos", "wRsesbg2M9D7CW3Uc68E", true, "", null))
     }
 }
