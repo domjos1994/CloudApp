@@ -1,5 +1,7 @@
 package de.domjos.cloudapp.features.data.screens
 
+import android.content.Context
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,38 +23,46 @@ import javax.inject.Inject
 class DataViewModel @Inject constructor(
     private val dataRepository: DataRepository
 ) : ViewModel() {
+    private val _path = MutableStateFlow("")
     private val _items = MutableStateFlow(listOf<Item>())
     val items: StateFlow<List<Item>> get() = _items
+    val path: StateFlow<String> get() = _path
 
     fun init() {
         viewModelScope.launch(Dispatchers.IO) {
-            _items.value = dataRepository.items
+            dataRepository.init()
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
         }
     }
 
     fun openFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.openFolder(item)
-            _items.value = dataRepository.items
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
         }
     }
 
     fun back() {
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.back()
-            _items.value = dataRepository.items
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
         }
     }
 
-    fun loadFile(item: Item, path: String) {
+    fun loadFile(item: Item, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.openResource(item, path)
+            val dir = dataRepository.createDirs()
+            if(!exists(item)) {
+                dataRepository.openResource(item, dir)
+            }
+            dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
         }
     }
-}
 
-sealed interface DataUiState {
-    data object Loading : DataUiState
-    data class Error(val throwable: Throwable) : DataUiState
-    data class Success(val data: List<Item>) : DataUiState
+    fun exists(item: Item): Boolean {
+        return dataRepository.exists(item)
+    }
 }
