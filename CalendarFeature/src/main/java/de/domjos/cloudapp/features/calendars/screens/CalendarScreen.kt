@@ -1,9 +1,11 @@
 package de.domjos.cloudapp.features.calendars.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -72,18 +75,20 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
 @Composable
 fun CalendarScreen(calendarEvents: List<CalendarEvent>, onReload: (updateProgress: (Float, String) -> Unit, onFinish: () -> Unit) -> Unit) {
     LinearDeterminateIndicator(onReload)
-
+    Calendar()
 }
 
 @Composable
-fun Calendar(dt: Calendar = Calendar.getInstance()) {
-    val sdfMonth = SimpleDateFormat("MM.yyyy", Locale.getDefault())
+fun Calendar(calendar: Calendar = Calendar.getInstance()) {
+    var dt by remember { mutableStateOf(calendar) }
+    val sdfMonth = SimpleDateFormat("MM.yyyy", Locale.GERMAN)
     val next = dt.clone() as Calendar
     val previous = dt.clone() as Calendar
     next.add(Calendar.MONTH, 1)
     previous.add(Calendar.MONTH, -1)
     val firstDay = LocalDate.of(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), 1)
     val start = firstDay.dayOfWeek.value
+    val lastDay = dt.getActualMaximum(Calendar.DAY_OF_MONTH)
 
     Column(Modifier.verticalScroll(rememberScrollState())) {
         Row(
@@ -91,17 +96,30 @@ fun Calendar(dt: Calendar = Calendar.getInstance()) {
                 .wrapContentHeight()
                 .fillMaxWidth()) {
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.Start) {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = {
+                    val cal = Calendar.getInstance()
+                    cal.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), dt.get(Calendar.DAY_OF_MONTH))
+                    cal.add(Calendar.MONTH, -1)
+                    dt = cal
+                }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, sdfMonth.format(next.time))
                 }
             }
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Button(onClick = { /*TODO*/ }) {
+                Button(onClick = {
+                    val cal = Calendar.getInstance()
+                    dt = cal
+                }) {
                     Text(sdfMonth.format(dt.time))
                 }
             }
             Column(Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                IconButton(onClick = { /*TODO*/ }) {
+                IconButton(onClick = {
+                    val cal = Calendar.getInstance()
+                    cal.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), dt.get(Calendar.DAY_OF_MONTH))
+                    cal.add(Calendar.MONTH, 1)
+                    dt = cal
+                }) {
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, sdfMonth.format(previous.time))
                 }
             }
@@ -132,8 +150,172 @@ fun Calendar(dt: Calendar = Calendar.getInstance()) {
                 Text(stringResource(R.string.calendar_su), fontWeight = FontWeight.Bold)
             }
         }
-
-
+        Row(
+            Modifier
+                .height(1.dp)
+                .fillMaxWidth()
+                .background(color = Color.Black)) {}
+        Row(
+            Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(start==0) "1" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(start<=1) "${2 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(start<=2) "${3 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(start<=3) "${4 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(start<=4) "${5 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(start<=5) "${6 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(start<=6) "${7 - start}" else "")
+            }
+        }
+        Row(
+            Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(7-start<lastDay) "${8 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(8-start<lastDay) "${9 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(9-start<lastDay) "${10 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(10-start<lastDay) "${11 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(11-start<lastDay) "${12 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(12-start<lastDay) "${13 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(13-start<lastDay) "${14 - start}" else "")
+            }
+        }
+        Row(
+            Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(14-start<lastDay) "${15 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(15-start<lastDay) "${16 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(16-start<lastDay) "${17 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(17-start<lastDay) "${18 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(18-start<lastDay) "${19 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(19-start<lastDay) "${20 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(20-start<lastDay) "${21 - start}" else "")
+            }
+        }
+        Row(
+            Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(21-start<lastDay) "${22 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(22-start<lastDay) "${23 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(23-start<lastDay) "${24 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(24-start<lastDay) "${25 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(25-start<lastDay) "${26 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(26-start<lastDay) "${27 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(27-start<lastDay) "${28 - start}" else "")
+            }
+        }
+        Row(
+            Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(28-start<lastDay) "${29 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(29-start<lastDay) "${30 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(30-start<lastDay) "${31 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(31-start<lastDay) "${32 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(32-start<lastDay) "${33 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(33-start<lastDay) "${34 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(34-start<lastDay) "${35 - start}" else "")
+            }
+        }
+        Row(
+            Modifier
+                .wrapContentHeight()
+                .fillMaxWidth()) {
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(35-start<lastDay) "${36 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(36-start<=lastDay) "${37 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(37-start<=lastDay) "${38 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(38-start<=lastDay) "${39 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(39-start<=lastDay) "${40 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(40-start<=lastDay) "${41 - start}" else "")
+            }
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if(41-start<=lastDay) "${42 - start}" else "")
+            }
+        }
+        Row(
+            Modifier
+                .height(1.dp)
+                .fillMaxWidth()
+                .background(color = Color.Black)) {}
     }
 }
 
