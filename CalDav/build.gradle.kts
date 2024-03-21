@@ -40,10 +40,6 @@ dependencies {
 
     // caldav
     implementation(libs.ical4j)
-    implementation(libs.ical4j.connector)
-    implementation(libs.ical4j.connector.dav)
-    implementation(libs.ical4j.extensions)
-    implementation(libs.caldav4j)
     implementation(libs.sardine)
 
     implementation(libs.material)

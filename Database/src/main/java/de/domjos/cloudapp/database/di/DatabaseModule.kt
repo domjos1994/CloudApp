@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import de.domjos.cloudapp.database.DB
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
+import de.domjos.cloudapp.database.dao.CalendarEventDAO
 import javax.inject.Singleton
 
 @Module
@@ -18,6 +19,11 @@ class DatabaseModule {
     @Provides
     fun provideProductDao(db: DB): AuthenticationDAO {
         return db.authenticationDao()
+    }
+
+    @Provides
+    fun provideCalendarEventDao(db: DB): CalendarEventDAO {
+        return db.calendarEventDao()
     }
 
     @Provides

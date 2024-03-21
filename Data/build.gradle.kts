@@ -38,6 +38,7 @@ dependencies {
     implementation(project(":Database"))
     implementation(project(":REST"))
     implementation(project(":WebDav"))
+    implementation(project(":CalDav"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

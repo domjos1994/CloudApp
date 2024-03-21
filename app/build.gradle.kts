@@ -47,7 +47,19 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE.md"
+            excludes += "/META-INF/NOTICE.md"
         }
+        jniLibs {
+            excludes += "/META-INF/groovy/**"
+            excludes += "/zoneinfo-global/**"
+        }
+    }
+
+    configurations.all {
+        this.exclude(group = "commons-logging")
+        this.exclude(group = "org.hamcrest")
     }
 }
 
