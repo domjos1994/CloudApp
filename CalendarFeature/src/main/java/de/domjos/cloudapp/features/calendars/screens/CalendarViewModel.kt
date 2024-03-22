@@ -6,22 +6,36 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.CalendarRepository
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val calendarRepository: CalendarRepository
 ) : ViewModel() {
-    var uiState: StateFlow<CalendarUiState> = calendarRepository
-        .calendarEvents.map<List<CalendarEvent>, CalendarUiState> {CalendarUiState.Success(data = it)}
-        .catch { emit(CalendarUiState.Error(it)) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CalendarUiState.Loading)
+    private val _events = MutableStateFlow(listOf<CalendarEvent>())
+    val events: StateFlow<List<CalendarEvent>> get() = _events
+    private val _days = MutableStateFlow(listOf<Int>())
+    val days: StateFlow<List<Int>> get() = _days
+
+    fun load(startTime: Long, endTime: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _events.value = calendarRepository.loadData(startTime, endTime)
+        }
+    }
+
+    fun count(calendar: Calendar) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _days.value = calendarRepository.countData(calendar)
+        }
+    }
 
     fun reload(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, progressLabel: String, saveLabel: String) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -47,10 +61,4 @@ class CalendarViewModel @Inject constructor(
             calendarRepository.delete(calendarEvent)
         }
     }
-}
-
-sealed interface CalendarUiState {
-    data object Loading : CalendarUiState
-    data class Error(val throwable: Throwable) : CalendarUiState
-    data class Success(val data: List<CalendarEvent>) : CalendarUiState
 }

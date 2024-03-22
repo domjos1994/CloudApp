@@ -14,10 +14,10 @@ interface CalendarEventDAO {
     @Query("SELECT * FROM calendarEvents")
     fun getAll(): Flow<List<CalendarEvent>>
 
-    @Query("SELECT count(uid) FROM calendarEvents")
-    fun count(): Flow<Long>
-    @Query("SELECT * FROM calendarEvents WHERE title=:title")
-    fun getItemByTitle(title: String): CalendarEvent?
+    @Query("SELECT count(uid) FROM calendarEvents WHERE `to`>:startTime and `from`<:endTime order by `to`")
+    fun count(startTime: Long, endTime: Long): Long
+    @Query("SELECT * FROM calendarEvents WHERE `to`>:startTime and `from`<:endTime order by `to`")
+    fun getItemsByTime(startTime: Long, endTime: Long): List<CalendarEvent>
 
     @Insert
     fun insertCalendarEvent(calendarEvent: CalendarEvent)

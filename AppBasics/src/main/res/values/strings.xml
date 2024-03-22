@@ -6,13 +6,6 @@
     <string name="calendar_import">Import</string>
     <string name="calendar_import_calendar">Import %s …</string>
     <string name="calendar_save_calendar">Save %s …</string>
-    <string name="calendar_mo">Mo</string>
-    <string name="calendar_tu">Tu</string>
-    <string name="calendar_we">We</string>
-    <string name="calendar_th">Th</string>
-    <string name="calendar_fr">Fr</string>
-    <string name="calendar_sa">Sa</string>
-    <string name="calendar_su">Su</string>
 
     <string name="contacts">Contacts</string>
 

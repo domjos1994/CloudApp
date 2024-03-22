@@ -5,11 +5,12 @@ import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.dao.CalendarEventDAO
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import kotlinx.coroutines.flow.Flow
+import java.util.LinkedList
 import javax.inject.Inject
 
 interface CalendarRepository {
-    val calendarEvents: Flow<List<CalendarEvent>>
-
+    fun loadData(startTime: Long, endTime:Long): List<CalendarEvent>
+    fun countData(calendar: java.util.Calendar): LinkedList<Int>
     fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
     fun insert(calendarEvent: CalendarEvent)
     fun update(calendarEvent: CalendarEvent)
@@ -20,9 +21,34 @@ class DefaultCalendarRepository @Inject constructor(
     authenticationDAO: AuthenticationDAO,
     private val calendarEventDAO: CalendarEventDAO
 ) : CalendarRepository {
-    override val calendarEvents: Flow<List<CalendarEvent>>
-        get() = calendarEventDAO.getAll()
     private val calendar = Calendar(authenticationDAO.getSelectedItem()!!)
+
+    override fun loadData(startTime: Long, endTime: Long): List<CalendarEvent> {
+        return calendarEventDAO.getItemsByTime(startTime, endTime)
+    }
+
+    override fun countData(calendar: java.util.Calendar): LinkedList<Int> {
+        val start = calendar.clone() as java.util.Calendar
+        val end = calendar.clone() as java.util.Calendar
+        start.set(java.util.Calendar.HOUR_OF_DAY, 0)
+        start.set(java.util.Calendar.MINUTE, 0)
+        start.set(java.util.Calendar.SECOND, 0)
+        end.set(java.util.Calendar.HOUR_OF_DAY, 23)
+        end.set(java.util.Calendar.MINUTE, 59)
+        end.set(java.util.Calendar.SECOND, 59)
+
+        val lst = LinkedList<Int>()
+        for(day in 1..end.getActualMaximum(java.util.Calendar.DAY_OF_MONTH)) {
+            start.set(java.util.Calendar.DAY_OF_MONTH, day)
+            end.set(java.util.Calendar.DAY_OF_MONTH, day)
+
+            if(calendarEventDAO.count(start.time.time, end.time.time)!=0L) {
+                lst.add(day)
+            }
+        }
+
+        return lst
+    }
 
     override fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String) {
         this.calendarEventDAO.clearAll()
