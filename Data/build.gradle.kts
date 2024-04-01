@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":REST"))
     implementation(project(":WebDav"))
     implementation(project(":CalDav"))
+    implementation(project(":CarDav"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

@@ -33,6 +33,12 @@ android {
 }
 
 dependencies {
+    implementation(project(":Database"))
+
+    // dav
+    implementation(libs.sardine)
+    implementation(libs.ez.vcard)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

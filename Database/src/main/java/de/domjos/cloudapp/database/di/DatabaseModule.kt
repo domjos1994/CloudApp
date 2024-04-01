@@ -10,6 +10,7 @@ import dagger.hilt.components.SingletonComponent
 import de.domjos.cloudapp.database.DB
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.dao.CalendarEventDAO
+import de.domjos.cloudapp.database.dao.ContactDAO
 import javax.inject.Singleton
 
 @Module
@@ -24,6 +25,11 @@ class DatabaseModule {
     @Provides
     fun provideCalendarEventDao(db: DB): CalendarEventDAO {
         return db.calendarEventDao()
+    }
+
+    @Provides
+    fun provideContactDao(db: DB): ContactDAO {
+        return db.contactDao()
     }
 
     @Provides

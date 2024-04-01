@@ -43,6 +43,8 @@ android {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
+    implementation(libs.compose.preference)
+    implementation(libs.androidx.preference)
 
     // compose
     implementation(libs.androidx.activity.compose)

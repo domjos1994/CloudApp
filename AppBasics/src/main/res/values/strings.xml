@@ -2,12 +2,40 @@
 <resources>
     <string name="notifications">News</string>
 
+    <string name="settings">Settings</string>
+    <string name="settings_timeSpan_title">Time-Span</string>
+    <string name="settings_timeSpan_header">Time-Span to update Chats (in Seconds)!</string>
+
     <string name="calendars">Calendar</string>
     <string name="calendar_import">Import</string>
     <string name="calendar_import_calendar">Import %s …</string>
     <string name="calendar_save_calendar">Save %s …</string>
 
     <string name="contacts">Contacts</string>
+    <string name="contacts_all">All Contacts</string>
+    <string name="contact_import">Import Contacts</string>
+    <string name="contact_delete">Delete all</string>
+    <string name="contact_insert">Insert</string>
+    <string name="contact_family">Family-Name</string>
+    <string name="contact_given">Given-Name</string>
+    <string name="contact_suffix">Suffix</string>
+    <string name="contact_prefix">Prefix</string>
+    <string name="contact_additional">Additional</string>
+    <string name="contact_birthDate">BirthDate</string>
+    <string name="contact_org">Organization</string>
+    <string name="contact_phones">Phone-Numbers</string>
+    <string name="contact_phone">Number</string>
+    <string name="contact_types">Types</string>
+    <string name="contact_addresses">Addresses</string>
+    <string name="contact_addresses_postOfficeAddress">Post-Office-Address</string>
+    <string name="contact_addresses_street">Street</string>
+    <string name="contact_addresses_postal">Postal-Code</string>
+    <string name="contact_addresses_locality">Locality</string>
+    <string name="contact_addresses_region">Region</string>
+    <string name="contact_addresses_country">Country</string>
+    <string name="contact_addresses_extended">Extended Address</string>
+    <string name="contact_mails">Emails</string>
+    <string name="contact_mail">Mail-Address</string>
 
     <string name="data">Data</string>
     <string name="data_breadcrumb">Breadcrumb</string>

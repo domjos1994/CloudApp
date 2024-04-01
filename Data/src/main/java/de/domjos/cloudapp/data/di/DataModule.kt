@@ -7,10 +7,12 @@ import dagger.hilt.components.SingletonComponent
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
 import de.domjos.cloudapp.data.repository.CalendarRepository
 import de.domjos.cloudapp.data.repository.ChatRepository
+import de.domjos.cloudapp.data.repository.ContactRepository
 import de.domjos.cloudapp.data.repository.DataRepository
 import de.domjos.cloudapp.data.repository.DefaultAuthenticationRepository
 import de.domjos.cloudapp.data.repository.DefaultCalendarRepository
 import de.domjos.cloudapp.data.repository.DefaultChatRepository
+import de.domjos.cloudapp.data.repository.DefaultContactRepository
 import de.domjos.cloudapp.data.repository.DefaultDataRepository
 import de.domjos.cloudapp.data.repository.DefaultNotificationsRepository
 import de.domjos.cloudapp.data.repository.DefaultRoomRepository
@@ -57,4 +59,10 @@ interface DataModule {
     fun bindsCalendarRepository(
         calendarRepository: DefaultCalendarRepository
     ): CalendarRepository
+
+    @Singleton
+    @Binds
+    fun bindsContactRepository(
+        contactRepository: DefaultContactRepository
+    ): ContactRepository
 }

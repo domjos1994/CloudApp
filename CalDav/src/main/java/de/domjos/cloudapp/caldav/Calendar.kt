@@ -33,7 +33,7 @@ import java.util.LinkedList
 
 
 class Calendar(private val authentication: Authentication) {
-    private val sardine: OkHttpSardine = OkHttpSardine();
+    private val sardine: OkHttpSardine = OkHttpSardine()
     val calendars = LinkedHashMap<String, LinkedList<CalendarEvent>>()
     private val basePath = "${authentication.url}/remote.php/dav/calendars/${authentication.userName}"
 

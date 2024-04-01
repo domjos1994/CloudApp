@@ -23,8 +23,10 @@ sardine = "0.9"
 lifecycleRuntimeCompose = "2.7.0"
 constraint = "1.0.1"
 media3Common = "1.3.0"
-
+ez-vcard = "0.12.1"
 ical4j = "3.2.17"
+preference = "0.1.4"
+prefs = "1.0.0-beta01"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,6 +64,9 @@ androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lif
 androidx-constraint = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraint" }
 androidx-media3-common = { group = "androidx.media3", name = "media3-common", version.ref = "media3Common" }
 ical4j = { group = "org.mnode.ical4j", name = "ical4j", version.ref="ical4j" }
+ez-vcard = { group = "com.googlecode.ez-vcard", name = "ez-vcard", version.ref = "ez-vcard" }
+compose-preference = { group = "com.github.Sh4dowSoul.ComposePreferences", name = "preferences-material3", version.ref = "preference" }
+androidx-preference = { group = "androidx.datastore", name = "datastore-preferences", version.ref="prefs" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

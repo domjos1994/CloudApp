@@ -42,6 +42,8 @@ android {
 
 dependencies {
     implementation(project(":AppBasics"))
+    implementation(project(":Database"))
+    implementation(project(":Data"))
 
     implementation(libs.androidx.core.ktx)
 
@@ -52,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     // hilt
     ksp(libs.hilt.android.compiler)

@@ -2,7 +2,6 @@ package de.domjos.cloudapp.features.calendars.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,12 +19,10 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.helper.Dialogs
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -60,11 +58,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
     val events by viewModel.events.collectAsStateWithLifecycle()
     val days by viewModel.days.collectAsStateWithLifecycle()
 
-    val context = LocalContext.current
-
-    CalendarScreen(events, days, { onProgress, onFinish ->
-        viewModel.reload(onProgress, onFinish, context.getString(R.string.calendar_import_calendar), context.getString(R.string.calendar_save_calendar))
-    }, { mode, calendar ->
+    CalendarScreen(events, days) { mode, calendar ->
         val start = updateTime(0, 0, 0, calendar.clone() as Calendar)
         val end = updateTime(23, 59, 59, calendar.clone() as Calendar)
         if(mode==Calendar.MONTH) {
@@ -76,7 +70,15 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
         val endTime = end.time.time
         viewModel.load(startTime, endTime)
         viewModel.count(start)
-    })
+    }
+}
+
+@Composable
+fun importCalendarAction(viewModel: CalendarViewModel = hiltViewModel()): (updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit) -> Unit {
+    val context = LocalContext.current
+    return {onProgress, onFinish ->
+        viewModel.reload(onProgress, onFinish,context.getString(R.string.calendar_import_calendar), context.getString(R.string.calendar_save_calendar))
+    }
 }
 
 fun updateTime(hour: Int, minute: Int, seconds: Int, cal: Calendar) : Calendar {
@@ -90,13 +92,9 @@ fun updateTime(hour: Int, minute: Int, seconds: Int, cal: Calendar) : Calendar {
 fun CalendarScreen(
     calendarEvents: List<CalendarEvent>,
     countDays: List<Int>,
-    onReload: (updateProgress: (Float, String) -> Unit, onFinish: () -> Unit) -> Unit,
     onChange: (Int, Calendar) -> Unit) {
 
     Column(Modifier.fillMaxSize()) {
-        Row {
-            LinearDeterminateIndicator(onReload)
-        }
         Row {
             Calendar(onChange = onChange, countDays = countDays)
         }
@@ -336,37 +334,6 @@ fun CalendarEventItem(calendarEvent: CalendarEvent) {
             .background(Color.Black)) {}
 }
 
-@Composable
-fun LinearDeterminateIndicator(onReload: (updateProgress: (Float, String) -> Unit, () -> Unit) -> Unit) {
-    var currentProgress by remember { mutableFloatStateOf(0f) }
-    var currentCalendar by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(false) }
-
-    Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Button(onClick = {
-            loading = true
-            onReload({ progress, calendar ->
-                currentProgress = progress
-                currentCalendar = calendar
-            }, {loading = false})
-        }, enabled = !loading) {
-            Text(stringResource(R.string.calendar_import))
-        }
-
-        if (loading) {
-            Text(currentCalendar, fontWeight = FontWeight.Bold)
-            LinearProgressIndicator(
-                progress = { currentProgress },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun CalendarPreview() {
@@ -382,7 +349,7 @@ fun CalendarItemPreview() {
 @Preview(showBackground = true)
 @Composable
 fun ScreenPreview() {
-    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf(), { _, _->}, { _, _->})
+    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf()) { _, _ -> }
 }
 
 
