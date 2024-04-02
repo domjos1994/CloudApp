@@ -66,4 +66,6 @@
     <string name="validation.notEmpty.min_max">Field should be between %d and %d characters!</string>
 
     <string name="sys_format">yyyy-MM-dd HH:mm:ss</string>
+    <string name="sys_no_entry">No Entry available!</string>
+    <string name="sys_no_internet">No Internet-Connection available!</string>
 </resources>

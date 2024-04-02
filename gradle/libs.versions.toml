@@ -27,6 +27,7 @@ ez-vcard = "0.12.1"
 ical4j = "3.2.17"
 preference = "0.1.4"
 prefs = "1.0.0-beta01"
+uiTooling = "1.6.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -67,6 +68,7 @@ ical4j = { group = "org.mnode.ical4j", name = "ical4j", version.ref="ical4j" }
 ez-vcard = { group = "com.googlecode.ez-vcard", name = "ez-vcard", version.ref = "ez-vcard" }
 compose-preference = { group = "com.github.Sh4dowSoul.ComposePreferences", name = "preferences-material3", version.ref = "preference" }
 androidx-preference = { group = "androidx.datastore", name = "datastore-preferences", version.ref="prefs" }
+ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

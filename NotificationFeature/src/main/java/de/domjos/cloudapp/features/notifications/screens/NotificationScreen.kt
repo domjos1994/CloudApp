@@ -38,8 +38,13 @@ import coil.compose.rememberAsyncImagePainter
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Scale
+import de.domjos.cloudapp.appbasics.custom.NoEntryItem
+import de.domjos.cloudapp.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp.appbasics.helper.ConnectionState
+import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.webrtc.model.notifications.Action
 import de.domjos.cloudapp.webrtc.model.notifications.Notification
+import java.util.LinkedList
 
 @Composable
 fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel()) {
@@ -64,8 +69,13 @@ fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel()) {
 
     if (
         notifications is NotificationUiState.Success) {
+        val items = (notifications as NotificationUiState.Success).data
 
-        NotificationScreen((notifications as NotificationUiState.Success).data) {
+        NotificationScreen(items) {
+            viewModel.getFullIconLink(it)
+        }
+    } else {
+        NotificationScreen(LinkedList()) {
             viewModel.getFullIconLink(it)
         }
     }
@@ -78,7 +88,18 @@ fun NotificationScreen(rooms: List<Notification>, onIconLoad: (Notification) -> 
         .padding(5.dp)
         .verticalScroll(rememberScrollState())) {
 
-        rooms.forEach { room -> NotificationItem(room, onIconLoad)}
+        val connection by connectivityState()
+        val isConnected = connection === ConnectionState.Available
+
+        if(isConnected) {
+            if(rooms.isEmpty()) {
+                NoEntryItem()
+            } else {
+                rooms.forEach { room -> NotificationItem(room, onIconLoad)}
+            }
+        } else {
+            NoInternetItem()
+        }
     }
 }
 
