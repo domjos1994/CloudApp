@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -145,13 +146,16 @@ fun AuthenticationScreen(
         Column(modifier = Modifier
             .fillMaxWidth()) {
             Row {
-                IconButton(modifier = Modifier
-                    .weight(1f)
-                    .background(color = MaterialTheme.colorScheme.primary), onClick = {
-                    selectedItem.value = Authentication(0, "", "", "", "", false, "", null)
-                    showDialog.value = true
-                }) {
-                    Icon(Icons.Default.Add, stringResource(R.string.login_add))
+                Column {
+                    FloatingActionButton(
+                        onClick = {
+                            selectedItem.value = Authentication(0, "", "", "", "", false, "", null)
+                            showDialog.value = true
+                        },
+                        modifier = Modifier.align(Alignment.End)
+                            .padding(5.dp)) {
+                        Icon(Icons.Filled.Add, stringResource(R.string.login_add))
+                    }
                 }
             }
         }
