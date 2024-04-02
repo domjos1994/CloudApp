@@ -19,22 +19,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Scale
@@ -44,20 +40,10 @@ import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.webrtc.model.notifications.Action
 import de.domjos.cloudapp.webrtc.model.notifications.Notification
-import java.util.LinkedList
 
 @Composable
 fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel()) {
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val notifications by produceState<NotificationUiState>(
-        initialValue = NotificationUiState.Loading,
-        key1 = lifecycle,
-        key2 = viewModel
-    ) {
-        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
-            viewModel.uiState.collect { value = it }
-        }
-    }
+    val notifications by viewModel.notifications.collectAsStateWithLifecycle()
 
 
     ImageLoader.Builder(LocalContext.current)
@@ -67,17 +53,9 @@ fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel()) {
         .crossfade(true)
         .build()
 
-    if (
-        notifications is NotificationUiState.Success) {
-        val items = (notifications as NotificationUiState.Success).data
-
-        NotificationScreen(items) {
-            viewModel.getFullIconLink(it)
-        }
-    } else {
-        NotificationScreen(LinkedList()) {
-            viewModel.getFullIconLink(it)
-        }
+    viewModel.reload()
+    NotificationScreen(notifications) {
+        viewModel.getFullIconLink(it)
     }
 }
 

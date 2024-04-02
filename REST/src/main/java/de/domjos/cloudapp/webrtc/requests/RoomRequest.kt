@@ -24,19 +24,21 @@ class RoomRequest(authentication: Authentication?) : BasicRequest(authentication
 
         return flow {
             while(true) {
-                if(request!=null) {
-                    client.newCall(request).execute().use { response ->
-                        val content = response.body!!.string()
-                        val ocs =  super.json.decodeFromString<OCSObject>(content)
-                        if(ocs.ocs.meta.statuscode==200) {
-                            emit(ocs.ocs.data.toList())
-                        } else {
-                            throw Exception(ocs.ocs.meta.message)
+                try {
+                    if(request!=null) {
+                        client.newCall(request).execute().use { response ->
+                            val content = response.body!!.string()
+                            val ocs =  super.json.decodeFromString<OCSObject>(content)
+                            if(ocs.ocs.meta.statuscode==200) {
+                                emit(ocs.ocs.data.toList())
+                            } else {
+                                throw Exception(ocs.ocs.meta.message)
+                            }
                         }
+                    } else {
+                        emit(listOf())
                     }
-                } else {
-                    emit(listOf())
-                }
+                } catch (_:Exception) {}
                 delay(20000L)
             }
         }

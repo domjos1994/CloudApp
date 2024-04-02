@@ -22,15 +22,15 @@ interface ContactRepository {
 }
 
 class DefaultContactRepository @Inject constructor(
-    authenticationDAO: AuthenticationDAO,
+    private val authenticationDAO: AuthenticationDAO,
     private val contactDAO: ContactDAO
 ) : ContactRepository {
     private val loader = ContactLoader(authenticationDAO.getSelectedItem()!!)
     private var addressBook: String = ""
-    override var contacts = contactDAO.getAll()
+    override var contacts = contactDAO.getAll(authenticationDAO.getSelectedItem()!!.id)
 
     override suspend fun loadAddressBooks(): List<String> {
-        return this.contactDAO.getAddressBooks()
+        return this.contactDAO.getAddressBooks(authenticationDAO.getSelectedItem()!!.id)
     }
 
     override fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit) {
@@ -75,10 +75,10 @@ class DefaultContactRepository @Inject constructor(
 
     override fun loadContacts(addressBook: String): List<Contact> {
         this.addressBook = addressBook
-        this.contacts = contactDAO.getAddressBook(addressBook)
-        val phones = contactDAO.getAddressBookWithPhones(addressBook)
-        val addresses = contactDAO.getAddressBookWithAddresses(addressBook)
-        val emails = contactDAO.getAddressBookWithEmails(addressBook)
+        this.contacts = contactDAO.getAddressBook(addressBook, authenticationDAO.getSelectedItem()!!.id)
+        val phones = contactDAO.getAddressBookWithPhones(addressBook, authenticationDAO.getSelectedItem()!!.id)
+        val addresses = contactDAO.getAddressBookWithAddresses(addressBook, authenticationDAO.getSelectedItem()!!.id)
+        val emails = contactDAO.getAddressBookWithEmails(addressBook, authenticationDAO.getSelectedItem()!!.id)
 
         this.contacts.forEach { contact ->
             phones.forEach {
@@ -107,6 +107,7 @@ class DefaultContactRepository @Inject constructor(
     }
 
     override fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact) {
+        contact.authId = authenticationDAO.getSelectedItem()!!.id
         this.loader.insertContact(this.addressBook, contact)
     }
 

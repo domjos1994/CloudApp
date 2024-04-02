@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.coil)
     implementation(libs.coil.svg)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     // hilt
     ksp(libs.hilt.android.compiler)

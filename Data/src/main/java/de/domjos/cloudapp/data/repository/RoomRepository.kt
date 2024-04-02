@@ -11,8 +11,9 @@ import javax.inject.Inject
 
 interface RoomRepository {
     val rooms: Flow<List<Room>>
-    val request: RoomRequest
     val avatarRequest: AvatarRequest
+
+    fun reload(): Flow<List<Room>>
     suspend fun insertRoom(input: RoomInput)
     suspend fun updateRoom(token: String, name: String?, description: String?)
     suspend fun deleteRoom(token: String)
@@ -22,12 +23,15 @@ interface RoomRepository {
 class DefaultRoomRepository @Inject constructor(
     private val authenticationDAO: AuthenticationDAO
 ) : RoomRepository {
-    override val request: RoomRequest
+    private val request: RoomRequest
         get() = RoomRequest(authenticationDAO.getSelectedItem())
     override val avatarRequest: AvatarRequest
         get() = AvatarRequest(authenticationDAO.getSelectedItem())
-    override var rooms: Flow<List<Room>> =
-        request.getRooms()
+    override var rooms: Flow<List<Room>> = reload()
+
+    override fun reload(): Flow<List<Room>> {
+        return this.request.getRooms()
+    }
 
     @Throws(Exception::class)
     override suspend fun insertRoom(input: RoomInput) {

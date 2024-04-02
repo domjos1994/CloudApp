@@ -1,6 +1,7 @@
 package de.domjos.cloudapp.features.chats.screens
 
 import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.VectorDrawable
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -68,43 +70,30 @@ import de.domjos.cloudapp.appbasics.R
 
 @Composable
 fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), onChatScreen: (Int, String) -> Unit) {
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val chats by produceState<RoomUiState>(
-        initialValue = RoomUiState.Loading,
-        key1 = lifecycle,
-        key2 = viewModel
-    ) {
-        lifecycle.repeatOnLifecycle(state = Lifecycle.State.STARTED) {
-            viewModel.uiState.collect { value = it }
-        }
-    }
-
+    val rooms by viewModel.rooms.collectAsStateWithLifecycle()
+    viewModel.reload()
     val context = LocalContext.current
 
-    if (
-        chats is RoomUiState.Success) {
-
-        RoomScreen(
-            onSaveClick = {
-                          try {
-                              if(it.token == "") {
-                                  viewModel.insertRoom(it)
-                              } else {
-                                  viewModel.updateRoom(it)
-                              }
-                          } catch (ex: Exception) {
-                              Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-                          }
-            },
-            onDeleteClick = {
-                            try {
-                                viewModel.deleteRoom(it)
-                            } catch (ex: Exception) {
-                                Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-                            }
-            },
-            rooms = (chats as RoomUiState.Success).data, onChatScreen)
-    }
+    RoomScreen(
+        onSaveClick = {
+            try {
+                if(it.token == "") {
+                    viewModel.insertRoom(it)
+                } else {
+                    viewModel.updateRoom(it)
+                }
+            } catch (ex: Exception) {
+                Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+            }
+        },
+        onDeleteClick = {
+            try {
+                viewModel.deleteRoom(it)
+            } catch (ex: Exception) {
+                Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+            }
+        },
+        rooms = rooms, onChatScreen)
 }
 
 @Composable
@@ -162,13 +151,6 @@ fun RoomScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
-    val context = LocalContext.current
-    val img by remember {
-        mutableStateOf(
-            (AppCompatResources.getDrawable(context, R.drawable.baseline_person_24) as BitmapDrawable)
-                .bitmap.asImageBitmap()
-        )
-    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -179,7 +161,7 @@ fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
                 onClick = { onClick(room) },
                 onLongClick = { onLongClick(room) })
     ) {
-        Image(img, room.name, modifier = Modifier.padding(5.dp))
+        Image(painterResource(id = R.drawable.baseline_person_24), room.name, modifier = Modifier.padding(5.dp))
         Column {
             Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp))
             Text(

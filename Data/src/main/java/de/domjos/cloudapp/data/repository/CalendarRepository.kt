@@ -18,13 +18,13 @@ interface CalendarRepository {
 }
 
 class DefaultCalendarRepository @Inject constructor(
-    authenticationDAO: AuthenticationDAO,
+    private val authenticationDAO: AuthenticationDAO,
     private val calendarEventDAO: CalendarEventDAO
 ) : CalendarRepository {
     private val calendar = Calendar(authenticationDAO.getSelectedItem()!!)
 
     override fun loadData(startTime: Long, endTime: Long): List<CalendarEvent> {
-        return calendarEventDAO.getItemsByTime(startTime, endTime)
+        return calendarEventDAO.getItemsByTime(startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
     }
 
     override fun countData(calendar: java.util.Calendar): LinkedList<Int> {
@@ -42,7 +42,7 @@ class DefaultCalendarRepository @Inject constructor(
             start.set(java.util.Calendar.DAY_OF_MONTH, day)
             end.set(java.util.Calendar.DAY_OF_MONTH, day)
 
-            if(calendarEventDAO.count(start.time.time, end.time.time)!=0L) {
+            if(calendarEventDAO.count(start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
                 lst.add(day)
             }
         }
@@ -67,6 +67,7 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun insert(calendarEvent: CalendarEvent) {
+        calendarEvent.authId = authenticationDAO.getSelectedItem()!!.id
         this.calendarEventDAO.insertCalendarEvent(calendarEvent)
         this.calendar.newCalendarEvent(calendarEvent)
     }

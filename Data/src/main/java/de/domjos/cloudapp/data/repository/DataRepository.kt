@@ -41,6 +41,7 @@ class DefaultDataRepository @Inject constructor(
             webDav = WebDav((authenticationDAO))
             path = webDav!!.getPath()
         }
+        webDav!!.checkUser()
     }
 
     override fun getList(): List<Item> {

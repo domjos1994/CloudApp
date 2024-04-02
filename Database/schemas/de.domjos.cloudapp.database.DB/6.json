@@ -1,0 +1,454 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 6,
+    "identityHash": "1d7ddda9b45f20b1492a9a365aec39b9",
+    "entities": [
+      {
+        "tableName": "authentications",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `url` TEXT NOT NULL, `userName` TEXT NOT NULL, `password` TEXT NOT NULL, `selected` INTEGER NOT NULL, `description` TEXT, `thumbNail` BLOB)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "url",
+            "columnName": "url",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userName",
+            "columnName": "userName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "password",
+            "columnName": "password",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selected",
+            "columnName": "selected",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "thumbNail",
+            "columnName": "thumbNail",
+            "affinity": "BLOB",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "title_index",
+            "unique": true,
+            "columnNames": [
+              "title"
+            ],
+            "orders": [
+              "ASC"
+            ],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `title_index` ON `${TABLE_NAME}` (`title` ASC)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "calendarEvents",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `from` INTEGER NOT NULL, `to` INTEGER NOT NULL, `title` TEXT NOT NULL, `location` TEXT NOT NULL, `description` TEXT NOT NULL, `confirmation` TEXT NOT NULL, `categories` TEXT NOT NULL, `color` TEXT NOT NULL, `calendar` TEXT NOT NULL, `authId` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`uid`))",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "from",
+            "columnName": "from",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "to",
+            "columnName": "to",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "location",
+            "columnName": "location",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "confirmation",
+            "columnName": "confirmation",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "categories",
+            "columnName": "categories",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "color",
+            "columnName": "color",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "calendar",
+            "columnName": "calendar",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "authId",
+            "columnName": "authId",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "ce_uid_index",
+            "unique": false,
+            "columnNames": [
+              "uid"
+            ],
+            "orders": [
+              "ASC"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `ce_uid_index` ON `${TABLE_NAME}` (`uid` ASC)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "contacts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uid` TEXT NOT NULL, `suffix` TEXT, `prefix` TEXT, `familyName` TEXT, `givenName` TEXT NOT NULL, `additional` TEXT, `birthDay` INTEGER, `organization` TEXT NOT NULL, `photo` BLOB, `addressBook` TEXT NOT NULL, `authId` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`uid`))",
+        "fields": [
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "suffix",
+            "columnName": "suffix",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "prefix",
+            "columnName": "prefix",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "familyName",
+            "columnName": "familyName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "givenName",
+            "columnName": "givenName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "additional",
+            "columnName": "additional",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "birthDay",
+            "columnName": "birthDay",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "organization",
+            "columnName": "organization",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "photo",
+            "columnName": "photo",
+            "affinity": "BLOB",
+            "notNull": false
+          },
+          {
+            "fieldPath": "addressBook",
+            "columnName": "addressBook",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "authId",
+            "columnName": "authId",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "contact_uid_index",
+            "unique": false,
+            "columnNames": [
+              "uid"
+            ],
+            "orders": [
+              "ASC"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `contact_uid_index` ON `${TABLE_NAME}` (`uid` ASC)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "addresses",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `contactId` TEXT NOT NULL, `types` TEXT NOT NULL, `postOfficeAddress` TEXT, `extendedAddress` TEXT, `street` TEXT NOT NULL, `locality` TEXT, `region` TEXT, `postalCode` TEXT, `country` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactId",
+            "columnName": "contactId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "types",
+            "columnName": "types",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "postOfficeAddress",
+            "columnName": "postOfficeAddress",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "extendedAddress",
+            "columnName": "extendedAddress",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "street",
+            "columnName": "street",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "locality",
+            "columnName": "locality",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "region",
+            "columnName": "region",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "postalCode",
+            "columnName": "postalCode",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "country",
+            "columnName": "country",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "contact_address_id_index",
+            "unique": true,
+            "columnNames": [
+              "id"
+            ],
+            "orders": [
+              "ASC"
+            ],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `contact_address_id_index` ON `${TABLE_NAME}` (`id` ASC)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "phones",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `contactId` TEXT NOT NULL, `value` TEXT NOT NULL, `types` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactId",
+            "columnName": "contactId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "types",
+            "columnName": "types",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "contact_phone_id_index",
+            "unique": true,
+            "columnNames": [
+              "id"
+            ],
+            "orders": [
+              "ASC"
+            ],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `contact_phone_id_index` ON `${TABLE_NAME}` (`id` ASC)"
+          }
+        ],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "emails",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `contactId` TEXT NOT NULL, `value` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactId",
+            "columnName": "contactId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "value",
+            "columnName": "value",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "contact_email_id_index",
+            "unique": true,
+            "columnNames": [
+              "id"
+            ],
+            "orders": [
+              "ASC"
+            ],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `contact_email_id_index` ON `${TABLE_NAME}` (`id` ASC)"
+          }
+        ],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '1d7ddda9b45f20b1492a9a365aec39b9')"
+    ]
+  }
+}

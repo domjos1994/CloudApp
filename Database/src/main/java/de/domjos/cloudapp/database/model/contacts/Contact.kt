@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.database.model.contacts
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Ignore
@@ -25,7 +26,8 @@ data class Contact(
     var birthDay: Date?,
     var organization: String,
     var photo: ByteArray?,
-    var addressBook: String
+    var addressBook: String,
+    @ColumnInfo("authId", defaultValue = "0") var authId: Long
 ) {
     @Ignore var addresses: LinkedList<Address>? = null
     @Ignore var phoneNumbers: LinkedList<Phone>? = null

@@ -5,9 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.RoomRepository
+import de.domjos.cloudapp.webrtc.model.notifications.Notification
 import de.domjos.cloudapp.webrtc.model.room.Room
 import de.domjos.cloudapp.webrtc.model.room.RoomInput
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -21,10 +23,20 @@ import javax.inject.Inject
 class RoomViewModel @Inject constructor(
     private val roomRepository: RoomRepository
 ) : ViewModel() {
-    var uiState: StateFlow<RoomUiState> = roomRepository
-        .rooms.map<List<Room>, RoomUiState> {RoomUiState.Success(data = it)}
-        .catch { emit(RoomUiState.Error(it)) }
-        .stateIn(viewModelScope.plus(Dispatchers.IO), SharingStarted.WhileSubscribed(5000), RoomUiState.Loading)
+    private val _rooms = MutableStateFlow(listOf<Room>())
+    val rooms: StateFlow<List<Room>> get() = _rooms
+
+    fun reload() {
+        try {
+            viewModelScope.launch(Dispatchers.IO) {
+                roomRepository.reload().collect {
+                    _rooms.value = it
+                }
+            }
+        } catch (ex: Exception) {
+            println(ex.message)
+        }
+    }
 
     @Throws(Exception::class)
     fun insertRoom(room: Room) {
@@ -59,10 +71,4 @@ class RoomViewModel @Inject constructor(
             onGet(roomRepository.getAvatar(room.token))
         }
     }
-}
-
-sealed interface RoomUiState {
-    data object Loading : RoomUiState
-    data class Error(val throwable: Throwable) : RoomUiState
-    data class Success(val data: List<Room>) : RoomUiState
 }

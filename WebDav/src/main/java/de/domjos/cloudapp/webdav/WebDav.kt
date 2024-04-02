@@ -19,18 +19,32 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
     private var currentUrl = ""
     private var lastUrl = ""
     private var basePath = ""
-    private val authentication: Authentication?
+    private var authentication: Authentication?
 
     init {
         this.list = LinkedList()
         this.authentication = authenticationDAO.getSelectedItem()
         this.sardine = OkHttpSardine()
         if(authentication != null) {
-            this.sardine.setCredentials(authentication.userName, authentication.password)
-            this.basePath = "/remote.php/dav/files/${authentication.userName}"
-            this.list = this.sardine.list("${authentication.url}${this.basePath}")
-            this.url = authentication.url
+            this.sardine.setCredentials(authentication!!.userName, authentication!!.password)
+            this.basePath = "/remote.php/dav/files/${authentication!!.userName}"
+            this.list = this.sardine.list("${authentication!!.url}${this.basePath}")
+            this.url = authentication!!.url
             this.currentUrl = "$url$basePath"
+        }
+    }
+
+    fun checkUser() {
+        if(this.authentication != null) {
+            if(this.authentication!!.id != authenticationDAO.getSelectedItem()!!.id) {
+                this.authentication = authenticationDAO.getSelectedItem()
+                this.sardine = OkHttpSardine()
+                this.sardine.setCredentials(authentication!!.userName, authentication!!.password)
+                this.basePath = "/remote.php/dav/files/${authentication!!.userName}"
+                this.list = this.sardine.list("${authentication!!.url}${this.basePath}")
+                this.url = authentication!!.url
+                this.currentUrl = "$url$basePath"
+            }
         }
     }
 

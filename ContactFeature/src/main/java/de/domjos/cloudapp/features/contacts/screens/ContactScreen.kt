@@ -687,7 +687,7 @@ fun EditDialog(
                             val photo = img.value
                             val addressBook = contact?.addressBook ?: ""
 
-                            val new = Contact(uid, suf, pre, last, first, add, bd, org, photo, addressBook)
+                            val new = Contact(uid, suf, pre, last, first, add, bd, org, photo, addressBook, 0L)
                             new.addresses = a
                             new.emailAddresses = em
                             new.phoneNumbers = ph
@@ -1461,7 +1461,7 @@ fun fakeContact(id: Int): Contact {
     bDate.add(Calendar.DAY_OF_MONTH, id)
     return Contact(
         "$id", "", "", "Doe", "John$id", "",
-        bDate.time, "", null, "Test")
+        bDate.time, "", null, "Test", 0L)
 }
 
 fun fakeAddressBooks(): LinkedList<String> {

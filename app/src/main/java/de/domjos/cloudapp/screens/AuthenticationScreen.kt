@@ -52,7 +52,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.appbasics.R
-import de.domjos.cloudapp.appbasics.helper.Validator
 
 @Composable
 fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {

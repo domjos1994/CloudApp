@@ -29,6 +29,7 @@ class DefaultAuthenticationRepository @Inject constructor(
         authenticationDAO.unCheck()
         authentication.selected = true
         authenticationDAO.updateAuthentication(authentication)
+        authentications = authenticationDAO.getAll()
     }
 
     override suspend fun insert(authentication: Authentication, context: Context): String {

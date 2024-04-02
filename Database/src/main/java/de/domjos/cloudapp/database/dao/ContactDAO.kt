@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
 import de.domjos.cloudapp.database.model.contacts.Address
 import de.domjos.cloudapp.database.model.contacts.Contact
@@ -12,38 +13,42 @@ import de.domjos.cloudapp.database.model.contacts.ContactWithEmails
 import de.domjos.cloudapp.database.model.contacts.ContactWithPhones
 import de.domjos.cloudapp.database.model.contacts.Email
 import de.domjos.cloudapp.database.model.contacts.Phone
-import kotlinx.coroutines.flow.Flow
-import java.util.LinkedList
 
 @Dao
 interface ContactDAO {
 
-    @Query("SELECT * FROM contacts")
-    fun getAll(): List<Contact>
+    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    fun getAll(authId: Long): List<Contact>
 
-    @Query("SELECT * FROM contacts")
-    fun getAllWithAddresses(): List<ContactWithAddresses>
+    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    @Transaction
+    fun getAllWithAddresses(authId: Long): List<ContactWithAddresses>
 
-    @Query("SELECT * FROM contacts")
-    fun getAllWithEmails(): List<ContactWithEmails>
+    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    @Transaction
+    fun getAllWithEmails(authId: Long): List<ContactWithEmails>
 
-    @Query("SELECT * FROM contacts")
-    fun getAllWithPhones(): List<ContactWithPhones>
+    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    @Transaction
+    fun getAllWithPhones(authId: Long): List<ContactWithPhones>
 
-    @Query("SELECT DISTINCT addressBook FROM contacts")
-    fun getAddressBooks(): List<String>
+    @Query("SELECT DISTINCT addressBook FROM contacts WHERE authId=:authId")
+    fun getAddressBooks(authId: Long): List<String>
 
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook")
-    fun getAddressBook(addressBook: String): List<Contact>
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    fun getAddressBook(addressBook: String, authId: Long): List<Contact>
 
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook")
-    fun getAddressBookWithAddresses(addressBook: String): List<ContactWithAddresses>
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    @Transaction
+    fun getAddressBookWithAddresses(addressBook: String, authId: Long): List<ContactWithAddresses>
 
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook")
-    fun getAddressBookWithEmails(addressBook: String): List<ContactWithEmails>
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    @Transaction
+    fun getAddressBookWithEmails(addressBook: String, authId: Long): List<ContactWithEmails>
 
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook")
-    fun getAddressBookWithPhones(addressBook: String): List<ContactWithPhones>
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    @Transaction
+    fun getAddressBookWithPhones(addressBook: String, authId: Long): List<ContactWithPhones>
 
     @Insert
     fun insertContact(contact: Contact)
