@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.features.calendars.screens
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -118,7 +120,7 @@ fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calend
     next.add(Calendar.MONTH, 1)
     previous.add(Calendar.MONTH, -1)
 
-    Column {
+    Column() {
         Row(
             Modifier
                 .wrapContentHeight()
@@ -230,7 +232,7 @@ fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, count
     val today = Calendar.getInstance()
 
     var style = FontStyle.Normal
-    var color = Color.Black
+    var color = MaterialTheme.colorScheme.primary
     var day = (row * 7) + (col - firstDay + 1)
     var bgColor = Color.Transparent
     var weight = FontWeight.Normal
@@ -238,11 +240,11 @@ fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, count
     if(day <= 0) {
         day += lastDayOfLastMonth
         style = FontStyle.Italic
-        color = Color.DarkGray
+        color = MaterialTheme.colorScheme.secondary
     }else if(lastDayOfMonth < day) {
         day -= lastDayOfMonth
         style = FontStyle.Italic
-        color = Color.DarkGray
+        color = MaterialTheme.colorScheme.secondary
     } else {
         val temp = cal.clone() as Calendar
         temp.set(Calendar.DAY_OF_MONTH, day)
@@ -333,9 +335,13 @@ fun CalendarEventItem(calendarEvent: CalendarEvent) {
 }
 
 @Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_MASK)
 @Composable
 fun CalendarPreview() {
-    Calendar(onChange = {_,_->}, countDays = listOf())
+    CloudAppTheme {
+        Calendar(onChange = {_,_->}, countDays = listOf())
+    }
 }
 
 @Preview(showBackground = true)
