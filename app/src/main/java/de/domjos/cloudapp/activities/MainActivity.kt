@@ -1,6 +1,7 @@
 package de.domjos.cloudapp.activities
 
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -151,40 +152,11 @@ class MainActivity() : ComponentActivity() {
                             }
 
                             if(showDialog) {
-                                Dialog(
-                                    onDismissRequest = {showDialog = false},
-                                    properties = DialogProperties(
-                                        dismissOnBackPress = false,
-                                        dismissOnClickOutside = false)
-                                ) {
-                                    Surface(
-                                        shape = RoundedCornerShape(4.dp),
-                                        color = Color.White,
-                                        modifier = Modifier.padding(5.dp)) {
-                                        Column(
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(200.dp)) {
-                                            Row(
-                                                Modifier.height(50.dp),
-                                                horizontalArrangement = Arrangement.Center,
-                                                verticalAlignment = Alignment.CenterVertically) {
-                                                Text(currentText, fontWeight = FontWeight.Bold)
-                                            }
-                                            Row(Modifier.height(150.dp),
-                                                horizontalArrangement = Arrangement.Center,
-                                                verticalAlignment = Alignment.CenterVertically) {
-                                                LinearProgressIndicator(
-                                                    progress = { currentProgress },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(20.dp)
-                                                        .padding(5.dp),
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
+                                ProgressDialog(
+                                    onShowDialog = {showDialog=it},
+                                    currentText = currentText,
+                                    currentProgress = currentProgress
+                                )
                             }
 
                         }
@@ -276,6 +248,44 @@ class MainActivity() : ComponentActivity() {
 }
 
 @Composable
+fun ProgressDialog(onShowDialog: (Boolean) -> Unit, currentText: String, currentProgress: Float) {
+    Dialog(
+        onDismissRequest = {onShowDialog(false)},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(4.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.padding(5.dp)) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)) {
+                Row(
+                    Modifier.height(50.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(currentText, fontWeight = FontWeight.Bold)
+                }
+                Row(Modifier.height(150.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    LinearProgressIndicator(
+                        progress = { currentProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(20.dp)
+                            .padding(5.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun Menu(onExpanded: (Boolean) -> Unit, expanded: Boolean, onSettings: () -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
         DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = { onSettings() })
@@ -338,9 +348,13 @@ fun TabBarBadgeView(count: Int? = null) {
 
 
 @Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_MASK)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_UNDEFINED)
 @Composable
-fun GreetingPreview() {
+fun ProgressDialogPreview() {
     CloudAppTheme {
-
+        ProgressDialog(onShowDialog = {}, currentText = "Test", currentProgress = 0.5f)
     }
 }
+
