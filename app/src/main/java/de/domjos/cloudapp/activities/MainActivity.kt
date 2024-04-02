@@ -1,6 +1,8 @@
 package de.domjos.cloudapp.activities
 
 import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -52,14 +54,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -70,6 +73,7 @@ import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
+import de.domjos.cloudapp.appbasics.helper.Notifications
 import de.domjos.cloudapp.appbasics.screens.SettingsScreen
 import de.domjos.cloudapp.features.calendars.screens.CalendarScreen
 import de.domjos.cloudapp.features.calendars.screens.importCalendarAction
@@ -90,11 +94,16 @@ data class TabBarItem(
 
 
 @AndroidEntryPoint
-class MainActivity() : ComponentActivity() {
+class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val channel = NotificationChannel("cloud_app_notifications", "CloudApp", NotificationManager.IMPORTANCE_DEFAULT)
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
+
         setContent {
             val notificationsTab = TabBarItem(title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
             val dataTab = TabBarItem(title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
@@ -115,6 +124,9 @@ class MainActivity() : ComponentActivity() {
             var header by rememberSaveable { mutableStateOf("") }
             var refreshVisible by rememberSaveable { mutableStateOf(false) }
             var progress by remember { mutableStateOf<((updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit)-> Unit)?>(null) }
+            val context = LocalContext.current
+            var notification: NotificationCompat.Builder?
+            val import = stringResource(R.string.calendar_import)
 
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -139,16 +151,21 @@ class MainActivity() : ComponentActivity() {
 
                             IconButton(onClick = {
                                 showDialog = true
+                                notification = Notifications.showBasicNotification(context, import, "")
                                 progress?.let {
                                     it({ progress, text ->
                                         currentProgress = progress
                                         currentText = text
-                                    }, {showDialog = false})
+                                        if(notification != null) {
+                                            Notifications.updateNotification(context, progress, text, notification!!)
+                                        }
+                                    }, {
+                                        showDialog = false
+                                        Notifications.deleteNotification(context)
+                                    })
                                 }
                             }) {
-                                Icon(imageVector = Icons.Outlined.Refresh, contentDescription = stringResource(
-                                    R.string.calendar_import
-                                ))
+                                Icon(imageVector = Icons.Outlined.Refresh, import)
                             }
 
                             if(showDialog) {
@@ -179,7 +196,7 @@ class MainActivity() : ComponentActivity() {
                         if(menuExpanded) {
                             Menu({menuExpanded = it}, true, {navController.navigate(settings)})
                         }
-                    })}) { it ->
+                    })}) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
                                 AuthenticationScreen()
