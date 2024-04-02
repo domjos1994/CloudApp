@@ -1,9 +1,6 @@
 package de.domjos.cloudapp.features.chats.screens
 
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.VectorDrawable
 import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -38,16 +35,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -56,13 +49,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import de.domjos.cloudapp.webrtc.model.msg.Message
 import de.domjos.cloudapp.webrtc.model.room.Room
 import de.domjos.cloudapp.webrtc.model.room.Type
@@ -118,12 +108,22 @@ fun RoomScreen(
         )
     }
 
-    Column(modifier = Modifier
+    ConstraintLayout(modifier = Modifier
         .fillMaxSize()
-        .padding(5.dp)
-        .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.SpaceBetween) {
-        Column {
+        .padding(5.dp)) {
+        val (list, control) = createRefs()
+
+        Column(
+            Modifier
+                .verticalScroll(rememberScrollState())
+                .constrainAs(list) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                    height = Dimension.fillToConstraints
+                    width = Dimension.fillToConstraints
+                }) {
             rooms.forEach { room ->
                 RoomItem(room, {
                     selectedItem.value = it
@@ -141,7 +141,11 @@ fun RoomScreen(
                 selectedItem.value = null
             },
             modifier = Modifier
-                .align(Alignment.End)
+                .constrainAs(control) {
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                    width = Dimension.fillToConstraints
+                }
                 .padding(5.dp)) {
             Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
         }

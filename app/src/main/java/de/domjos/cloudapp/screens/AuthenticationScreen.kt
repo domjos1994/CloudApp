@@ -28,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +47,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
@@ -130,11 +131,17 @@ fun AuthenticationScreen(
 
 
 
-    Column(modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween) {
-        Column(modifier = Modifier
-            .wrapContentHeight()
-            .fillMaxWidth()
+    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+        val (list, control) = createRefs()
+
+        Column(modifier = Modifier.constrainAs(list) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(control.top)
+            height = Dimension.fillToConstraints
+            width = Dimension.fillToConstraints
+        }
             .padding(5.dp)
             .verticalScroll(rememberScrollState())) {
             AuthenticationList(
@@ -143,21 +150,19 @@ fun AuthenticationScreen(
                 showDialog.value = true
             }, select)
         }
-        Column(modifier = Modifier
-            .fillMaxWidth()) {
-            Row {
-                Column {
-                    FloatingActionButton(
-                        onClick = {
-                            selectedItem.value = Authentication(0, "", "", "", "", false, "", null)
-                            showDialog.value = true
-                        },
-                        modifier = Modifier.align(Alignment.End)
-                            .padding(5.dp)) {
-                        Icon(Icons.Filled.Add, stringResource(R.string.login_add))
-                    }
+        FloatingActionButton(
+            onClick = {
+                selectedItem.value = Authentication(0, "", "", "", "", false, "", null)
+                showDialog.value = true
+            },
+            modifier = Modifier
+                .constrainAs(control) {
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                    width = Dimension.fillToConstraints
                 }
-            }
+                .padding(5.dp)) {
+            Icon(Icons.Filled.Add, stringResource(R.string.login_add))
         }
     }
 }
@@ -226,8 +231,6 @@ private fun EditDialog(
     setShowDialog: (Boolean) -> Unit,
     onSaveClick: (Authentication) -> Unit,
     onDeleteClick: (Authentication) -> Unit) {
-
-    val context = LocalContext.current
 
     var id by remember { mutableLongStateOf(0L) }
     var title by remember { mutableStateOf(TextFieldValue("")) }

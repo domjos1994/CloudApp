@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.compose.foundation.layout.navigationBarsIgnoringVisibility
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -42,6 +43,7 @@ import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -63,7 +65,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
@@ -132,15 +134,19 @@ fun ContactScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var contact by remember { mutableStateOf<Contact?>(null) }
 
-    Column(Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween) {
+    ConstraintLayout(Modifier.fillMaxSize()) {
+        val (list, control) = createRefs()
 
-        Row {
+        Row(Modifier.constrainAs(list) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(parent.bottom)
+            height = Dimension.fillToConstraints
+            width = Dimension.fillToConstraints
+        }) {
             Column {
-                AddressBookChoice(addressBooks = addressBooks, onSelectedAddressBook) {
-                    contact = null
-                    showDialog = true
-                }
+                AddressBookChoice(addressBooks = addressBooks, onSelectedAddressBook)
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -170,14 +176,27 @@ fun ContactScreen(
                 }
             }
         }
+
+        FloatingActionButton(
+            onClick = {
+                contact = null
+                showDialog = true
+            },
+            modifier = Modifier.constrainAs(control) {
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+                width = Dimension.fillToConstraints
+            }
+                .padding(5.dp)) {
+            Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+        }
     }
 }
 
 @Composable
 fun AddressBookChoice(
     addressBooks: List<String>,
-    onSelectedAddressBook: (String) -> Unit,
-    onNew: () -> Unit) {
+    onSelectedAddressBook: (String) -> Unit) {
 
     var expanded by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf("") }
@@ -188,16 +207,6 @@ fun AddressBookChoice(
             .wrapContentSize(Alignment.TopEnd)
     ) {
         Row {
-            Column(Modifier.weight(1f)) {
-                IconButton(onClick = {
-                    onNew()
-                }) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add"
-                    )
-                }
-            }
             Column(
                 Modifier.weight(9f),
                 verticalArrangement = Arrangement.Center,
@@ -1440,7 +1449,7 @@ fun AddressItemPreview() {
 @Preview(showBackground = true)
 @Composable
 fun AddressBookPreview() {
-    AddressBookChoice(addressBooks = fakeAddressBooks(), {}) {}
+    AddressBookChoice(addressBooks = fakeAddressBooks()) {}
 }
 
 @Preview(showBackground = true)
