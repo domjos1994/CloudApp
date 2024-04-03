@@ -47,9 +47,12 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.temporal.WeekFields
 import java.util.Calendar
 import java.util.Date
+import java.util.GregorianCalendar
 import java.util.LinkedList
 import java.util.Locale
 
@@ -57,6 +60,19 @@ import java.util.Locale
 fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
     val events by viewModel.events.collectAsStateWithLifecycle()
     val days by viewModel.days.collectAsStateWithLifecycle()
+
+    if(events.isEmpty()) {
+        val dt = Calendar.getInstance()
+        val baseStart = Calendar.getInstance()
+        baseStart.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), 1)
+        val baseEnd = Calendar.getInstance()
+        baseEnd.set(
+            dt.get(Calendar.YEAR),
+            dt.get(Calendar.MONTH),
+            dt.getActualMaximum(Calendar.DAY_OF_MONTH)
+        )
+        viewModel.load(baseStart.time.time, baseEnd.time.time)
+    }
 
     CalendarScreen(events, days) { mode, calendar ->
         val start = updateTime(0, 0, 0, calendar.clone() as Calendar)
@@ -312,9 +328,19 @@ fun CalendarEventItem(calendarEvent: CalendarEvent) {
             }
         }
         val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-        val start = sdf.format(Date.from(Instant.ofEpochMilli(calendarEvent.from)))
-        val end = sdf.format(Date.from(Instant.ofEpochMilli(calendarEvent.to)))
+        val sdfFullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        val from = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(calendarEvent.from), ZoneId.systemDefault()))
+        val to = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(calendarEvent.to), ZoneId.systemDefault()))
 
+        val start: String
+        val end: String
+        if(from.get(Calendar.HOUR) == 0 && from.get(Calendar.MINUTE) == 0 && to.get(Calendar.HOUR) == 0 && to.get(Calendar.MINUTE) == 0) {
+            start = sdfFullDay.format(Date.from(Instant.ofEpochMilli(calendarEvent.from)))
+            end = sdfFullDay.format(Date.from(Instant.ofEpochMilli(calendarEvent.to)))
+        } else {
+            start = sdf.format(Date.from(Instant.ofEpochMilli(calendarEvent.from)))
+            end = sdf.format(Date.from(Instant.ofEpochMilli(calendarEvent.to)))
+        }
 
         Column(Modifier.weight(3f)) {
             Row {
@@ -358,7 +384,7 @@ fun ScreenPreview() {
 
 
 private fun fakeEvent(id: Long):CalendarEvent {
-    return CalendarEvent(
+    return CalendarEvent(id,
         "$id",
         Calendar.getInstance().time.time,
         Calendar.getInstance().time.time,

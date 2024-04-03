@@ -13,7 +13,8 @@ import java.util.UUID
     ]
 )
 class CalendarEvent(
-    @PrimaryKey var uid: String = UUID.randomUUID().toString(),
+    @PrimaryKey(autoGenerate = true) @ColumnInfo("id", defaultValue = "0") var id: Long,
+    var uid: String = UUID.randomUUID().toString(),
     var from: Long, var to: Long, var title: String,
     var location: String, var description: String,
     var confirmation: String, var categories: String,

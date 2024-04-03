@@ -214,7 +214,7 @@ class Calendar(private val authentication: Authentication) {
                 to = net.fortuna.ical4j.model.Date(readPropertyToString<DtEnd>(component)).time
             }
 
-            return CalendarEvent(uid, from, to, title, location, description, confirmation, categories, color, name, authentication.id)
+            return CalendarEvent(0L, uid, from, to, title, location, description, confirmation, categories, color, name, authentication.id)
         } catch (_: Exception) {}
         return null
     }

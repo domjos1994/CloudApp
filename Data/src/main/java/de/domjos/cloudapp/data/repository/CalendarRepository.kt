@@ -4,7 +4,6 @@ import de.domjos.cloudapp.caldav.Calendar
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.dao.CalendarEventDAO
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
-import kotlinx.coroutines.flow.Flow
 import java.util.LinkedList
 import javax.inject.Inject
 
@@ -51,7 +50,7 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String) {
-        this.calendarEventDAO.clearAll()
+        this.calendarEventDAO.clearAll(authenticationDAO.getSelectedItem()!!.id)
         this.calendar.reloadCalendarEvents(updateProgress, progressLabel)
         val data = this.calendar.calendars
 
@@ -59,6 +58,7 @@ class DefaultCalendarRepository @Inject constructor(
             var progress = 0L
             val max = data[key]?.size!! / 100.0f
             data[key]?.forEach { event ->
+                event.authId = authenticationDAO.getSelectedItem()!!.id
                 calendarEventDAO.insertCalendarEvent(event)
                 progress += 1L
                 updateProgress(progress*max/100.0f, String.format(saveLabel, key))

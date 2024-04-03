@@ -31,8 +31,8 @@ interface CalendarEventDAO {
     @Query("SELECT distinct calendar FROM calendarEvents")
     fun getCalendars(): Flow<List<String>>
 
-    @Query("DELETE FROM calendarEvents")
-    fun clearAll()
+    @Query("DELETE FROM calendarEvents WHERE authId=:authId")
+    fun clearAll(authId: Long)
 
     @Query("DELETE FROM calendarEvents WHERE calendar=:calendar")
     fun clearCalendar(calendar: String)

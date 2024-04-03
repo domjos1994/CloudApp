@@ -695,8 +695,9 @@ fun EditDialog(
                             addresses.forEach { a.add(it) }
                             val photo = img.value
                             val addressBook = contact?.addressBook ?: ""
+                            val id = contact?.id ?: 0L
 
-                            val new = Contact(uid, suf, pre, last, first, add, bd, org, photo, addressBook, 0L)
+                            val new = Contact(id, uid, suf, pre, last, first, add, bd, org, photo, addressBook, 0L)
                             new.addresses = a
                             new.emailAddresses = em
                             new.phoneNumbers = ph
@@ -1468,7 +1469,7 @@ fun fakeContact(id: Int): Contact {
     val bDate = Calendar.getInstance()
     bDate.set(1960, 1, 1)
     bDate.add(Calendar.DAY_OF_MONTH, id)
-    return Contact(
+    return Contact(0L,
         "$id", "", "", "Doe", "John$id", "",
         bDate.time, "", null, "Test", 0L)
 }

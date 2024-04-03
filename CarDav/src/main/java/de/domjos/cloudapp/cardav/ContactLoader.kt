@@ -168,7 +168,7 @@ class ContactLoader(private val authentication: Authentication) {
         val organization =
             if(vCard.organization!=null) vCard.organization.values.joinToString(",") else ""
 
-        val contact = Contact(
+        val contact = Contact(0L,
             vCard.uid.value, suffix, prefix,
             vCard.structuredName.family,
             vCard.structuredName.given, additional,

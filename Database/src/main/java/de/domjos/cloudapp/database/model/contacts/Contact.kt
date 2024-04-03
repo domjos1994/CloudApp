@@ -17,7 +17,8 @@ import java.util.LinkedList
     ]
 )
 data class Contact(
-    @PrimaryKey(autoGenerate = false) var uid: String,
+    @PrimaryKey(autoGenerate = true) @ColumnInfo("id", defaultValue = "0") var id: Long,
+    var uid: String,
     var suffix: String?,
     var prefix: String?,
     var familyName: String?,
