@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CalendarEventDAO {
 
+    @Query("SELECT DISTINCT calendar FROM calendarEvents WHERE authId=:authId")
+    fun getCalendars(authId: Long): List<String>
+
     @Query("SELECT * FROM calendarEvents WHERE authId=:authId")
     fun getAll(authId: Long): Flow<List<CalendarEvent>>
 

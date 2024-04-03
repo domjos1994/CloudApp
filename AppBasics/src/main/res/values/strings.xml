@@ -10,6 +10,15 @@
     <string name="calendar_import">Import</string>
     <string name="calendar_import_calendar">Import %s …</string>
     <string name="calendar_save_calendar">Save %s …</string>
+    <string name="calendar_title">Title</string>
+    <string name="calendar_from">From (day.Month.Year [Hour:Minute])</string>
+    <string name="calendar_to">To (day.Month.Year [Hour:Minute])</string>
+    <string name="calendar_description">Description</string>
+    <string name="calendar_location">Location</string>
+    <string name="calendar_confirmation">Confirmation</string>
+    <string name="calendar_categories">Categories (separated by ,)</string>
+    <string name="calendar_save">Save Item</string>
+    <string name="calendar_delete">Delete Item</string>
 
     <string name="contacts">Contacts</string>
     <string name="contacts_all">All Contacts</string>

@@ -20,10 +20,18 @@ class CalendarViewModel @Inject constructor(
     val events: StateFlow<List<CalendarEvent>> get() = _events
     private val _days = MutableStateFlow(listOf<Int>())
     val days: StateFlow<List<Int>> get() = _days
+    private val _calendars = MutableStateFlow(listOf<String>())
+    val calendars: StateFlow<List<String>> get() = _calendars
 
     fun load(startTime: Long, endTime: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             _events.value = calendarRepository.loadData(startTime, endTime)
+        }
+    }
+
+    fun getCalendars() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _calendars.value = calendarRepository.getCalendars()
         }
     }
 

@@ -9,6 +9,7 @@ import javax.inject.Inject
 
 interface CalendarRepository {
     fun loadData(startTime: Long, endTime:Long): List<CalendarEvent>
+    fun getCalendars(): List<String>
     fun countData(calendar: java.util.Calendar): LinkedList<Int>
     fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
     fun insert(calendarEvent: CalendarEvent)
@@ -24,6 +25,10 @@ class DefaultCalendarRepository @Inject constructor(
 
     override fun loadData(startTime: Long, endTime: Long): List<CalendarEvent> {
         return calendarEventDAO.getItemsByTime(startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+    }
+
+    override fun getCalendars(): List<String> {
+        return calendarEventDAO.getCalendars(authenticationDAO.getSelectedItem()!!.id)
     }
 
     override fun countData(calendar: java.util.Calendar): LinkedList<Int> {

@@ -1,8 +1,9 @@
 package de.domjos.cloudapp.features.calendars.screens
 
-import android.content.res.Configuration
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,12 +17,23 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -33,11 +45,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
@@ -55,11 +73,14 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.LinkedList
 import java.util.Locale
+import java.util.UUID
 
 @Composable
 fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
     val events by viewModel.events.collectAsStateWithLifecycle()
+    val calendars by viewModel.calendars.collectAsStateWithLifecycle()
     val days by viewModel.days.collectAsStateWithLifecycle()
+    viewModel.getCalendars()
 
     if(events.isEmpty()) {
         val dt = Calendar.getInstance()
@@ -74,7 +95,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
         viewModel.load(baseStart.time.time, baseEnd.time.time)
     }
 
-    CalendarScreen(events, days) { mode, calendar ->
+    CalendarScreen(events, calendars, days, { mode, calendar ->
         val start = updateTime(0, 0, 0, calendar.clone() as Calendar)
         val end = updateTime(23, 59, 59, calendar.clone() as Calendar)
         if(mode==Calendar.MONTH) {
@@ -86,7 +107,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
         val endTime = end.time.time
         viewModel.load(startTime, endTime)
         viewModel.count(start)
-    }
+    }, { item: CalendarEvent -> viewModel.insertCalendar(item)},
+        { item: CalendarEvent -> viewModel.deleteCalendar(item)})
 }
 
 @Composable
@@ -107,27 +129,82 @@ fun updateTime(hour: Int, minute: Int, seconds: Int, cal: Calendar) : Calendar {
 @Composable
 fun CalendarScreen(
     calendarEvents: List<CalendarEvent>,
+    calendars: List<String>,
     countDays: List<Int>,
-    onChange: (Int, Calendar) -> Unit) {
+    onChange: (Int, Calendar) -> Unit,
+    onSave: (CalendarEvent) -> Unit,
+    onDelete: (CalendarEvent) -> Unit) {
 
-    Column(Modifier.fillMaxSize()) {
-        Row {
-            Calendar(onChange = onChange, countDays = countDays)
-        }
-        Row {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .verticalScroll(rememberScrollState())) {
-                calendarEvents.forEach { CalendarEventItem(it) }
+    var showDialog by remember { mutableStateOf(false) }
+    var event by remember { mutableStateOf<CalendarEvent?>(null) }
+    var dt by remember { mutableStateOf(Date()) }
+
+    if(showDialog) {
+        EditDialog(
+            event = event, date = dt, calendars = calendars,
+            onShowItem = {showDialog=it},
+            onSave = {
+                onSave(it)
+                showDialog = false
+             }, onDelete = {
+                 onDelete(it)
+                showDialog = false
+             })
+    }
+
+    ConstraintLayout(Modifier.fillMaxSize()) {
+        val (list, control) = createRefs()
+
+        Column(Modifier.constrainAs(list) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(parent.bottom)
+            height = Dimension.fillToConstraints
+            width = Dimension.fillToConstraints
+        }) {
+            Row {
+                Calendar(onChange = onChange, countDays = countDays) {
+                    dt = it
+                    event = null
+                    showDialog = true
+                }
             }
+            Row {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .verticalScroll(rememberScrollState())) {
+                    calendarEvents.forEach { CalendarEventItem(it) { item: CalendarEvent ->
+                        event = item
+                        dt = Date()
+                        showDialog = true
+                    }
+                    }
+                }
+            }
+        }
+
+        FloatingActionButton(
+            onClick = {
+                dt = Date()
+                event = null
+                showDialog = true
+            },
+            modifier = Modifier.constrainAs(control) {
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+                width = Dimension.fillToConstraints
+            }
+                .padding(5.dp)) {
+            Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
         }
     }
 }
 
 @Composable
-fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calendar) -> Unit, countDays: List<Int>) {
+fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     var dt by remember { mutableStateOf(calendar) }
     var format by remember { mutableStateOf("MM.yyyy") }
     val sdfMonth = SimpleDateFormat("MM.yyyy", Locale.getDefault())
@@ -136,7 +213,7 @@ fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calend
     next.add(Calendar.MONTH, 1)
     previous.add(Calendar.MONTH, -1)
 
-    Column() {
+    Column {
         Row(
             Modifier
                 .wrapContentHeight()
@@ -208,7 +285,7 @@ fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calend
                             selectedDate = selected.get(Calendar.DAY_OF_MONTH)
                             format = "dd.MM.yyyy"
                             onChange(Calendar.DAY_OF_MONTH, selected)
-                        }, countDays)
+                        }, countDays, onClick)
                     }
                 }
             }
@@ -235,8 +312,9 @@ fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calend
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, countDays: List<Int>) {
+fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     // get first day
     val firstDayCal = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, 1)
     val firstDay = firstDayCal.dayOfWeek.value
@@ -281,23 +359,31 @@ fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, count
         Modifier
             .padding(1.dp)
             .background(bgColor)
-            .clickable {
-                val tmp = cal.clone() as Calendar
-                tmp.set(Calendar.DAY_OF_MONTH, day)
-                onSelected(tmp)
-            }) {
+            .combinedClickable(
+                onClick = {
+                    val tmp = cal.clone() as Calendar
+                    tmp.set(Calendar.DAY_OF_MONTH, day)
+                    onSelected(tmp)
+                },
+                onLongClick = {
+                    val tmp = cal.clone() as Calendar
+                    tmp.set(Calendar.DAY_OF_MONTH, day)
+                    onClick(tmp.time)
+                }
+            )) {
         Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier.padding(5.dp))
     }
 }
 
 @Composable
-fun CalendarEventItem(calendarEvent: CalendarEvent) {
+fun CalendarEventItem(calendarEvent: CalendarEvent, onClick: (CalendarEvent)->Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(5.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer)) {
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .clickable { onClick(calendarEvent) }) {
         Column(Modifier.weight(1f)) {
             Icon(Icons.Default.DateRange, calendarEvent.title)
         }
@@ -360,28 +446,262 @@ fun CalendarEventItem(calendarEvent: CalendarEvent) {
             .background(Color.Black)) {}
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onShowItem: (Boolean) -> Unit, onSave: (CalendarEvent) -> Unit, onDelete: (CalendarEvent) -> Unit) {
+    val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+    val inDay = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+    var def = date
+    if(def == null) {
+        def = Date()
+    }
+
+    var from by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
+    var to by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
+    var title by remember {mutableStateOf(TextFieldValue(""))}
+    var location by remember {mutableStateOf(TextFieldValue(""))}
+    var description by remember {mutableStateOf(TextFieldValue(""))}
+    var confirmation by remember {mutableStateOf(TextFieldValue(""))}
+    var categories by remember {mutableStateOf(TextFieldValue(""))}
+    var calendar by remember { mutableStateOf("") }
+
+    if(event != null) {
+        val calFrom = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.from), ZoneId.systemDefault()))
+        val calTo = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.to), ZoneId.systemDefault()))
+        if(calFrom.get(Calendar.HOUR) == 0 && calFrom.get(Calendar.MINUTE)==0 && calTo.get(Calendar.HOUR) == 0 && calTo.get(Calendar.MINUTE) == 0) {
+            from = TextFieldValue(fullDay.format(calFrom.time))
+            to = TextFieldValue(fullDay.format(calTo.time))
+        } else {
+            from = TextFieldValue(inDay.format(calFrom.time))
+            to = TextFieldValue(inDay.format(calTo.time))
+        }
+
+        title = TextFieldValue(event.title)
+        location = TextFieldValue(event.location)
+        description = TextFieldValue(event.description)
+        confirmation = TextFieldValue(event.confirmation)
+        categories = TextFieldValue(event.categories)
+        calendar = event.calendar
+    }
+
+    Dialog(onDismissRequest = {onShowItem(false)},
+        DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)) {
+        Surface(
+            Modifier
+                .padding(5.dp)
+                .verticalScroll(rememberScrollState()),
+            color = Color.White) {
+            Column {
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)) {
+                        OutlinedTextField(
+                            value = title,
+                            onValueChange = {title=it},
+                            label = {Text(stringResource(id = R.string.calendar_title))}
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)) {
+                        OutlinedTextField(
+                            value = from,
+                            onValueChange = {from=it},
+                            label = {Text(stringResource(id = R.string.calendar_from))}
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)) {
+                        OutlinedTextField(
+                            value = to,
+                            onValueChange = {to=it},
+                            label = {Text(stringResource(id = R.string.calendar_to))}
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)) {
+                        OutlinedTextField(
+                            value = description,
+                            onValueChange = {description=it},
+                            label = {Text(stringResource(id = R.string.calendar_description))}
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)) {
+                        OutlinedTextField(
+                            value = confirmation,
+                            onValueChange = {confirmation=it},
+                            label = {Text(stringResource(id = R.string.calendar_confirmation))}
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)) {
+                        OutlinedTextField(
+                            value = categories,
+                            onValueChange = {categories=it},
+                            label = {Text(stringResource(id = R.string.calendar_categories))}
+                        )
+                    }
+                }
+                var expanded by remember { mutableStateOf(false) }
+
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)) {
+                        ExposedDropdownMenuBox(
+                            expanded = expanded,
+                            onExpandedChange = {
+                                expanded = !expanded
+                            }
+                        ) {
+                            TextField(
+                                value = calendar,
+                                onValueChange = {},
+                                readOnly = true,
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                                modifier = Modifier.menuAnchor()
+                            )
+
+                            ExposedDropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false }
+                            ) {
+                                calendars.forEach { item ->
+                                    DropdownMenuItem(
+                                        text = { Text(text = item) },
+                                        onClick = {
+                                            calendar = item
+                                            expanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                Row {
+                    if(event != null) {
+                        Column(Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = { onDelete(event) }) {
+                                Icon(Icons.Default.Delete, stringResource(id = R.string.calendar_delete))
+                            }
+                        }
+                        Column(Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = {
+                                var fromDate = isDate(inDay, from.text)
+                                if(fromDate != null) {
+                                    fromDate = isDate(fullDay, from.text)
+                                }
+                                var toDate = isDate(inDay, to.text)
+                                if(toDate != null) {
+                                    toDate = isDate(fullDay, to.text)
+                                }
+                                event.from = fromDate?.time ?: 0L
+                                event.to = toDate?.time ?: 0L
+                                event.title = title.text
+                                event.description = description.text
+                                event.confirmation = confirmation.text
+                                event.location = location.text
+                                event.categories = categories.text
+                                event.calendar = calendar
+
+                                onSave(event)
+                            }) {
+                                Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
+                            }
+                        }
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = {
+                                var fromDate = isDate(inDay, from.text)
+                                if(fromDate != null) {
+                                    fromDate = isDate(fullDay, from.text)
+                                }
+                                var toDate = isDate(inDay, to.text)
+                                if(toDate != null) {
+                                    toDate = isDate(fullDay, to.text)
+                                }
+
+                                val nEvent = CalendarEvent(
+                                    0L, UUID.randomUUID().toString(),
+                                    fromDate?.time ?: 0L, toDate?.time ?: 0L,
+                                    title.text, location.text, description.text,
+                                    confirmation.text, categories.text, "", calendar, 0L)
+
+                                onSave(nEvent)
+                            }) {
+                                Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun isDate(sdf: SimpleDateFormat, dt: String): Date? {
+    try {
+        sdf.isLenient = false
+        return sdf.parse(dt)
+    } catch (_: Exception) {}
+    return null
+}
+
 @Preview(showBackground = true)
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_MASK)
 @Composable
 fun CalendarPreview() {
     CloudAppTheme {
-        Calendar(onChange = {_,_->}, countDays = listOf())
+        Calendar(onChange = {_,_->}, countDays = listOf(), onClick = {})
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun CalendarItemPreview() {
-    CalendarEventItem(fakeEvent(1))
+    CalendarEventItem(fakeEvent(1)) {}
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ScreenPreview() {
-    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf()) { _, _ -> }
+    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf(), listOf(), {_,_->}, {}, {})
 }
 
+@Preview(showBackground = true)
+@Composable
+fun EditDialogPreview() {
+    CloudAppTheme {
+        EditDialog(event = fakeEvent(0L), date = Date(), onShowItem = {}, onSave = {}, calendars = listOf("Test1", "Test2")) {
+
+        }
+    }
+}
 
 private fun fakeEvent(id: Long):CalendarEvent {
     return CalendarEvent(id,

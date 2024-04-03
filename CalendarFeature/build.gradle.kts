@@ -44,7 +44,9 @@ dependencies {
     implementation(project(":AppBasics"))
     implementation(project(":Database"))
     implementation(project(":Data"))
+
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.constraint)
 
     // compose
     implementation(libs.androidx.activity.compose)
