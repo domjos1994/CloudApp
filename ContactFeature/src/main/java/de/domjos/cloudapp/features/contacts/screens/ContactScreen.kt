@@ -2,6 +2,7 @@ package de.domjos.cloudapp.features.contacts.screens
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -46,6 +47,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -79,6 +81,7 @@ import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.ImageHelper
 import de.domjos.cloudapp.appbasics.helper.connectivityState
+import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.contacts.Address
 import de.domjos.cloudapp.database.model.contacts.AddressType
 import de.domjos.cloudapp.database.model.contacts.Contact
@@ -182,11 +185,12 @@ fun ContactScreen(
                 contact = null
                 showDialog = true
             },
-            modifier = Modifier.constrainAs(control) {
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-                width = Dimension.fillToConstraints
-            }
+            modifier = Modifier
+                .constrainAs(control) {
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                    width = Dimension.fillToConstraints
+                }
                 .padding(5.dp)) {
             Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
         }
@@ -256,7 +260,8 @@ fun ContactItem(contact: Contact, onClick: (Contact) -> Unit, onLongClick: (Cont
         Column(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .background(MaterialTheme.colorScheme.primaryContainer),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             if(contact.photo != null) {
@@ -779,7 +784,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
                 val dt = sdf.format(contact.birthDay!!)
                 Column(
-                    Modifier.weight(1f).padding(5.dp),
+                    Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                     horizontalAlignment = Alignment.End) {
                     Text(
                         stringResource(id = R.string.contact_birthDate),
@@ -787,7 +794,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                         fontSize = 18.sp)
                 }
                 Column(
-                    Modifier.weight(1f).padding(5.dp),
+                    Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                     horizontalAlignment = Alignment.Start) {
                     Text(
                         dt,
@@ -806,7 +815,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
                 Column(
-                    Modifier.weight(1f).padding(5.dp),
+                    Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                     horizontalAlignment = Alignment.End) {
                     Text(
                         stringResource(id = R.string.contact_org),
@@ -814,7 +825,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                         fontSize = 18.sp)
                 }
                 Column(
-                    Modifier.weight(1f).padding(5.dp),
+                    Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                     horizontalAlignment = Alignment.Start) {
                     Text(
                         contact.organization,
@@ -833,7 +846,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
                 Column(
-                    Modifier.weight(1f).padding(5.dp),
+                    Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                     horizontalAlignment = Alignment.End) {
                     Text(
                         stringResource(id = R.string.contact_additional),
@@ -841,7 +856,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                         fontSize = 18.sp)
                 }
                 Column(
-                    Modifier.weight(1f).padding(5.dp),
+                    Modifier
+                        .weight(1f)
+                        .padding(5.dp),
                     horizontalAlignment = Alignment.Start) {
                     Text(
                         contact.additional!!,
@@ -872,7 +889,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             types,
@@ -880,7 +899,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                             fontSize = 18.sp)
                     }
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             number.value,
@@ -908,7 +929,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             email.value,
@@ -941,7 +964,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             types,
@@ -950,7 +975,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     }
                     if(address.postOfficeAddress != null) {
                         Column(
-                            Modifier.weight(1f).padding(5.dp),
+                            Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             horizontalAlignment = Alignment.Start) {
                             Text(
                                 address.postOfficeAddress!!,
@@ -968,7 +995,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             stringResource(id = R.string.contact_addresses_street),
@@ -976,7 +1005,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                             fontSize = 18.sp)
                     }
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             address.street,
@@ -993,7 +1024,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             stringResource(id = R.string.contact_addresses_locality),
@@ -1001,7 +1034,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                             fontSize = 18.sp)
                     }
                     Column(
-                        Modifier.weight(1f).padding(5.dp),
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             "${address.postalCode} ${address.locality}",
@@ -1019,7 +1054,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically) {
                         Column(
-                            Modifier.weight(1f).padding(5.dp),
+                            Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             horizontalAlignment = Alignment.End) {
                             Text(
                                 stringResource(id = R.string.contact_addresses_region),
@@ -1027,7 +1064,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                                 fontSize = 18.sp)
                         }
                         Column(
-                            Modifier.weight(1f).padding(5.dp),
+                            Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             horizontalAlignment = Alignment.Start) {
                             Text(
                                 address.region!!,
@@ -1046,7 +1085,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically) {
                         Column(
-                            Modifier.weight(1f).padding(5.dp),
+                            Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             horizontalAlignment = Alignment.End) {
                             Text(
                                 stringResource(id = R.string.contact_addresses_country),
@@ -1054,7 +1095,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                                 fontSize = 18.sp)
                         }
                         Column(
-                            Modifier.weight(1f).padding(5.dp),
+                            Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             horizontalAlignment = Alignment.Start) {
                             Text(
                                 address.country!!,
@@ -1073,7 +1116,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically) {
                         Column(
-                            Modifier.weight(1f).padding(5.dp),
+                            Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             horizontalAlignment = Alignment.End) {
                             Text(
                                 stringResource(id = R.string.contact_addresses_extended),
@@ -1081,7 +1126,9 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                                 fontSize = 18.sp)
                         }
                         Column(
-                            Modifier.weight(1f).padding(5.dp),
+                            Modifier
+                                .weight(1f)
+                                .padding(5.dp),
                             horizontalAlignment = Alignment.Start) {
                             Text(
                                 address.extendedAddress!!,
@@ -1454,9 +1501,12 @@ fun AddressBookPreview() {
 }
 
 @Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ContactItemPreview() {
-    ContactItem(contact = fakeContact(1), {}, {})
+    CloudAppTheme {
+        ContactItem(contact = fakeContact(1), {}, {})
+    }
 }
 
 @Preview(showBackground = true)
