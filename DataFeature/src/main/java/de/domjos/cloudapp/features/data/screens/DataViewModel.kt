@@ -54,11 +54,13 @@ class DataViewModel @Inject constructor(
 
     fun loadFile(item: Item, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val dir = dataRepository.createDirs()
-            if(!exists(item)) {
-                dataRepository.openResource(item, dir)
-            }
-            dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
+            try {
+                val dir = dataRepository.createDirs()
+                if(!exists(item)) {
+                    dataRepository.openResource(item, dir)
+                }
+                dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
+            } catch (_: Exception) {}
         }
     }
 
