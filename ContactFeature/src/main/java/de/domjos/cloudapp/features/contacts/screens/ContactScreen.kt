@@ -39,8 +39,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,11 +48,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -173,7 +174,7 @@ fun ContactScreen(
                             showBottomSheet = true
                         }) { c->
                             contact = c
-                            showBottomSheet = true
+                            showDialog = true
                         }
                     }
                 }
@@ -319,7 +320,6 @@ fun ContactItem(contact: Contact, onClick: (Contact) -> Unit, onLongClick: (Cont
             .background(color = Color.Black)) {}
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditDialog(
     contact: Contact?,
@@ -327,13 +327,15 @@ fun EditDialog(
     onSave: (Contact) -> Unit,
     onDelete: (Contact) -> Unit) {
 
+    val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+
     var uid by remember { mutableStateOf("") }
     var suffix by remember { mutableStateOf(TextFieldValue("")) }
     var prefix by remember { mutableStateOf(TextFieldValue("")) }
     var firstName by remember { mutableStateOf(TextFieldValue("")) }
     var lastName by remember { mutableStateOf(TextFieldValue("")) }
     var additional by remember { mutableStateOf(TextFieldValue("")) }
-    var birthDate by remember { mutableStateOf(Date()) }
+    var birthDate by remember { mutableStateOf(TextFieldValue(fullDay.format(Date()))) }
     var organization by remember { mutableStateOf(TextFieldValue("")) }
     val phones = remember { mutableStateListOf(
         Phone(0L, "", "", LinkedList())
@@ -352,7 +354,9 @@ fun EditDialog(
         prefix = TextFieldValue(contact.prefix!!)
         firstName = TextFieldValue(contact.givenName)
         lastName = TextFieldValue(contact.familyName!!)
-        birthDate = if(contact.birthDay!=null) contact.birthDay!! else Date()
+        birthDate = TextFieldValue(
+            if(contact.birthDay!=null) fullDay.format(contact.birthDay!!) else fullDay.format(Date())
+        )
         additional = TextFieldValue(contact.additional!!)
         organization = TextFieldValue(contact.organization)
         img.value = contact.photo
@@ -361,10 +365,6 @@ fun EditDialog(
         if(contact.addresses != null) contact.addresses?.forEach { addresses.add(it) }
         if(contact.emailAddresses != null) contact.emailAddresses?.forEach { mails.add(it) }
     }
-    val dateState = rememberDatePickerState(
-        initialDisplayMode = DisplayMode.Input,
-        initialSelectedDateMillis = birthDate.time
-    )
 
     Dialog(
         onDismissRequest = {setShowDialog(false)},
@@ -373,7 +373,7 @@ fun EditDialog(
         Surface(
             Modifier
                 .padding(5.dp)
-                .verticalScroll(rememberScrollState()), color = Color.White) {
+                .verticalScroll(rememberScrollState())) {
             Column {
                 Row {
                     Column(
@@ -502,9 +502,14 @@ fun EditDialog(
                         Modifier
                             .weight(1f)
                             .wrapContentHeight()) {
-                        DatePicker(
-                            state = dateState,
-                            title = {Text(stringResource(R.string.contact_birthDate))})
+                        OutlinedTextField(
+                            value = birthDate,
+                            onValueChange = {
+                                birthDate = it
+                            },
+                            label = {Text(stringResource(R.string.contact_birthDate))},
+                            modifier = Modifier.padding(2.dp)
+                        )
                     }
                 }
                 Row(
@@ -530,151 +535,15 @@ fun EditDialog(
                         .fillMaxWidth()
                         .height(1.dp)
                         .background(Color.Black)) {}
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(30.dp)) {
-                    Column(
-                        Modifier
-                            .weight(9f)
-                            .height(30.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(stringResource(id = R.string.contact_phones), fontWeight = FontWeight.Bold)
-                    }
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .wrapContentHeight()
-                    ) {
-                        IconButton(onClick = {
-                            phones.add(Phone(0L, uid, "", LinkedList()))
-                        }) {
-                            Icon(Icons.Default.Add, "")
-                        }
-                    }
-                }
 
-                // phones
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black)) {}
-
-                phones.forEach { phone ->
-                    PhoneItem(phone = phone) {
-                        phones.remove(phone)
-                    }
-                }
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black)) {}
-
-                // emails
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(30.dp)) {
-                    Column(
-                        Modifier
-                            .weight(9f)
-                            .height(30.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(stringResource(id = R.string.contact_mails), fontWeight = FontWeight.Bold)
-                    }
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .wrapContentHeight()
-                    ) {
-                        IconButton(onClick = {
-                            mails.add(Email(0L, uid, ""))
-                        }) {
-                            Icon(Icons.Default.Add, "")
-                        }
-                    }
-                }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black)) {}
-
-                mails.forEach { email ->
-                    MailItem(email = email) {
-                        mails.remove(email)
-                    }
-                }
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black)) {}
-
-                // addresses
-                
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(30.dp)) {
-                    Column(
-                        Modifier
-                            .weight(9f)
-                            .height(30.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(stringResource(id = R.string.contact_addresses), fontWeight = FontWeight.Bold)
-                    }
-                    Column(
-                        Modifier
-                            .weight(1f)
-                            .wrapContentHeight()
-                    ) {
-                        IconButton(onClick = {
-                            addresses.add(
-                                Address(
-                                    0L, uid, LinkedList(),
-                                    "", "", "", "",
-                                    "", "", ""
-                                ))
-                        }) {
-                            Icon(Icons.Default.Add, "")
-                        }
-                    }
-                }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black)) {}
-
-                addresses.forEach { address ->
-                    AddressItem(address = address) {
-                        addresses.remove(it)
-                    }
-                }
-
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(Color.Black)) {}
+                TabControl(phones, mails, addresses, uid)
 
                 Row(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()) {
                     if(contact != null) {
-                        Column(Modifier.weight(1f)) {
+                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = {
                                 onDelete(contact)
                                 setShowDialog(false)
@@ -683,14 +552,14 @@ fun EditDialog(
                             }
                         }
                     }
-                    Column(Modifier.weight(1f)) {
+                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                         IconButton(onClick = {
                             val suf = suffix.text
                             val pre = prefix.text
                             val first = firstName.text
                             val last = lastName.text
                             val add = additional.text
-                            val bd = Date(birthDate.time)
+                            val bd = fullDay.parse(birthDate.text)
                             val org = organization.text
                             val ph = LinkedList<Phone>()
                             phones.forEach { ph.add(it) }
@@ -715,6 +584,133 @@ fun EditDialog(
                     }
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TabControl(phones: MutableList<Phone>, mails: MutableList<Email>, addresses: MutableList<Address>, uid: String) {
+    var state by remember { mutableIntStateOf(0) }
+    val titles = listOf(
+        stringResource(R.string.contact_phones),
+        stringResource(R.string.contact_mails),
+        stringResource(R.string.contact_addresses)
+    )
+
+    Row {
+        Column {
+            SecondaryTabRow(selectedTabIndex = state) {
+                titles.forEachIndexed { index, title ->
+                    Tab(
+                        selected = state == index,
+                        onClick = { state = index},
+                        text = {Text(title, fontSize = 13.sp)}
+                    )
+                }
+            }
+            if(state == 0) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(30.dp)) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .wrapContentHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = {
+                            phones.add(Phone(0L, uid, "", LinkedList()))
+                        }) {
+                            Icon(Icons.Default.Add, "")
+                        }
+                    }
+                }
+
+                // phones
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color.Black)) {}
+
+                phones.forEach { phone ->
+                    PhoneItem(phone = phone) {
+                        phones.remove(phone)
+                    }
+                }
+            }
+            if(state == 1) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(30.dp)) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .wrapContentHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = {
+                            mails.add(Email(0L, uid, ""))
+                        }) {
+                            Icon(Icons.Default.Add, "")
+                        }
+                    }
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color.Black)) {}
+
+                mails.forEach { email ->
+                    MailItem(email = email) {
+                        mails.remove(email)
+                    }
+                }
+            }
+            if(state == 2) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(30.dp)) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .wrapContentHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        IconButton(onClick = {
+                            addresses.add(
+                                Address(
+                                    0L, uid, LinkedList(),
+                                    "", "", "", "",
+                                    "", "", ""
+                                ))
+                        }) {
+                            Icon(Icons.Default.Add, "")
+                        }
+                    }
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color.Black)) {}
+
+                addresses.forEach { address ->
+                    AddressItem(address = address) {
+                        addresses.remove(it)
+                    }
+                }
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(Color.Black)) {}
         }
     }
 }
@@ -1169,16 +1165,6 @@ fun convertImageToByte(uri: Uri?, context: Context): ByteArray? {
     return data
 }
 
-@Preview(showBackground = true)
-@Composable
-fun ContactScreenPreview() {
-    ContactScreen(
-        listOf(fakeContact(1), fakeContact(2), fakeContact(3)),
-        fakeAddressBooks(),
-        {}, {}, {}
-    )
-}
-
 @Composable
 fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
     Row(
@@ -1188,8 +1174,8 @@ fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
             .padding(2.dp)) {
         Column(
             Modifier
-                .weight(3f)
-                .height(100.dp)
+                .weight(7f)
+                .height(75.dp)
                 .padding(2.dp)
                 .border(1.dp, Color.Black, shape = RoundedCornerShape(4.dp))) {
             Column(
@@ -1198,6 +1184,7 @@ fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
                 PhoneType.entries.forEach { type ->
                     var typeState by remember { mutableStateOf(phone.types.contains(type)) }
                     Row(
+                        modifier = Modifier.height(18.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(checked = typeState, onCheckedChange = {
@@ -1211,16 +1198,16 @@ fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
                                     phone.types.remove(type)
                                 }
                             }
-                        })
-                        Text(type.name)
+                        }, modifier = Modifier.scale(0.7f))
+                        Text(type.name, fontSize = 12.sp)
                     }
                 }
             }
         }
         Column(
             Modifier
-                .weight(5f)
-                .height(100.dp),
+                .weight(11f)
+                .height(75.dp),
             verticalArrangement = Arrangement.Center) {
             OutlinedTextField(
                 value = phone.value,
@@ -1235,7 +1222,7 @@ fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
         Column(
             Modifier
                 .weight(2f)
-                .height(100.dp),
+                .height(75.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             IconButton(onClick = { onDelete(phone) }) {
@@ -1262,8 +1249,8 @@ fun MailItem(email: Email, onDelete: (Email) -> Unit) {
             .padding(2.dp)) {
         Column(
             Modifier
-                .weight(9f)
-                .height(60.dp),
+                .weight(18f)
+                .height(75.dp),
             verticalArrangement = Arrangement.Center) {
             OutlinedTextField(
                 value = email.value,
@@ -1277,8 +1264,8 @@ fun MailItem(email: Email, onDelete: (Email) -> Unit) {
 
         Column(
             Modifier
-                .weight(1f)
-                .height(60.dp),
+                .weight(2f)
+                .height(75.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             IconButton(onClick = { onDelete(email) }) {
@@ -1307,8 +1294,8 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
             Row {
                 Column(
                     Modifier
-                        .weight(4f)
-                        .height(100.dp)
+                        .weight(7f)
+                        .height(75.dp)
                         .padding(2.dp)
                         .border(1.dp, Color.Black, shape = RoundedCornerShape(4.dp))) {
                     Column(
@@ -1317,6 +1304,7 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                         AddressType.entries.forEach { type ->
                             var typeState by remember { mutableStateOf(address.types.contains(type)) }
                             Row(
+                                modifier = Modifier.height(18.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Checkbox(checked = typeState, onCheckedChange = {
@@ -1330,31 +1318,31 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                                             address.types.remove(type)
                                         }
                                     }
-                                })
-                                Text(type.name)
+                                }, modifier = Modifier.scale(0.7f))
+                                Text(type.name, fontSize = 12.sp)
                             }
                         }
                     }
                 }
                 Column(
                     Modifier
-                        .weight(5f)
-                        .height(100.dp),
+                        .weight(11f)
+                        .height(75.dp),
                     verticalArrangement = Arrangement.Center) {
                     OutlinedTextField(
-                        value = address.postOfficeAddress!!,
+                        value = address.postOfficeAddress ?: "",
                         onValueChange = {
                             address.postOfficeAddress = it
                         },
                         label = {
-                            Text(stringResource(R.string.contact_addresses_postOfficeAddress))
+                            Text(stringResource(R.string.contact_addresses_postOfficeAddress), fontSize=13.sp)
                         })
                 }
 
                 Column(
                     Modifier
-                        .weight(1f)
-                        .height(100.dp),
+                        .weight(2f)
+                        .height(75.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally) {
                     IconButton(onClick = { onDelete(address) }) {
@@ -1373,7 +1361,7 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                         address.street = it
                     },
                     label = {
-                        Text(stringResource(R.string.contact_addresses_street))
+                        Text(stringResource(R.string.contact_addresses_street), fontSize=13.sp)
                     })
             }
             Row(
@@ -1386,12 +1374,12 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                         .weight(4f)
                         .padding(1.dp)) {
                     OutlinedTextField(
-                        value = address.postalCode!!,
+                        value = address.postalCode ?: "",
                         onValueChange = {
                             address.postalCode = it
                         },
                         label = {
-                            Text(stringResource(R.string.contact_addresses_postal))
+                            Text(stringResource(R.string.contact_addresses_postal), fontSize=13.sp)
                         })
                 }
                 Column(
@@ -1399,12 +1387,12 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                         .weight(6f)
                         .padding(1.dp)) {
                     OutlinedTextField(
-                        value = address.locality!!,
+                        value = address.locality ?: "",
                         onValueChange = {
                             address.locality = it
                         },
                         label = {
-                            Text(stringResource(R.string.contact_addresses_locality))
+                            Text(stringResource(R.string.contact_addresses_locality), fontSize=13.sp)
                         })
                 }
             }
@@ -1414,12 +1402,12 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     .wrapContentHeight()
                     .padding(2.dp)) {
                 OutlinedTextField(
-                    value = address.region!!,
+                    value = address.region ?: "",
                     onValueChange = {
                         address.region = it
                     },
                     label = {
-                        Text(stringResource(R.string.contact_addresses_region))
+                        Text(stringResource(R.string.contact_addresses_region), fontSize=13.sp)
                     })
             }
             Row(
@@ -1428,12 +1416,12 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     .wrapContentHeight()
                     .padding(2.dp)) {
                 OutlinedTextField(
-                    value = address.country!!,
+                    value = address.country ?: "",
                     onValueChange = {
                         address.country = it
                     },
                     label = {
-                        Text(stringResource(R.string.contact_addresses_country))
+                        Text(stringResource(R.string.contact_addresses_country), fontSize=13.sp)
                     })
             }
             Row(
@@ -1442,12 +1430,12 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     .wrapContentHeight()
                     .padding(2.dp)) {
                 OutlinedTextField(
-                    value = address.extendedAddress!!,
+                    value = address.extendedAddress ?: "",
                     onValueChange = {
                         address.extendedAddress = it
                     },
                     label = {
-                        Text(stringResource(R.string.contact_addresses_extended))
+                        Text(stringResource(R.string.contact_addresses_extended), fontSize=13.sp)
                     })
             }
             Row(
@@ -1462,57 +1450,97 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
     }
 }
 
+
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ContactScreenPreview() {
+    CloudAppTheme {
+        ContactScreen(
+            listOf(fakeContact(1), fakeContact(2), fakeContact(3)),
+            fakeAddressBooks(),
+            {}, {}, {}
+        )
+    }
+}
 @Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun TabControlPreview() {
+    CloudAppTheme {
+        TabControl(LinkedList(), LinkedList(), LinkedList(), "")
+    }
+}
+
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun BottomSheetPreview() {
-    BottomSheet(contact = fakeContact(0)) {}
+    CloudAppTheme {
+        BottomSheet(contact = fakeContact(0)) {}
+    }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun PhoneItemPreview() {
-    val type = LinkedList<PhoneType>()
-    type.add(PhoneType.HOME)
-    PhoneItem(Phone(0L, "", "+49 123 456 789", type)) {}
+    CloudAppTheme {
+        val type = LinkedList<PhoneType>()
+        type.add(PhoneType.HOME)
+        PhoneItem(Phone(0L, "", "+49 123 456 789", type)) {}
+    }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun MailItemPreview() {
-    MailItem(email = Email(0L, "", "test@test.de")) {
+    CloudAppTheme {
+        MailItem(email = Email(0L, "", "test@test.de")) {
 
+        }
     }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AddressItemPreview() {
-    val type = LinkedList<AddressType>()
-    type.add(AddressType.home)
-    AddressItem(address = Address(0L, "", type, "Test", "Test", "Test", "Test", "Test", "Test", "Test")) {
-        
+    CloudAppTheme {
+        val type = LinkedList<AddressType>()
+        type.add(AddressType.home)
+        AddressItem(address = Address(0L, "", type, "Test", "Test", "Test", "Test", "Test", "Test", "Test")) {
+
+        }
     }
 }
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AddressBookPreview() {
-    AddressBookChoice(addressBooks = fakeAddressBooks()) {}
+    CloudAppTheme {
+        AddressBookChoice(addressBooks = fakeAddressBooks()) {}
+    }
+}
+
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ContactItemPreview() {
+    CloudAppTheme {
+        ContactItem(contact = fakeContact(1), {}){}
+    }
 }
 
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun ContactItemPreview() {
-    CloudAppTheme {
-        ContactItem(contact = fakeContact(1), {}, {})
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
 fun EditDialogPreview() {
-    EditDialog(contact = fakeContact(1), {}, {}) {}
+    CloudAppTheme {
+        EditDialog(contact = fakeContact(1), {}, {}) {}
+    }
 }
 
 fun fakeContact(id: Int): Contact {

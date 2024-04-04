@@ -30,7 +30,7 @@
     <string name="contact_suffix">Suffix</string>
     <string name="contact_prefix">Prefix</string>
     <string name="contact_additional">Additional</string>
-    <string name="contact_birthDate">BirthDate</string>
+    <string name="contact_birthDate">BirthDate (day.Month.Year)</string>
     <string name="contact_org">Organization</string>
     <string name="contact_phones">Phone-Numbers</string>
     <string name="contact_phone">Number</string>
