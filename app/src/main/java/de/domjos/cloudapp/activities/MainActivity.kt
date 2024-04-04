@@ -74,7 +74,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp.appbasics.helper.Notifications
-import de.domjos.cloudapp.appbasics.screens.SettingsScreen
+import de.domjos.cloudapp.screens.SettingsScreen
 import de.domjos.cloudapp.features.calendars.screens.CalendarScreen
 import de.domjos.cloudapp.features.calendars.screens.importCalendarAction
 import de.domjos.cloudapp.features.chats.screens.ChatScreen

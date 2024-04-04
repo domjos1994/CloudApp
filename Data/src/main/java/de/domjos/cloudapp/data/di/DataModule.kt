@@ -1,9 +1,13 @@
 package de.domjos.cloudapp.data.di
 
+import android.content.Context
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import de.domjos.cloudapp.data.Settings
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
 import de.domjos.cloudapp.data.repository.CalendarRepository
 import de.domjos.cloudapp.data.repository.ChatRepository
@@ -20,7 +24,7 @@ import de.domjos.cloudapp.data.repository.NotificationsRepository
 import de.domjos.cloudapp.data.repository.RoomRepository
 import javax.inject.Singleton
 
-@Module
+@Module(includes = [SettingsProvider::class])
 @InstallIn(SingletonComponent::class)
 interface DataModule {
 
@@ -65,4 +69,16 @@ interface DataModule {
     fun bindsContactRepository(
         contactRepository: DefaultContactRepository
     ): ContactRepository
+
+
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+interface SettingsProvider {
+    @Provides
+    @Singleton
+    fun provideSettings(@ApplicationContext appContext: Context): Settings {
+        return de.domjos.cloudapp.data.Settings(appContext)
+    }
 }

@@ -78,6 +78,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.constraint)
     implementation(libs.accompanist.permissions)
+    implementation(libs.compose.preference)
+    implementation(libs.androidx.preference)
 
     // compose
     implementation(libs.androidx.activity.compose)

@@ -1,15 +1,13 @@
-package de.domjos.cloudapp.appbasics.screens
+package de.domjos.cloudapp.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.domjos.cloudapp.appbasics.R
-import de.domjos.cloudapp.appbasics.helper.Settings
 import de.schnettler.datastore.compose.material3.PreferenceScreen
 import de.schnettler.datastore.compose.material3.model.Preference
 import de.schnettler.datastore.manager.PreferenceRequest
@@ -19,7 +17,7 @@ import de.schnettler.datastore.manager.PreferenceRequest
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val timeSpanRequest = PreferenceRequest(
-        key = Settings.timeSpanKey,
+        key = de.domjos.cloudapp.data.Settings.timeSpanKey,
         defaultValue = 20.0f
     )
     val timeSpanPreference = Preference.PreferenceItem.SeekBarPreference(
@@ -35,7 +33,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
 
     PreferenceScreen(
         items = listOf(timeSpanPreference),
-        dataStore = viewModel.init(LocalContext.current),
+        dataStore = viewModel.init(),
         statusBarPadding = true
     )
 }

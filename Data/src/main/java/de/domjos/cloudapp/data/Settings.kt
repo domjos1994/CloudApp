@@ -1,4 +1,4 @@
-package de.domjos.cloudapp.appbasics.helper
+package de.domjos.cloudapp.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -18,6 +18,7 @@ class Settings(private val context: Context) {
     var timeSpan: Float = 20.0f
 
     init {
+
         this.context.userPreferenceDataStore.data.map { preferences ->
             timeSpan = preferences[timeSpanKey] ?: 20.0F
         }

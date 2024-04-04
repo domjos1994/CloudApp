@@ -45,6 +45,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.media3.common)
+    implementation(libs.compose.preference)
+    implementation(libs.androidx.preference)
 
     // hilt
     ksp(libs.hilt.android.compiler)
