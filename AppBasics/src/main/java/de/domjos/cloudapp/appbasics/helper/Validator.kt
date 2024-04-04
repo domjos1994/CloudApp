@@ -2,33 +2,39 @@ package de.domjos.cloudapp.appbasics.helper
 
 import android.content.Context
 import de.domjos.cloudapp.appbasics.R
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class Validator {
 
     companion object {
-        fun validateTextNotEmpty(text: String, length: Int = -1, maxLength: Int = -1, context: Context): String {
-            var validation = ""
-            val param = if(length == -1 && maxLength == -1) {
-                "*"
-            } else if(length == -1) {
-                validation = String.format(context.getString(R.string.validation_notEmpty_max), maxLength)
-                "{,$maxLength}"
-            } else if(maxLength == -1) {
-                validation = if(length == 1) {
-                    context.getString(R.string.validation_notEmpty)
+        fun check(empty: Boolean, minLength: Int, maxLength: Int, input: String): Boolean {
+            return if(empty) {
+                if(input.isEmpty()) {
+                    true
                 } else {
-                    String.format(context.getString(R.string.validation_notEmpty_min), length)
+                    input.length in minLength..maxLength
                 }
-                "{$length,}"
             } else {
-                validation = String.format(context.getString(R.string.validation_notEmpty_min_max), length, maxLength)
-                "{$length,$maxLength}"
+                input.isNotEmpty() && input.length in minLength..maxLength
             }
+        }
 
-            return if(text.matches(Regex("[a-zA-Z0-9-/:_.]$param"))) {
-                ""
+        fun checkUrl(input: String): Boolean {
+            return input.matches(Regex("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
+        }
+
+        fun checkDate(input: String, format: String): Boolean {
+            if(input.isNotEmpty()) {
+                val frm = SimpleDateFormat(format, Locale.getDefault())
+                try {
+                    frm.parse(input)
+                    return true
+                } catch (_: Exception) {
+                }
+                return false
             } else {
-                validation
+                return true
             }
         }
     }

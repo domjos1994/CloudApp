@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -55,6 +54,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 
 @Composable
@@ -265,7 +265,7 @@ private fun EditDialog(
                         value = title,
                         onValueChange = {
                             title = it
-                            isValidTitle = check(false, 3, 255, it.text)
+                            isValidTitle = Validator.check(false, 3, 255, it.text)
                         },
                         label = {Text(stringResource(id = R.string.login_title))},
                         modifier = Modifier.fillMaxWidth(),
@@ -277,7 +277,7 @@ private fun EditDialog(
                         value = url,
                         onValueChange = {
                             url = it
-                            isValidUrl = checkUrl(it.text)
+                            isValidUrl = Validator.checkUrl(it.text)
                         },
                         label = {Text(stringResource(id = R.string.login_url))},
                         modifier = Modifier.fillMaxWidth(),
@@ -309,7 +309,7 @@ private fun EditDialog(
                         value = description,
                         onValueChange = {
                             description = it
-                            isValidDescription = check(true, 0, 500, it.text)
+                            isValidDescription = Validator.check(true, 0, 500, it.text)
                         },
                         label = {Text(stringResource(id = R.string.login_description))},
                         modifier = Modifier.fillMaxWidth(),
@@ -352,22 +352,6 @@ private fun EditDialog(
             }
         }
     }
-}
-
-private fun check(empty: Boolean, minLength: Int, maxLength: Int, input: String): Boolean {
-    return if(empty) {
-        if(input.isEmpty()) {
-            true
-        } else {
-            input.length in minLength..maxLength
-        }
-    } else {
-        input.isNotEmpty() && input.length in minLength..maxLength
-    }
-}
-
-private fun checkUrl(input: String): Boolean {
-    return input.matches(Regex("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
 }
 
 private fun fake(no: Long): Authentication {

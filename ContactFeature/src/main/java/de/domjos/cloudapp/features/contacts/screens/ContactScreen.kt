@@ -81,6 +81,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.ImageHelper
+import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.contacts.Address
@@ -107,6 +108,7 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel()) {
     val connectivity by connectivityState()
     val available = connectivity === ConnectionState.Available
     viewModel.getAddressBooks()
+    viewModel.loadAddresses()
 
     ContactScreen(contacts, addressBooks, onSelectedAddressBook = { addressBook: String ->
         viewModel.loadAddresses(addressBook)
@@ -216,12 +218,17 @@ fun AddressBookChoice(
     ) {
         Row {
             Column(
-                Modifier.weight(9f).height(30.dp),
+                Modifier
+                    .weight(9f)
+                    .height(30.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(selectedItem, fontWeight = FontWeight.Bold)
             }
-            Column(Modifier.weight(1f).height(30.dp)) {
+            Column(
+                Modifier
+                    .weight(1f)
+                    .height(30.dp)) {
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
@@ -335,9 +342,12 @@ fun EditDialog(
     var suffix by remember { mutableStateOf(TextFieldValue("")) }
     var prefix by remember { mutableStateOf(TextFieldValue("")) }
     var firstName by remember { mutableStateOf(TextFieldValue("")) }
+    var isFirstNameValid by remember { mutableStateOf(contact?.givenName?.isNotEmpty() ?: false ) }
     var lastName by remember { mutableStateOf(TextFieldValue("")) }
+    var isLastNameValid by remember { mutableStateOf(true) }
     var additional by remember { mutableStateOf(TextFieldValue("")) }
     var birthDate by remember { mutableStateOf(TextFieldValue(fullDay.format(Date()))) }
+    var isBirthDateValid by remember { mutableStateOf(true) }
     var organization by remember { mutableStateOf(TextFieldValue("")) }
     val phones = remember { mutableStateListOf(
         Phone(0L, "", "", LinkedList())
@@ -459,9 +469,11 @@ fun EditDialog(
                             value = firstName,
                             onValueChange = {
                                 firstName = it
+                                isFirstNameValid = Validator.check(false, 2, 255, it.text)
                             },
                             label = {Text(stringResource(R.string.contact_given))},
-                            modifier = Modifier.padding(2.dp)
+                            modifier = Modifier.padding(2.dp),
+                            isError = !isFirstNameValid
                         )
                     }
                     Column(
@@ -472,9 +484,11 @@ fun EditDialog(
                             value = lastName,
                             onValueChange = {
                                 lastName = it
+                                isLastNameValid = Validator.check(true, 0, 255, it.text)
                             },
                             label = {Text(stringResource(R.string.contact_family))},
-                            modifier = Modifier.padding(2.dp)
+                            modifier = Modifier.padding(2.dp),
+                            isError = !isLastNameValid
                         )
                     }
                 }
@@ -508,9 +522,11 @@ fun EditDialog(
                             value = birthDate,
                             onValueChange = {
                                 birthDate = it
+                                isBirthDateValid = Validator.checkDate(it.text, "dd.MM.yyyy")
                             },
                             label = {Text(stringResource(R.string.contact_birthDate))},
-                            modifier = Modifier.padding(2.dp)
+                            modifier = Modifier.padding(2.dp),
+                            isError = !isBirthDateValid
                         )
                     }
                 }
@@ -580,7 +596,7 @@ fun EditDialog(
 
                             onSave(new)
                             setShowDialog(false)
-                        }) {
+                        }, enabled = isFirstNameValid && isLastNameValid && isBirthDateValid) {
                             Icon(Icons.Default.Check, "")
                         }
                     }
