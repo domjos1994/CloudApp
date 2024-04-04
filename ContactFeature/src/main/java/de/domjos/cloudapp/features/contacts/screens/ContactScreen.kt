@@ -203,22 +203,25 @@ fun AddressBookChoice(
     addressBooks: List<String>,
     onSelectedAddressBook: (String) -> Unit) {
 
+
+    val all = stringResource(R.string.contacts_all)
     var expanded by remember { mutableStateOf(false) }
-    var selectedItem by remember { mutableStateOf("") }
+    var selectedItem by remember { mutableStateOf(all) }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentSize(Alignment.TopEnd)
+            .height(30.dp)
     ) {
         Row {
             Column(
-                Modifier.weight(9f),
+                Modifier.weight(9f).height(30.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(selectedItem, fontWeight = FontWeight.Bold)
             }
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.weight(1f).height(30.dp)) {
                 IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
@@ -232,7 +235,6 @@ fun AddressBookChoice(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            val all = stringResource(R.string.contacts_all)
             addressBooks.forEach {
                 DropdownMenuItem(
                     text = { Text(it) },
@@ -1156,9 +1158,9 @@ fun convertImageToByte(uri: Uri?, context: Context): ByteArray? {
         val cr: ContentResolver = context.contentResolver
         val inputStream = cr.openInputStream(uri!!)
         val bitmap = BitmapFactory.decodeStream(inputStream)
-        val baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-        data = baos.toByteArray()
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        data = outputStream.toByteArray()
     } catch (e: FileNotFoundException) {
         e.printStackTrace()
     }
@@ -1450,19 +1452,6 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
     }
 }
 
-
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun ContactScreenPreview() {
-    CloudAppTheme {
-        ContactScreen(
-            listOf(fakeContact(1), fakeContact(2), fakeContact(3)),
-            fakeAddressBooks(),
-            {}, {}, {}
-        )
-    }
-}
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -1472,8 +1461,8 @@ fun TabControlPreview() {
     }
 }
 
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun BottomSheetPreview() {
     CloudAppTheme {
@@ -1481,56 +1470,12 @@ fun BottomSheetPreview() {
     }
 }
 
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun PhoneItemPreview() {
-    CloudAppTheme {
-        val type = LinkedList<PhoneType>()
-        type.add(PhoneType.HOME)
-        PhoneItem(Phone(0L, "", "+49 123 456 789", type)) {}
-    }
-}
-
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun MailItemPreview() {
-    CloudAppTheme {
-        MailItem(email = Email(0L, "", "test@test.de")) {
-
-        }
-    }
-}
-
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun AddressItemPreview() {
-    CloudAppTheme {
-        val type = LinkedList<AddressType>()
-        type.add(AddressType.home)
-        AddressItem(address = Address(0L, "", type, "Test", "Test", "Test", "Test", "Test", "Test", "Test")) {
-
-        }
-    }
-}
-
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun AddressBookPreview() {
     CloudAppTheme {
         AddressBookChoice(addressBooks = fakeAddressBooks()) {}
-    }
-}
-
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun ContactItemPreview() {
-    CloudAppTheme {
-        ContactItem(contact = fakeContact(1), {}){}
     }
 }
 
