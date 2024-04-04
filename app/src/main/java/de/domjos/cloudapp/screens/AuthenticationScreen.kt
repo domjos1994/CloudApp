@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.screens
 
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -54,6 +55,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 
 @Composable
 fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
@@ -134,14 +136,15 @@ fun AuthenticationScreen(
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (list, control) = createRefs()
 
-        Column(modifier = Modifier.constrainAs(list) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            bottom.linkTo(control.top)
-            height = Dimension.fillToConstraints
-            width = Dimension.fillToConstraints
-        }
+        Column(modifier = Modifier
+            .constrainAs(list) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(control.top)
+                height = Dimension.fillToConstraints
+                width = Dimension.fillToConstraints
+            }
             .padding(5.dp)
             .verticalScroll(rememberScrollState())) {
             AuthenticationList(
@@ -234,12 +237,13 @@ private fun EditDialog(
 
     var id by remember { mutableLongStateOf(0L) }
     var title by remember { mutableStateOf(TextFieldValue("")) }
-    var titleVal by remember { mutableStateOf("")}
+    var isValidTitle by remember { mutableStateOf(authentication?.title?.isNotEmpty() ?: false) }
     var url by remember { mutableStateOf(TextFieldValue("")) }
-    var urlVal by remember { mutableStateOf("")}
+    var isValidUrl by remember { mutableStateOf(authentication?.url?.isNotEmpty() ?: false) }
     var user by remember { mutableStateOf(TextFieldValue("")) }
     var pwd by remember { mutableStateOf(TextFieldValue("")) }
     var description by remember { mutableStateOf(TextFieldValue("")) }
+    var isValidDescription by remember { mutableStateOf(true) }
 
 
     if(authentication != null) {
@@ -249,14 +253,11 @@ private fun EditDialog(
         user = TextFieldValue(authentication.userName)
         pwd = TextFieldValue(authentication.password)
         description = TextFieldValue(authentication.description ?: "")
-        titleVal = "" //Validator.validateTextNotEmpty(title.text, 3, 255, context)
-        urlVal = "" //Validator.validateTextNotEmpty(url.text, 10, 500, context)
     }
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
         Surface(
-            shape = RoundedCornerShape(4.dp),
-            color = Color.White
+            shape = RoundedCornerShape(4.dp)
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -264,34 +265,24 @@ private fun EditDialog(
                         value = title,
                         onValueChange = {
                             title = it
-                            //titleVal = Validator.validateTextNotEmpty(title.text, 3, 255, context)
+                            isValidTitle = check(false, 3, 255, it.text)
                         },
                         label = {Text(stringResource(id = R.string.login_title))},
                         modifier = Modifier.fillMaxWidth(),
-                        isError = titleVal!=""
+                        isError = !isValidTitle
                     )
-                }
-                if(titleVal!="") {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(text = titleVal)
-                    }
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = url,
                         onValueChange = {
                             url = it
-                            //urlVal = Validator.validateTextNotEmpty(url.text, 10, 500, context)
+                            isValidUrl = checkUrl(it.text)
                         },
                         label = {Text(stringResource(id = R.string.login_url))},
                         modifier = Modifier.fillMaxWidth(),
-                        isError = urlVal!=""
+                        isError = !isValidUrl
                     )
-                }
-                if(urlVal!="") {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(text = urlVal)
-                    }
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -318,9 +309,11 @@ private fun EditDialog(
                         value = description,
                         onValueChange = {
                             description = it
+                            isValidDescription = check(true, 0, 500, it.text)
                         },
                         label = {Text(stringResource(id = R.string.login_description))},
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = !isValidDescription
                     )
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
@@ -342,25 +335,39 @@ private fun EditDialog(
                             Icon(Icons.Default.Close, stringResource(R.string.login_close))
                         }
                     }
-                    if(titleVal=="" && urlVal=="") {
-                        Column(
-                            modifier = Modifier.weight(1F)) {
-                            IconButton(onClick = {
-                                val auth = Authentication(
-                                    id, title.text, url.text, user.text, pwd.text, false, description.text, null
-                                )
+                    Column(
+                        modifier = Modifier.weight(1F)) {
+                        IconButton(onClick = {
+                            val auth = Authentication(
+                                id, title.text, url.text, user.text, pwd.text, false, description.text, null
+                            )
 
-                                onSaveClick(auth)
-                                setShowDialog(false)
-                            }) {
-                                Icon(Icons.Default.CheckCircle, stringResource(R.string.login_close))
-                            }
+                            onSaveClick(auth)
+                            setShowDialog(false)
+                        }, enabled = isValidTitle && isValidUrl && isValidDescription) {
+                            Icon(Icons.Default.CheckCircle, stringResource(R.string.login_close))
                         }
                     }
                 }
             }
         }
     }
+}
+
+private fun check(empty: Boolean, minLength: Int, maxLength: Int, input: String): Boolean {
+    return if(empty) {
+        if(input.isEmpty()) {
+            true
+        } else {
+            input.length in minLength..maxLength
+        }
+    } else {
+        input.isNotEmpty() && input.length in minLength..maxLength
+    }
+}
+
+private fun checkUrl(input: String): Boolean {
+    return input.matches(Regex("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]"))
 }
 
 private fun fake(no: Long): Authentication {
@@ -380,12 +387,15 @@ fun AuthenticationScreenPreview() {
 }
 
 @Preview(showBackground = true)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DialogPreview() {
-    EditDialog(
-        authentication = fake(1L),
-        setShowDialog = {},
-        onSaveClick = {},
-        onDeleteClick = {}
-    )
+    CloudAppTheme {
+        EditDialog(
+            authentication = fake(1L),
+            setShowDialog = {},
+            onSaveClick = {},
+            onDeleteClick = {}
+        )
+    }
 }

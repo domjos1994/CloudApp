@@ -1,0 +1,38 @@
+@startuml
+
+node "CloudApp" {
+[Database]
+[REST] ---> [Database]
+[WebDav] ---> [Database]
+[CalDav] ---> [Database]
+[CarDav] ---> [Database]
+[Data] ---> [REST]
+[Data] ---> [WebDav]
+[Data] ---> [CalDav]
+[Data] ---> [CarDav]
+[Data] ---> [Database]
+[NotificationFeature] ---> [Data]
+[NotificationFeature] ---> [Database]
+[ChatFeature] ---> [Data]
+[ChatFeature] ---> [Database]
+[ContactFeature] ---> [Data]
+[ContactFeature] ---> [Database]
+[CalendarFeature] ---> [Data]
+[CalendarFeature] ---> [Database]
+[DataFeature] ---> [Data]
+[DataFeature] ---> [Database]
+[AppBasics] ---> [DataFeature]
+[AppBasics] ---> [ChatFeature]
+[AppBasics] ---> [ContactFeature]
+[AppBasics] ---> [CalendarFeature]
+[AppBasics] ---> [NotificationFeature]
+[app] ---> [AppBasics]
+[app] ---> [DataFeature]
+[app] ---> [ChatFeature]
+[app] ---> [ContactFeature]
+[app] ---> [CalendarFeature]
+[app] ---> [NotificationFeature]
+}
+
+
+@enduml
