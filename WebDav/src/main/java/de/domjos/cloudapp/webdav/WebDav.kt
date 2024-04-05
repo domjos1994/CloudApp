@@ -69,18 +69,21 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
             list.forEach {
                 val path: String
                 var name: String?
+                val pathPart: String?
                 if(it.isDirectory) {
                     path = "${it.path}-".replace("/-", "")
                     name = it.displayName
                     if(name == null) {
                         name = path.split("/")[path.split("/").size-1]
                     }
+                    pathPart = path.replace(basePath, "")
                 } else {
                     path = it.path
                     name = it.displayName
                     if(name == null) {
                         name = path.split("/")[path.split("/").size-1]
                     }
+                    pathPart = path.replace(basePath, "")
                 }
 
 
@@ -90,7 +93,7 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
                 if(tmp.endsWith("/")) {
                     tmp = "$tmp-".replace("/-", "")
                 }
-                if(!(tmp.endsWith(name) && it.isDirectory)) {
+                if(!(tmp.endsWith(pathPart) && it.isDirectory)) {
                     items.add(item)
                 }
             }
@@ -108,6 +111,10 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
                 this.list = this.sardine.list(this.currentUrl)
             }
         }
+    }
+
+    fun reload() {
+        this.list = this.sardine.list(this.currentUrl)
     }
 
     fun back() {
@@ -139,6 +146,22 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
                     output.flush()
                 }
             }
+        }
+    }
+
+    fun deleteFolder(item: Item) {
+        if(item.directory) {
+            this.sardine.delete(item.getUrl(this.url))
+        }
+    }
+
+    fun createFolder(name: String) {
+        this.sardine.createDirectory("${this.currentUrl}/$name")
+    }
+
+    fun moveFolder(source: Item, target: Item) {
+        if(source.directory && target.directory) {
+            this.sardine.move(source.getUrl(this.url), "${target.getUrl(this.url)}/${source.name}")
         }
     }
 }

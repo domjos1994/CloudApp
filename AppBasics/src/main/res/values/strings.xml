@@ -48,6 +48,11 @@
 
     <string name="data">Data</string>
     <string name="data_breadcrumb">Breadcrumb</string>
+    <string name="data_file_add">Add file</string>
+    <string name="data_folder_add">Add Folder</string>
+    <string name="data_folder_cut">Cut Folder</string>
+    <string name="data_folder_paste">Paste Folder</string>
+    <string name="data_folder_name">Name</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Message</string>

@@ -1,7 +1,6 @@
 package de.domjos.cloudapp.features.data.screens
 
 import android.content.Context
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,14 +8,8 @@ import de.domjos.cloudapp.data.repository.DataRepository
 import de.domjos.cloudapp.webdav.model.Item
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
 import javax.inject.Inject
 
 @HiltViewModel
@@ -66,5 +59,45 @@ class DataViewModel @Inject constructor(
 
     fun exists(item: Item): Boolean {
         return dataRepository.exists(item)
+    }
+
+    fun hasFolderToMove(): Boolean {
+        return dataRepository.hasFolderToMove()
+    }
+
+    fun setFolderToMove(item: Item) {
+        this.dataRepository.setFolderToMove(item)
+        viewModelScope.launch(Dispatchers.IO) {
+            dataRepository.reload()
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
+        }
+    }
+
+    fun moveFolder(item: Item) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataRepository.moveFolder(item)
+            dataRepository.reload()
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
+        }
+    }
+
+    fun createFolder(name: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataRepository.createFolder(name)
+            dataRepository.reload()
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
+        }
+    }
+
+    fun deleteFolder(item: Item) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataRepository.deleteFolder(item)
+            dataRepository.reload()
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
+        }
     }
 }

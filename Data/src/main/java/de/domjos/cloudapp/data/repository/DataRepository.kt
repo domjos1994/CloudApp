@@ -22,6 +22,12 @@ interface DataRepository {
     fun init()
     fun getList(): List<Item>
     fun openFolder(item: Item)
+    fun reload()
+    fun hasFolderToMove(): Boolean
+    fun setFolderToMove(item: Item)
+    fun moveFolder(item: Item)
+    fun createFolder(name: String)
+    fun deleteFolder(item: Item)
     fun openResource(item: Item, path: String)
     fun back()
     fun createDirs(): String
@@ -34,6 +40,7 @@ class DefaultDataRepository @Inject constructor(
     private val authenticationDAO: AuthenticationDAO
 ) : DataRepository {
     private var webDav: WebDav? = null
+    private var source: Item? = null
     override var path: String = ""
 
     override fun init() {
@@ -51,6 +58,32 @@ class DefaultDataRepository @Inject constructor(
 
     override fun openFolder(item: Item) {
         webDav?.openFolder(item)!!
+    }
+
+    override fun reload() {
+        webDav?.reload()
+    }
+
+    override fun hasFolderToMove(): Boolean {
+        return source != null
+    }
+
+    override fun setFolderToMove(item: Item) {
+        source = item
+    }
+
+    override fun moveFolder(item: Item) {
+        if(this.hasFolderToMove()) {
+            webDav?.moveFolder(this.source!!, item)
+        }
+    }
+
+    override fun createFolder(name: String) {
+        this.webDav?.createFolder(name)
+    }
+
+    override fun deleteFolder(item: Item) {
+        this.webDav?.deleteFolder(item)
     }
 
     override fun openResource(item: Item, path: String) {
