@@ -75,7 +75,7 @@ interface DataModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface SettingsProvider {
+class SettingsProvider {
     @Provides
     @Singleton
     fun provideSettings(@ApplicationContext appContext: Context): Settings {
