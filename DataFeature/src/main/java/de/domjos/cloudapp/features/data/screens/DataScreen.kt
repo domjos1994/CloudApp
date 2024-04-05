@@ -1,6 +1,12 @@
 package de.domjos.cloudapp.features.data.screens
 
+import android.content.Context
 import android.content.res.Configuration
+import android.database.Cursor
+import android.net.Uri
+import android.provider.OpenableColumns
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,13 +52,15 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import de.domjos.cloudapp.webdav.model.Item
 import de.domjos.cloudapp.appbasics.R
-import de.domjos.cloudapp.appbasics.helper.execCatch
-import de.domjos.cloudapp.appbasics.helper.execCatchItem
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
+import de.domjos.cloudapp.appbasics.helper.execCatch
+import de.domjos.cloudapp.appbasics.helper.execCatchItem
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
+import de.domjos.cloudapp.webdav.model.Item
+import java.io.InputStream
+
 
 @Composable
 fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
@@ -78,12 +86,13 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
         { item: Item -> execCatchItem<Item?>({viewModel.deleteFolder(it!!)}, item, context)},
         { data: String -> execCatchItem<String?>({viewModel.createFolder(it!!)}, data, context)},
         { item: Item -> execCatchItem({viewModel.setFolderToMove(it)}, item, context)},
-        { item: Item -> execCatchItem<Item?>({viewModel.moveFolder(it!!)}, item, context)})
-    { execCatch<Boolean>({viewModel.hasFolderToMove()}, context)!! }
+        { item: Item -> execCatchItem<Item?>({viewModel.moveFolder(it!!)}, item, context)},
+        { execCatch<Boolean>({viewModel.hasFolderToMove()}, context)!! })
+    {name, stream -> viewModel.createFile(name, stream)}
 }
 
 @Composable
-fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean) {
+fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, uploadFile: (String, InputStream) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -118,6 +127,17 @@ fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, o
             bottom.linkTo(parent.bottom)
             width = Dimension.fillToConstraints
         }) {
+            val context = LocalContext.current
+            val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
+                execCatchItem({item ->
+                    if(item != null) {
+                        val inputStream = context.contentResolver.openInputStream(item)
+                        if(inputStream!=null) {
+                            uploadFile(getFileName(item, context)!!, inputStream)
+                        }
+                    }
+                }, it, context)
+            }
             Column {
                 Separator()
                 Row {
@@ -125,7 +145,9 @@ fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, o
                         Modifier.weight(1f),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = { /*TODO*/ }) {
+                        IconButton(onClick = {
+                            launcher.launch(arrayOf("text/*", "image/*", "audio/*", "video/*", "application/*"))
+                        }) {
                             Icon(painterResource(R.drawable.baseline_upload_file_24), stringResource(R.string.data_file_add))
                         }
                     }
@@ -141,6 +163,29 @@ fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, o
             }
         }
     }
+}
+
+fun getFileName(uri: Uri, context: Context): String? {
+    var result: String? = null
+    if (uri.scheme == "content") {
+        val cursor: Cursor = context.contentResolver.query(uri, null, null, null, null)!!
+        cursor.use { curs ->
+            if (curs.moveToFirst()) {
+                val index = curs.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if(index >= 0) {
+                    result = curs.getString(index)
+                }
+            }
+        }
+    }
+    if (result == null) {
+        result = uri.path
+        val cut = result!!.lastIndexOf('/')
+        if (cut != -1) {
+            result = result!!.substring(cut + 1)
+        }
+    }
+    return result
 }
 
 @Composable
@@ -342,7 +387,7 @@ fun CreateFolderDialog(showDialog: (Boolean) -> Unit, onSave: (String) -> Unit) 
 @Preview(showBackground = true)
 @Composable
 fun DataScreenPreview() {
-    DataScreen(listOf(fake(1L), fake(2L), fake(3L)), {}, {"cxgygf"}, {true}, {}, {}, {}, {}) {true}
+    DataScreen(listOf(fake(1L), fake(2L), fake(3L)), {}, {"cxgygf"}, {true}, {}, {}, {}, {}, {true}) {_,_->}
 }
 
 @Preview(showBackground = true)

@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.InputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -66,7 +67,7 @@ class DataViewModel @Inject constructor(
     }
 
     fun setFolderToMove(item: Item) {
-        this.dataRepository.setFolderToMove(item)
+        this.dataRepository.setToMove(item)
         viewModelScope.launch(Dispatchers.IO) {
             dataRepository.reload()
             _items.value = dataRepository.getList()
@@ -76,7 +77,7 @@ class DataViewModel @Inject constructor(
 
     fun moveFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.moveFolder(item)
+            dataRepository.move(item)
             dataRepository.reload()
             _items.value = dataRepository.getList()
             _path.value = dataRepository.path
@@ -94,7 +95,16 @@ class DataViewModel @Inject constructor(
 
     fun deleteFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.deleteFolder(item)
+            dataRepository.delete(item)
+            dataRepository.reload()
+            _items.value = dataRepository.getList()
+            _path.value = dataRepository.path
+        }
+    }
+
+    fun createFile(name: String, stream: InputStream) {
+        viewModelScope.launch(Dispatchers.IO) {
+            dataRepository.createFile(name, stream)
             dataRepository.reload()
             _items.value = dataRepository.getList()
             _path.value = dataRepository.path

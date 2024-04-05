@@ -5,10 +5,9 @@ import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.webdav.model.Item
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStream
 import java.util.LinkedList
 
 
@@ -149,19 +148,22 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
         }
     }
 
-    fun deleteFolder(item: Item) {
-        if(item.directory) {
-            this.sardine.delete(item.getUrl(this.url))
-        }
+    fun delete(item: Item) {
+        this.sardine.delete(item.getUrl(this.url))
     }
 
     fun createFolder(name: String) {
         this.sardine.createDirectory("${this.currentUrl}/$name")
     }
 
-    fun moveFolder(source: Item, target: Item) {
-        if(source.directory && target.directory) {
+    fun move(source: Item, target: Item) {
+        if(target.directory) {
             this.sardine.move(source.getUrl(this.url), "${target.getUrl(this.url)}/${source.name}")
         }
+    }
+
+    fun uploadFile(name: String, stream: InputStream) {
+        this.sardine.put("${this.currentUrl}/$name", stream.readBytes())
+        stream.close()
     }
 }

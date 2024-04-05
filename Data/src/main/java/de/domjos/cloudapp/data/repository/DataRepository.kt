@@ -7,13 +7,13 @@ import android.os.Environment
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
-import androidx.core.content.MimeTypeFilter
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.webdav.WebDav
 import de.domjos.cloudapp.webdav.model.Item
 import java.io.File
+import java.io.InputStream
 import javax.inject.Inject
 
 
@@ -24,10 +24,11 @@ interface DataRepository {
     fun openFolder(item: Item)
     fun reload()
     fun hasFolderToMove(): Boolean
-    fun setFolderToMove(item: Item)
-    fun moveFolder(item: Item)
+    fun setToMove(item: Item)
+    fun move(item: Item)
     fun createFolder(name: String)
-    fun deleteFolder(item: Item)
+    fun delete(item: Item)
+    fun createFile(name: String, stream: InputStream)
     fun openResource(item: Item, path: String)
     fun back()
     fun createDirs(): String
@@ -68,13 +69,13 @@ class DefaultDataRepository @Inject constructor(
         return source != null
     }
 
-    override fun setFolderToMove(item: Item) {
+    override fun setToMove(item: Item) {
         source = item
     }
 
-    override fun moveFolder(item: Item) {
+    override fun move(item: Item) {
         if(this.hasFolderToMove()) {
-            webDav?.moveFolder(this.source!!, item)
+            webDav?.move(this.source!!, item)
         }
     }
 
@@ -82,8 +83,12 @@ class DefaultDataRepository @Inject constructor(
         this.webDav?.createFolder(name)
     }
 
-    override fun deleteFolder(item: Item) {
-        this.webDav?.deleteFolder(item)
+    override fun createFile(name: String, stream: InputStream) {
+        this.webDav?.uploadFile(name, stream)
+    }
+
+    override fun delete(item: Item) {
+        this.webDav?.delete(item)
     }
 
     override fun openResource(item: Item, path: String) {
