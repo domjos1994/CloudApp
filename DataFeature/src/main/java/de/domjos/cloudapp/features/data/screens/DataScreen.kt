@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.database.Cursor
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -71,14 +72,18 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
 
     DataScreen(items,
         {item: Item -> execCatchItem<Item?>({
-            if(it!!.directory) {
-                if(it.name == "..") {
-                    viewModel.back()
+            try {
+                if(it!!.directory) {
+                    if(it.name == "..") {
+                        viewModel.back()
+                    } else {
+                        viewModel.openFolder(it)
+                    }
                 } else {
-                    viewModel.openFolder(it)
+                    viewModel.loadFile(it, context)
                 }
-            } else {
-                viewModel.loadFile(it, context)
+            } catch (ex: Exception) {
+                Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
             }
         }, item, context)},
         { execCatch<String?>({viewModel.path.value}, context)!!},

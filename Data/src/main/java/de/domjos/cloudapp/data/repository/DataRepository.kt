@@ -42,7 +42,13 @@ class DefaultDataRepository @Inject constructor(
 ) : DataRepository {
     private var webDav: WebDav? = null
     private var source: Item? = null
+    private val basePath: String
     override var path: String = ""
+
+    init {
+        val publicDoc = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        this.basePath = "$publicDoc/CloudApp/${authenticationDAO.getSelectedItem()?.title}"
+    }
 
     override fun init() {
         if(webDav == null) {
@@ -101,8 +107,9 @@ class DefaultDataRepository @Inject constructor(
 
 
     override fun createDirs(): String {
-        val publicDoc = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-        var dir = "$publicDoc/CloudApp"
+        val fBasePath = File(basePath)
+        fBasePath.mkdirs()
+        var dir = fBasePath.absolutePath
 
         this.path.split("/").forEach { directory ->
             if(directory != "") {
@@ -122,8 +129,9 @@ class DefaultDataRepository @Inject constructor(
     }
 
     override fun exists(item: Item): Boolean {
-        val publicDoc = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-        var dir = "$publicDoc/CloudApp"
+        val fBasePath = File(basePath)
+        fBasePath.mkdirs()
+        var dir = fBasePath.absolutePath
 
         this.path.split("/").forEach { directory ->
             if(directory != "") {
@@ -135,13 +143,13 @@ class DefaultDataRepository @Inject constructor(
             }
         }
 
-        val file = File("$dir/${item.name}")
+        val file = File("$dir/${item.name.replace(" ", "_")}")
         return file.exists()
     }
 
     @OptIn(UnstableApi::class)
     override fun openFile(path: String, item: Item, context: Context) {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        val intent = Intent(Intent.ACTION_VIEW)
         val f = File(path)
         val uri = FileProvider.getUriForFile(
             context,

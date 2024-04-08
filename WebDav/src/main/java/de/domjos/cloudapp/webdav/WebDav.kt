@@ -136,13 +136,8 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
         if(!item.directory) {
             this.sardine.get(item.getUrl(this.url)).use { input ->
                 val file = File("$path/${item.name.replace(" ", "_")}")
-                FileOutputStream(file).use { output ->
-                    val buffer = ByteArray(4 * 1024) // or other buffer size
-                    var read: Int
-                    while (input.read(buffer).also { read = it } != -1) {
-                        output.write(buffer, 0, read)
-                    }
-                    output.flush()
+                file.outputStream().use { output ->
+                    input.copyTo(output)
                 }
             }
         }

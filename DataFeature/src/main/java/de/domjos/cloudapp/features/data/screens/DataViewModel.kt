@@ -1,11 +1,13 @@
 package de.domjos.cloudapp.features.data.screens
 
 import android.content.Context
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.DataRepository
 import de.domjos.cloudapp.webdav.model.Item
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -54,7 +56,11 @@ class DataViewModel @Inject constructor(
                     dataRepository.openResource(item, dir)
                 }
                 dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
-            } catch (_: Exception) {}
+            } catch (ex: Exception) {
+                launch(Dispatchers.Main) {
+                    Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+                }
+            }
         }
     }
 
