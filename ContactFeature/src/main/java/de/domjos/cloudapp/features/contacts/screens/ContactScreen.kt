@@ -37,10 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -79,6 +76,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.custom.DropDown
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.ImageHelper
 import de.domjos.cloudapp.appbasics.helper.Validator
@@ -139,6 +137,7 @@ fun ContactScreen(
     var showDialog by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var contact by remember { mutableStateOf<Contact?>(null) }
+    val all = stringResource(R.string.contacts_all)
 
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (list, control) = createRefs()
@@ -152,7 +151,7 @@ fun ContactScreen(
             width = Dimension.fillToConstraints
         }) {
             Column {
-                AddressBookChoice(addressBooks = addressBooks, onSelectedAddressBook)
+                DropDown(addressBooks, all, onSelectedAddressBook)
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -196,60 +195,6 @@ fun ContactScreen(
                 }
                 .padding(5.dp)) {
             Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
-        }
-    }
-}
-
-@Composable
-fun AddressBookChoice(
-    addressBooks: List<String>,
-    onSelectedAddressBook: (String) -> Unit) {
-
-
-    val all = stringResource(R.string.contacts_all)
-    var expanded by remember { mutableStateOf(false) }
-    var selectedItem by remember { mutableStateOf(all) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentSize(Alignment.TopEnd)
-            .height(30.dp)
-    ) {
-        Row {
-            Column(
-                Modifier
-                    .weight(9f)
-                    .height(30.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(selectedItem, fontWeight = FontWeight.Bold)
-            }
-            Column(
-                Modifier
-                    .weight(1f)
-                    .height(30.dp)) {
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More"
-                    )
-                }
-            }
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            addressBooks.forEach {
-                DropdownMenuItem(
-                    text = { Text(it) },
-                    onClick = {
-                        onSelectedAddressBook(it)
-                        selectedItem = if(it=="") all else it
-                    })
-            }
         }
     }
 }
@@ -1489,15 +1434,6 @@ fun BottomSheetPreview() {
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun AddressBookPreview() {
-    CloudAppTheme {
-        AddressBookChoice(addressBooks = fakeAddressBooks()) {}
-    }
-}
-
-@Preview(showBackground = true)
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
 fun EditDialogPreview() {
     CloudAppTheme {
         EditDialog(contact = fakeContact(1), {}, {}) {}
@@ -1511,13 +1447,4 @@ fun fakeContact(id: Int): Contact {
     return Contact(0L,
         "$id", "", "", "Doe", "John$id", "",
         bDate.time, "", null, "Test", 0L)
-}
-
-fun fakeAddressBooks(): LinkedList<String> {
-    val lst = LinkedList<String>()
-    lst.add("Test-1")
-    lst.add("Test-2")
-    lst.add("Test-3")
-    lst.add("")
-    return lst
 }

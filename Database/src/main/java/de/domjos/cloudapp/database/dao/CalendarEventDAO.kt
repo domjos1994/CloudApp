@@ -22,6 +22,12 @@ interface CalendarEventDAO {
     @Query("SELECT * FROM calendarEvents WHERE `to`>:startTime and `from`<:endTime and authId=:authId order by `to`")
     fun getItemsByTime(startTime: Long, endTime: Long, authId: Long): List<CalendarEvent>
 
+    @Query("SELECT * FROM calendarEvents WHERE calendar=:calendar and `to`>:startTime and `from`<:endTime and authId=:authId order by `to`")
+    fun getItemsByTimeAndCalendar(calendar: String, startTime: Long, endTime: Long, authId: Long): List<CalendarEvent>
+
+    @Query("SELECT count(uid) FROM calendarEvents WHERE calendar=:calendar and `to`>:startTime and `from`<:endTime and authId=:authId order by `to`")
+    fun count(calendar: String, startTime: Long, endTime: Long, authId: Long): Long
+
     @Insert
     fun insertCalendarEvent(calendarEvent: CalendarEvent)
 

@@ -23,9 +23,9 @@ class CalendarViewModel @Inject constructor(
     private val _calendars = MutableStateFlow(listOf<String>())
     val calendars: StateFlow<List<String>> get() = _calendars
 
-    fun load(startTime: Long, endTime: Long) {
+    fun load(calendar: String, startTime: Long, endTime: Long) {
         viewModelScope.launch(Dispatchers.IO) {
-            _events.value = calendarRepository.loadData(startTime, endTime)
+            _events.value = calendarRepository.loadData(calendar, startTime, endTime)
         }
     }
 
@@ -35,9 +35,9 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun count(calendar: Calendar) {
+    fun count(calendar: String, event: Calendar) {
         viewModelScope.launch(Dispatchers.IO) {
-            _days.value = calendarRepository.countData(calendar)
+            _days.value = calendarRepository.countData(calendar, event)
         }
     }
 
@@ -51,12 +51,6 @@ class CalendarViewModel @Inject constructor(
     fun insertCalendar(calendarEvent: CalendarEvent) {
         viewModelScope.launch(Dispatchers.IO) {
             calendarRepository.insert(calendarEvent)
-        }
-    }
-
-    fun updateCalendar(calendarEvent: CalendarEvent) {
-        viewModelScope.launch(Dispatchers.IO) {
-            calendarRepository.update(calendarEvent)
         }
     }
 

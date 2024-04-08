@@ -37,6 +37,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,6 +60,8 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.custom.DropDown
+import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
@@ -81,35 +84,35 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
     val events by viewModel.events.collectAsStateWithLifecycle()
     val calendars by viewModel.calendars.collectAsStateWithLifecycle()
     val days by viewModel.days.collectAsStateWithLifecycle()
-    viewModel.getCalendars()
 
-    if(events.isEmpty()) {
-        val dt = Calendar.getInstance()
-        val baseStart = Calendar.getInstance()
-        baseStart.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), 1)
-        val baseEnd = Calendar.getInstance()
-        baseEnd.set(
-            dt.get(Calendar.YEAR),
-            dt.get(Calendar.MONTH),
-            dt.getActualMaximum(Calendar.DAY_OF_MONTH)
-        )
-        viewModel.load(baseStart.time.time, baseEnd.time.time)
-    }
+    val dt = Calendar.getInstance()
+    val baseStart = Calendar.getInstance()
+    baseStart.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), 1)
+    val baseEnd = Calendar.getInstance()
+    baseEnd.set(
+        dt.get(Calendar.YEAR),
+        dt.get(Calendar.MONTH),
+        dt.getActualMaximum(Calendar.DAY_OF_MONTH)
+    )
+    var start by remember { mutableLongStateOf(baseStart.time.time) }
+    var end by remember { mutableLongStateOf(baseEnd.time.time) }
+    var selectedCalendar by remember { mutableStateOf("") }
+    viewModel.getCalendars()
+    viewModel.load(selectedCalendar, start, end)
 
     CalendarScreen(events, calendars, days, { mode, calendar ->
-        val start = updateTime(0, 0, 0, calendar.clone() as Calendar)
-        val end = updateTime(23, 59, 59, calendar.clone() as Calendar)
+        val calStart = updateTime(0, 0, 0, calendar.clone() as Calendar)
+        val calEnd = updateTime(23, 59, 59, calendar.clone() as Calendar)
         if(mode==Calendar.MONTH) {
-            start.set(Calendar.DAY_OF_MONTH, 1)
-            end.set(Calendar.DAY_OF_MONTH, end.getActualMaximum(Calendar.DAY_OF_MONTH))
+            calStart.set(Calendar.DAY_OF_MONTH, 1)
+            calEnd.set(Calendar.DAY_OF_MONTH, calEnd.getActualMaximum(Calendar.DAY_OF_MONTH))
         }
-
-        val startTime = start.time.time
-        val endTime = end.time.time
-        viewModel.load(startTime, endTime)
-        viewModel.count(start)
+        start = calStart.time.time
+        end = calEnd.time.time
+        viewModel.load(selectedCalendar, start, end)
+        viewModel.count(selectedCalendar, calStart)
     }, { item: CalendarEvent -> viewModel.insertCalendar(item)},
-        { item: CalendarEvent -> viewModel.deleteCalendar(item)})
+        { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> selectedCalendar = selected})
 }
 
 @Composable
@@ -134,11 +137,13 @@ fun CalendarScreen(
     countDays: List<Int>,
     onChange: (Int, Calendar) -> Unit,
     onSave: (CalendarEvent) -> Unit,
-    onDelete: (CalendarEvent) -> Unit) {
+    onDelete: (CalendarEvent) -> Unit,
+    onCalendarSelected: (String) -> Unit) {
 
     var showDialog by remember { mutableStateOf(false) }
     var event by remember { mutableStateOf<CalendarEvent?>(null) }
     var dt by remember { mutableStateOf(Date()) }
+    val initial = stringResource(id = R.string.calendars_all)
 
     if(showDialog) {
         EditDialog(
@@ -154,10 +159,20 @@ fun CalendarScreen(
     }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
-        val (list, control) = createRefs()
+        val (dropdown, list, control) = createRefs()
+
+        Column(Modifier.constrainAs(dropdown) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            width = Dimension.fillToConstraints
+        }) {
+            DropDown(calendars, initial, onCalendarSelected)
+            Separator()
+        }
 
         Column(Modifier.constrainAs(list) {
-            top.linkTo(parent.top)
+            top.linkTo(dropdown.bottom)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
             bottom.linkTo(parent.bottom)
@@ -193,11 +208,12 @@ fun CalendarScreen(
                 event = null
                 showDialog = true
             },
-            modifier = Modifier.constrainAs(control) {
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-                width = Dimension.fillToConstraints
-            }
+            modifier = Modifier
+                .constrainAs(control) {
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                    width = Dimension.fillToConstraints
+                }
                 .padding(5.dp)) {
             Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
         }
@@ -710,7 +726,7 @@ fun CalendarItemPreview() {
 @Preview(showBackground = true)
 @Composable
 fun ScreenPreview() {
-    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf(), listOf(), {_,_->}, {}, {})
+    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf(), listOf(), {_,_->}, {}, {}, {})
 }
 
 @Preview(showBackground = true)

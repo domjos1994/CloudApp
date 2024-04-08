@@ -8,9 +8,9 @@ import java.util.LinkedList
 import javax.inject.Inject
 
 interface CalendarRepository {
-    fun loadData(startTime: Long, endTime:Long): List<CalendarEvent>
+    fun loadData(calendar: String, startTime: Long, endTime:Long): List<CalendarEvent>
     fun getCalendars(): List<String>
-    fun countData(calendar: java.util.Calendar): LinkedList<Int>
+    fun countData(calendar: String, event: java.util.Calendar): LinkedList<Int>
     fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
     fun insert(calendarEvent: CalendarEvent)
     fun update(calendarEvent: CalendarEvent)
@@ -23,17 +23,24 @@ class DefaultCalendarRepository @Inject constructor(
 ) : CalendarRepository {
     private val calendar = Calendar(authenticationDAO.getSelectedItem()!!)
 
-    override fun loadData(startTime: Long, endTime: Long): List<CalendarEvent> {
-        return calendarEventDAO.getItemsByTime(startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+    override fun loadData(calendar: String, startTime: Long, endTime: Long): List<CalendarEvent> {
+        return if(calendar == "") {
+            calendarEventDAO.getItemsByTime(startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+        } else {
+            calendarEventDAO.getItemsByTimeAndCalendar(calendar, startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+        }
     }
 
     override fun getCalendars(): List<String> {
-        return calendarEventDAO.getCalendars(authenticationDAO.getSelectedItem()!!.id)
+        val lst = LinkedList<String>()
+        lst.add("")
+        lst.addAll(calendarEventDAO.getCalendars(authenticationDAO.getSelectedItem()!!.id))
+        return lst
     }
 
-    override fun countData(calendar: java.util.Calendar): LinkedList<Int> {
-        val start = calendar.clone() as java.util.Calendar
-        val end = calendar.clone() as java.util.Calendar
+    override fun countData(calendar: String, event: java.util.Calendar): LinkedList<Int> {
+        val start = event.clone() as java.util.Calendar
+        val end = event.clone() as java.util.Calendar
         start.set(java.util.Calendar.HOUR_OF_DAY, 0)
         start.set(java.util.Calendar.MINUTE, 0)
         start.set(java.util.Calendar.SECOND, 0)
@@ -46,8 +53,14 @@ class DefaultCalendarRepository @Inject constructor(
             start.set(java.util.Calendar.DAY_OF_MONTH, day)
             end.set(java.util.Calendar.DAY_OF_MONTH, day)
 
-            if(calendarEventDAO.count(start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
-                lst.add(day)
+            if(calendar == "") {
+                if(calendarEventDAO.count(start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
+                    lst.add(day)
+                }
+            } else {
+                if(calendarEventDAO.count(calendar, start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
+                    lst.add(day)
+                }
             }
         }
 
