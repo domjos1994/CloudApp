@@ -59,6 +59,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
@@ -457,8 +458,11 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
     }
 
     var from by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
+    var isFromValid by remember { mutableStateOf(true) }
     var to by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
+    var isToValid by remember { mutableStateOf(true) }
     var title by remember {mutableStateOf(TextFieldValue(""))}
+    var isTitleValid by remember { mutableStateOf(false) }
     var location by remember {mutableStateOf(TextFieldValue(""))}
     var description by remember {mutableStateOf(TextFieldValue(""))}
     var confirmation by remember {mutableStateOf(TextFieldValue(""))}
@@ -475,8 +479,11 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
             from = TextFieldValue(inDay.format(calFrom.time))
             to = TextFieldValue(inDay.format(calTo.time))
         }
+        isFromValid = from.text.isNotEmpty()
+        isToValid = to.text.isNotEmpty()
 
         title = TextFieldValue(event.title)
+        isTitleValid = title.text.isNotEmpty()
         location = TextFieldValue(event.location)
         description = TextFieldValue(event.description)
         confirmation = TextFieldValue(event.confirmation)
@@ -499,8 +506,12 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
                             .padding(5.dp)) {
                         OutlinedTextField(
                             value = title,
-                            onValueChange = {title=it},
-                            label = {Text(stringResource(id = R.string.calendar_title))}
+                            onValueChange = {
+                                title=it
+                                isTitleValid = Validator.check(false, 3, 255, it.text)
+                            },
+                            label = {Text(stringResource(id = R.string.calendar_title))},
+                            isError = !isTitleValid
                         )
                     }
                 }
@@ -511,8 +522,12 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
                             .padding(5.dp)) {
                         OutlinedTextField(
                             value = from,
-                            onValueChange = {from=it},
-                            label = {Text(stringResource(id = R.string.calendar_from))}
+                            onValueChange = {
+                                from=it
+                                isFromValid = Validator.checkDate(it.text, "dd.MM.yyyy")
+                            },
+                            label = {Text(stringResource(id = R.string.calendar_from))},
+                            isError = !isFromValid
                         )
                     }
                 }
@@ -523,8 +538,12 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
                             .padding(5.dp)) {
                         OutlinedTextField(
                             value = to,
-                            onValueChange = {to=it},
-                            label = {Text(stringResource(id = R.string.calendar_to))}
+                            onValueChange = {
+                                to=it
+                                isToValid = Validator.checkDate(it.text, "dd.MM.yyyy")
+                            },
+                            label = {Text(stringResource(id = R.string.calendar_to))},
+                            isError = !isToValid
                         )
                     }
                 }
@@ -631,12 +650,13 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
                                 event.calendar = calendar
 
                                 onSave(event)
-                            }) {
+                            }, enabled = isTitleValid && isFromValid && isToValid) {
                                 Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
                             }
                         }
                     } else {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = {
                                 var fromDate = isDate(inDay, from.text)
                                 if(fromDate != null) {
@@ -654,7 +674,7 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
                                     confirmation.text, categories.text, "", calendar, 0L)
 
                                 onSave(nEvent)
-                            }) {
+                            }, enabled = isTitleValid && isFromValid && isToValid) {
                                 Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
                             }
                         }
