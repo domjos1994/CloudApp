@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -39,7 +40,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -155,22 +158,44 @@ fun RoomScreen(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
+            .height(70.dp)
             .background(color = MaterialTheme.colorScheme.primaryContainer)
             .combinedClickable(
                 onClick = { onClick(room) },
                 onLongClick = { onLongClick(room) })
     ) {
-        Image(painterResource(id = R.drawable.baseline_person_24), room.name, modifier = Modifier.padding(5.dp))
+        if(room.icon?.asImageBitmap()!=null) {
+            Image(
+                bitmap = room.icon?.asImageBitmap()!!,
+                room.name,
+                modifier = Modifier
+                    .padding(5.dp)
+                    .height(60.dp).width(60.dp)
+                    .clip(RoundedCornerShape(5.dp)))
+        } else {
+            Image(
+                painterResource(R.drawable.baseline_person_24),
+                room.name,
+                modifier = Modifier
+                    .padding(5.dp)
+                    .height(60.dp).width(60.dp)
+                    .clip(RoundedCornerShape(5.dp)))
+        }
         Column {
-            Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp))
+            val content: String = if(room.lastMessage.actorDisplayName!="") {
+                "${room.lastMessage.actorDisplayName}: ${room.lastMessage.message}"
+            } else {
+                room.lastMessage.message
+            }
+            Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(1.dp))
             Text(
-                "${room.lastMessage.actorDisplayName}: ${room.lastMessage.message}",
-                modifier = Modifier.padding(5.dp),
+                content,
+                modifier = Modifier
+                    .padding(1.dp), maxLines = 1,
                 fontStyle = if(room.unreadMessages==0) FontStyle.Normal else FontStyle.Italic,
                 fontWeight = if(room.unreadMessages==0) FontWeight.Normal else FontWeight.Bold
             )
@@ -323,7 +348,7 @@ fun DialogUpdatePreview() {
 @Preview(showBackground = true)
 @Composable
 fun RoomScreenPreview() {
-    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)), {x,y->})
+    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)), { _, _->})
 }
 
 @Preview(showBackground = true)

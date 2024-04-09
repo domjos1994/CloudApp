@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.webrtc.model.room
 
+import android.graphics.Bitmap
 import de.domjos.cloudapp.webrtc.model.msg.Message
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -15,7 +16,8 @@ data class Room(
     var readOnly: Int,
     var unreadMessages: Int,
     var avatarVersion: String?,
-    var lastMessage: Message)  {
+    var lastMessage: Message,
+    @Transient var icon: Bitmap? = null)  {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

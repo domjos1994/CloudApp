@@ -1,7 +1,6 @@
 package de.domjos.cloudapp.webrtc.requests
 
 import de.domjos.cloudapp.database.model.Authentication
-import de.domjos.cloudapp.webrtc.model.room.OCS
 import de.domjos.cloudapp.webrtc.model.room.OCSObject
 import de.domjos.cloudapp.webrtc.model.room.Room
 import de.domjos.cloudapp.webrtc.model.room.RoomInput
@@ -9,10 +8,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.encodeToString
-import okhttp3.Callback
 
 
-class RoomRequest(authentication: Authentication?) : BasicRequest(authentication, "/ocs/v2.php/apps/spreed/api/v4/") {
+class RoomRequest(private val authentication: Authentication?) : BasicRequest(authentication, "/ocs/v2.php/apps/spreed/api/v4/") {
 
 
 
@@ -30,6 +28,11 @@ class RoomRequest(authentication: Authentication?) : BasicRequest(authentication
                             val content = response.body!!.string()
                             val ocs =  super.json.decodeFromString<OCSObject>(content)
                             if(ocs.ocs.meta.statuscode==200) {
+                                val req = AvatarRequest(authentication)
+                                val lst = ocs.ocs.data.toList()
+                                for(i in 0..<lst.count()) {
+                                    lst[i].icon = req.getAvatar(lst[i].token)
+                                }
                                 emit(ocs.ocs.data.toList())
                             } else {
                                 throw Exception(ocs.ocs.meta.message)

@@ -10,7 +10,7 @@ class AvatarRequest(authentication: Authentication?) : BasicRequest(authenticati
 
     @Throws(Exception::class)
     fun getAvatar(token: String): Bitmap? {
-        val request = super.buildRequest("chat/$token/avatar", "get", null)
+        val request = super.buildRequest("room/$token/avatar", "get", null)
 
         client.newCall(request!!).execute().use { response ->
             if(response.code == 200) {
