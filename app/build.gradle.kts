@@ -90,6 +90,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.navigation.compose)
     implementation(libs.material)
+    implementation(project(":REST"))
 
     // hilt
     ksp(libs.hilt.android.compiler)

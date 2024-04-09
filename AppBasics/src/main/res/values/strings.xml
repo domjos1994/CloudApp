@@ -2,6 +2,8 @@
 <resources>
     <string name="notifications">News</string>
 
+    <string name="auth_test">Test Connection</string>
+
     <string name="settings">Settings</string>
     <string name="settings_timeSpan_title">Time-Span</string>
     <string name="settings_timeSpan_header">Time-Span to update Chats (in Seconds)!</string>

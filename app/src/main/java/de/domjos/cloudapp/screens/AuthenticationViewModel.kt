@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
 import de.domjos.cloudapp.database.model.Authentication
+import de.domjos.cloudapp.webrtc.model.user.User
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
@@ -43,6 +45,12 @@ class AuthenticationViewModel @Inject constructor(
     fun deleteAuthentication(authentication: Authentication, onSuccess: (msg: String) -> Unit) {
         viewModelScope.launch {
             onSuccess(authenticationRepository.delete(authentication))
+        }
+    }
+
+    fun checkConnection(authentication: Authentication, onSuccess: (user: User?) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            onSuccess(authenticationRepository.checkConnection(authentication))
         }
     }
 }

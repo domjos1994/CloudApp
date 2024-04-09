@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -39,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -56,6 +59,7 @@ import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
+import de.domjos.cloudapp.webrtc.model.user.User
 
 @Composable
 fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
@@ -103,6 +107,7 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
                     Toast.makeText(context, it, Toast.LENGTH_LONG).show()
                 }
             },
+            onConnectionCheck = {auth, onSuccess -> viewModel.checkConnection(auth, onSuccess) },
             select = { auth -> viewModel.checkAuthentications(auth)},
             (authentications as AuthenticationUiState.Success).data
         )
@@ -113,6 +118,7 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
 fun AuthenticationScreen(
     onSaveClick: (Authentication) -> Unit,
     onDeleteClick: (Authentication) -> Unit,
+    onConnectionCheck: (Authentication, onSuccess: (User?) -> Unit) -> Unit,
     select: (Authentication) -> Unit,
     authentications: List<Authentication>) {
 
@@ -127,7 +133,7 @@ fun AuthenticationScreen(
                 selectedItem.value = it
                 onSaveClick(selectedItem.value!!)
             },
-            onDeleteClick
+            onDeleteClick, onConnectionCheck
         )
     }
 
@@ -233,7 +239,8 @@ private fun EditDialog(
     authentication: Authentication?,
     setShowDialog: (Boolean) -> Unit,
     onSaveClick: (Authentication) -> Unit,
-    onDeleteClick: (Authentication) -> Unit) {
+    onDeleteClick: (Authentication) -> Unit,
+    onConnectionCheck: (Authentication, onSuccess: (User?) -> Unit) -> Unit) {
 
     var id by remember { mutableLongStateOf(0L) }
     var title by remember { mutableStateOf(TextFieldValue("")) }
@@ -242,8 +249,10 @@ private fun EditDialog(
     var isValidUrl by remember { mutableStateOf(authentication?.url?.isNotEmpty() ?: false) }
     var user by remember { mutableStateOf(TextFieldValue("")) }
     var pwd by remember { mutableStateOf(TextFieldValue("")) }
+    var isConnectionValid by remember { mutableStateOf(false) }
     var description by remember { mutableStateOf(TextFieldValue("")) }
     var isValidDescription by remember { mutableStateOf(true) }
+    var color by remember { mutableStateOf(Color.Red) }
 
 
     if(authentication != null) {
@@ -278,6 +287,8 @@ private fun EditDialog(
                         onValueChange = {
                             url = it
                             isValidUrl = Validator.checkUrl(it.text)
+                            isConnectionValid = false
+                            color = Color.Red
                         },
                         label = {Text(stringResource(id = R.string.login_url))},
                         modifier = Modifier.fillMaxWidth(),
@@ -289,6 +300,8 @@ private fun EditDialog(
                         value = user,
                         onValueChange = {
                             user = it
+                            isConnectionValid = false
+                            color = Color.Red
                         },
                         label = {Text(stringResource(id = R.string.login_user))},
                         modifier = Modifier.fillMaxWidth()
@@ -299,10 +312,29 @@ private fun EditDialog(
                         value = pwd,
                         onValueChange = {
                             pwd = it
+                            isConnectionValid = false
+                            color = Color.Red
                         },
                         label = {Text(stringResource(id = R.string.login_pwd))},
                         modifier = Modifier.fillMaxWidth()
                     )
+                }
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Button(
+                        onClick = {
+                            val auth = Authentication(
+                                0L, title.text, url.text, user.text,
+                                pwd.text, false, "", null
+                            )
+
+                            onConnectionCheck(auth) {
+                                isConnectionValid = it!=null
+                                color = if(isConnectionValid) Color.Green else Color.Red
+                            }
+                        }, colors = ButtonDefaults.buttonColors(containerColor = color)
+                    ) {
+                        Text(stringResource(R.string.auth_test))
+                    }
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
@@ -344,7 +376,7 @@ private fun EditDialog(
 
                             onSaveClick(auth)
                             setShowDialog(false)
-                        }, enabled = isValidTitle && isValidUrl && isValidDescription) {
+                        }, enabled = isValidTitle && isValidUrl && isValidDescription && isConnectionValid) {
                             Icon(Icons.Default.CheckCircle, stringResource(R.string.login_close))
                         }
                     }
@@ -367,7 +399,7 @@ fun AuthenticationItemPreview() {
 @Preview(showBackground = true)
 @Composable
 fun AuthenticationScreenPreview() {
-    AuthenticationScreen({}, {}, {}, listOf(fake(1L), fake(2L)))
+    AuthenticationScreen({}, {}, {_,_->}, {}, listOf(fake(1L), fake(2L)))
 }
 
 @Preview(showBackground = true)
@@ -379,7 +411,8 @@ fun DialogPreview() {
             authentication = fake(1L),
             setShowDialog = {},
             onSaveClick = {},
-            onDeleteClick = {}
+            onDeleteClick = {},
+            onConnectionCheck = {_,_->}
         )
     }
 }
