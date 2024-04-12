@@ -4,6 +4,7 @@ import android.content.Context
 import de.domjos.cloudapp.data.R
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.model.Authentication
+import de.domjos.cloudapp.webrtc.model.capabilities.Data
 import de.domjos.cloudapp.webrtc.model.user.User
 import de.domjos.cloudapp.webrtc.requests.UserRequest
 import kotlinx.coroutines.flow.Flow
@@ -19,6 +20,7 @@ interface AuthenticationRepository {
 
     suspend fun getLoggedInUser(): Authentication?
     suspend fun checkConnection(authentication: Authentication): User?
+    suspend fun getCapabilities(authentication: Authentication?): Data?
 }
 
 class DefaultAuthenticationRepository @Inject constructor(
@@ -72,4 +74,15 @@ class DefaultAuthenticationRepository @Inject constructor(
         return ""
     }
 
+    override suspend fun getCapabilities(authentication: Authentication?): Data? {
+        val tmp: Authentication? = authentication ?: this.authenticationDAO.getSelectedItem()
+        return if(tmp != null) {
+            val ur = UserRequest(tmp)
+            val cap = ur.getCapabilities()
+            cap?.capabilities?.theming?.url = tmp.title
+            cap
+        } else {
+            null
+        }
+    }
 }

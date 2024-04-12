@@ -62,7 +62,7 @@ import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.webrtc.model.user.User
 
 @Composable
-fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
+fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), onSelectedChange: (Authentication) -> Unit) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val authentications by produceState<AuthenticationUiState>(
         initialValue = AuthenticationUiState.Loading,
@@ -107,8 +107,10 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel()) {
                     Toast.makeText(context, it, Toast.LENGTH_LONG).show()
                 }
             },
-            onConnectionCheck = {auth, onSuccess -> viewModel.checkConnection(auth, onSuccess) },
-            select = { auth -> viewModel.checkAuthentications(auth)},
+            onConnectionCheck = {auth, onSuccess ->
+                viewModel.checkConnection(auth, onSuccess) },
+            select = { auth -> viewModel.checkAuthentications(auth)
+                onSelectedChange(auth)},
             (authentications as AuthenticationUiState.Success).data
         )
     }

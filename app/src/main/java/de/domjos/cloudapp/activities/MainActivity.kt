@@ -54,16 +54,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -72,6 +75,10 @@ import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import coil.compose.AsyncImage
+import coil.decode.SvgDecoder
+import coil.request.ImageRequest
+import coil.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp.appbasics.helper.Notifications
 import de.domjos.cloudapp.screens.SettingsScreen
@@ -127,6 +134,13 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             var notification: NotificationCompat.Builder?
             val import = stringResource(R.string.calendar_import)
+            val viewModel: MainActivityViewModel = hiltViewModel()
+            val tmpBackground = MaterialTheme.colorScheme.primaryContainer
+            val tmpForeground = MaterialTheme.colorScheme.primary
+            var colorBackground by remember { mutableStateOf(tmpBackground) }
+            var colorForeground by remember { mutableStateOf(tmpForeground) }
+            var icon by remember { mutableStateOf("") }
+            var authTitle by remember { mutableStateOf("") }
 
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -135,13 +149,30 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Scaffold(bottomBar = { TabView(tabBarItems, navController) }, topBar = {
+                        viewModel.getCapabilities({
+                            if(it != null) {
+                                colorBackground = Color(android.graphics.Color.parseColor(it.capabilities.theming.background))
+                                colorForeground = Color(android.graphics.Color.parseColor(it.capabilities.theming.`color-text`))
+                                icon = it.capabilities.theming.logo
+                                authTitle = "(${it.capabilities.theming.url})"
+                            }
+                        }, null)
+
+
                         TopAppBar(
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                titleContentColor = MaterialTheme.colorScheme.primary,
+                                containerColor = colorBackground,
+                                titleContentColor = colorForeground,
                             ),
                             title={
-                                Text(header)
+                                Row {
+                                    Column {
+                                        Text(header)
+                                    }
+                                    Column(Modifier.padding(2.dp), verticalArrangement = Arrangement.Bottom) {
+                                        Text(authTitle, fontSize = 12.sp)
+                                    }
+                                }
                             },
                             actions = {
                         if(refreshVisible) {
@@ -180,10 +211,18 @@ class MainActivity : ComponentActivity() {
                         IconButton(onClick = {
                             navController.navigate(authentications)
                         }) {
-                            Icon(
-                                imageVector = Icons.Filled.Person,
-                                contentDescription = stringResource(R.string.login)
-                            )
+                            if(icon == "") {
+                                Icon(
+                                    imageVector = Icons.Filled.Person,
+                                    contentDescription = stringResource(R.string.login)
+                                )
+                            } else {
+                                AsyncImage(model = ImageRequest.Builder(LocalContext.current)
+                                    .decoderFactory(SvgDecoder.Factory())
+                                    .data(icon)
+                                    .scale(Scale.FIT)
+                                    .build(), contentDescription = stringResource(R.string.login))
+                            }
                         }
 
                         var menuExpanded by remember { mutableStateOf(false) }
@@ -199,7 +238,16 @@ class MainActivity : ComponentActivity() {
                     })}) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
-                                AuthenticationScreen()
+                                AuthenticationScreen() {auth ->
+                                    viewModel.getCapabilities({ data ->
+                                        if(data != null) {
+                                            colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
+                                            colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
+                                            icon = data.capabilities.theming.logo
+                                            authTitle = "(${data.capabilities.theming.url})"
+                                        }
+                                    }, auth)
+                                }
                                 title = authentications
                                 header = authentications
                                 refreshVisible = false
@@ -281,7 +329,9 @@ fun ProgressDialog(onShowDialog: (Boolean) -> Unit, currentText: String, current
                     .fillMaxWidth()
                     .height(150.dp)) {
                 Row(
-                    Modifier.height(50.dp).fillMaxWidth(),
+                    Modifier
+                        .height(50.dp)
+                        .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Text(currentText, fontWeight = FontWeight.Bold)

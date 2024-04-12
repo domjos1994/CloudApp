@@ -80,6 +80,8 @@ dependencies {
     implementation(libs.accompanist.permissions)
     implementation(libs.compose.preference)
     implementation(libs.androidx.preference)
+    implementation(libs.coil)
+    implementation(libs.coil.svg)
 
     // compose
     implementation(libs.androidx.activity.compose)
