@@ -57,4 +57,8 @@ class RoomViewModel @Inject constructor(
             roomRepository.deleteRoom(room.token)
         }
     }
+
+    fun hasAuthentications(): Boolean {
+        return roomRepository.hasAuthentications()
+    }
 }

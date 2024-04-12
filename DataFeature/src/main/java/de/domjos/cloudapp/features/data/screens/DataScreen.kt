@@ -54,23 +54,35 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
+import de.domjos.cloudapp.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
+import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.appbasics.helper.execCatch
 import de.domjos.cloudapp.appbasics.helper.execCatchItem
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.webdav.model.Item
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.InputStream
 
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
+fun DataScreen(viewModel: DataViewModel = hiltViewModel(), toAuths: () -> Unit) {
     val items by viewModel.items.collectAsStateWithLifecycle()
-    viewModel.init()
+
+    val connection by connectivityState()
+    val isConnected = connection === ConnectionState.Available
+
+    if(isConnected) {
+        viewModel.init()
+    }
 
     val context = LocalContext.current
 
-    DataScreen(items,
+    DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths,
         {item: Item -> execCatchItem<Item?>({
             try {
                 if(it!!.directory) {
@@ -97,7 +109,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel()) {
 }
 
 @Composable
-fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, uploadFile: (String, InputStream) -> Unit) {
+fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, uploadFile: (String, InputStream) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -120,7 +132,15 @@ fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, o
             Column(modifier = Modifier
                 .padding(5.dp)
                 .verticalScroll(rememberScrollState())) {
-                items.forEach { item -> DataItem(item, onClick, onExists, onDelete, onSetCutElement, onMoveFolder, hasCutElement) }
+                if(hasAuths) {
+                    if(isConnected) {
+                        items.forEach { item -> DataItem(item, onClick, onExists, onDelete, onSetCutElement, onMoveFolder, hasCutElement) }
+                    } else {
+                        NoInternetItem()
+                    }
+                } else {
+                    NoAuthenticationItem(toAuths)
+                }
             }
         }
         if(showDialog) {
@@ -144,24 +164,26 @@ fun DataScreen(items: List<Item>, onClick: (Item) -> Unit, onPath: ()->String, o
                 }, it, context)
             }
             Column {
-                Separator()
-                Row {
-                    Column(
-                        Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = {
-                            launcher.launch(arrayOf("text/*", "image/*", "audio/*", "video/*", "application/*"))
-                        }) {
-                            Icon(painterResource(R.drawable.baseline_upload_file_24), stringResource(R.string.data_file_add))
+                if(isConnected && hasAuths) {
+                    Separator()
+                    Row {
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = {
+                                launcher.launch(arrayOf("text/*", "image/*", "audio/*", "video/*", "application/*"))
+                            }) {
+                                Icon(painterResource(R.drawable.baseline_upload_file_24), stringResource(R.string.data_file_add))
+                            }
                         }
-                    }
-                    Column(
-                        Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = { showDialog = true }) {
-                            Icon(painterResource(R.drawable.baseline_create_new_folder_24), stringResource(R.string.data_folder_add))
+                        Column(
+                            Modifier.weight(1f),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = { showDialog = true }) {
+                                Icon(painterResource(R.drawable.baseline_create_new_folder_24), stringResource(R.string.data_folder_add))
+                            }
                         }
                     }
                 }
@@ -392,7 +414,18 @@ fun CreateFolderDialog(showDialog: (Boolean) -> Unit, onSave: (String) -> Unit) 
 @Preview(showBackground = true)
 @Composable
 fun DataScreenPreview() {
-    DataScreen(listOf(fake(1L), fake(2L), fake(3L)), {}, {"cxgygf"}, {true}, {}, {}, {}, {}, {true}) {_,_->}
+    DataScreen(listOf(fake(1L), fake(2L), fake(3L)),
+        isConnected = true,
+        hasAuths = true,
+        toAuths = {},
+        onClick = {},
+        onPath = {"cxgygf"},
+        onExists = {true},
+        onDelete = {},
+        onCreateFolder = {},
+        onSetCutElement = {},
+        onMoveFolder = {},
+        hasCutElement = {true}) { _, _->}
 }
 
 @Preview(showBackground = true)

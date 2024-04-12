@@ -29,10 +29,8 @@ class NotificationViewModel @Inject constructor(
     fun getFullIconLink(notification: Notification): String {
         return notificationsRepository.getFullLink(notification)
     }
-}
 
-sealed interface NotificationUiState {
-    data object Loading : NotificationUiState
-    data class Error(val throwable: Throwable) : NotificationUiState
-    data class Success(val data: List<Notification>) : NotificationUiState
+    fun hasAuthentications(): Boolean {
+        return notificationsRepository.hasAuthentications()
+    }
 }

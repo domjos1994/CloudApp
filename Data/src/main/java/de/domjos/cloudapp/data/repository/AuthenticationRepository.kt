@@ -21,6 +21,7 @@ interface AuthenticationRepository {
     suspend fun getLoggedInUser(): Authentication?
     suspend fun checkConnection(authentication: Authentication): User?
     suspend fun getCapabilities(authentication: Authentication?): Data?
+    fun hasAuthentications(): Boolean
 }
 
 class DefaultAuthenticationRepository @Inject constructor(
@@ -35,6 +36,10 @@ class DefaultAuthenticationRepository @Inject constructor(
         authentication.selected = true
         authenticationDAO.updateAuthentication(authentication)
         authentications = authenticationDAO.getAll()
+    }
+
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
     }
 
     override suspend fun insert(authentication: Authentication, context: Context): String {

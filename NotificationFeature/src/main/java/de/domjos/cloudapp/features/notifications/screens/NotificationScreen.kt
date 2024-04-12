@@ -29,54 +29,57 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Scale
+import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.webrtc.model.notifications.Action
 import de.domjos.cloudapp.webrtc.model.notifications.Notification
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel()) {
+fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), toAuths: () -> Unit) {
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
 
+    val connection by connectivityState()
+    val isConnected = connection === ConnectionState.Available
 
-    ImageLoader.Builder(LocalContext.current)
-        .components {
-            add(SvgDecoder.Factory())
+    try {
+        if(isConnected) {
+            viewModel.reload()
         }
-        .crossfade(true)
-        .build()
+    } catch (_: Exception) {}
 
-    viewModel.reload()
-    NotificationScreen(notifications) {
+    NotificationScreen(notifications, {
         viewModel.getFullIconLink(it)
-    }
+    }, isConnected, viewModel.hasAuthentications(), toAuths)
 }
 
 @Composable
-fun NotificationScreen(rooms: List<Notification>, onIconLoad: (Notification) -> String) {
+fun NotificationScreen(rooms: List<Notification>, onIconLoad: (Notification) -> String, isConnected: Boolean, hasAuthentications: Boolean, toAuths: () -> Unit) {
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(5.dp)
         .verticalScroll(rememberScrollState())) {
 
-        val connection by connectivityState()
-        val isConnected = connection === ConnectionState.Available
-
-        if(isConnected) {
-            if(rooms.isEmpty()) {
-                NoEntryItem()
+        if(hasAuthentications) {
+            if(isConnected) {
+                if(rooms.isEmpty()) {
+                    NoEntryItem()
+                } else {
+                    rooms.forEach { room -> NotificationItem(room, onIconLoad)}
+                }
             } else {
-                rooms.forEach { room -> NotificationItem(room, onIconLoad)}
+                NoInternetItem()
             }
         } else {
-            NoInternetItem()
+            NoAuthenticationItem(toAuths)
         }
     }
 }
@@ -152,7 +155,8 @@ fun NotificationItem(notification: Notification, onIconLoad: (Notification) -> S
 @Preview(showBackground = true)
 @Composable
 fun NotificationScreenPreview() {
-    NotificationScreen(listOf(fake(1), fake(2), fake(3))) { "" }
+    NotificationScreen(listOf(fake(1), fake(2), fake(3)), { "" },
+        isConnected = true, hasAuthentications = true) {}
 }
 
 @Preview(showBackground = true)

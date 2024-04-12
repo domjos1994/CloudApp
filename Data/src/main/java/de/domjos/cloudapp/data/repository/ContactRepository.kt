@@ -2,12 +2,8 @@ package de.domjos.cloudapp.data.repository
 
 import de.domjos.cloudapp.cardav.ContactLoader
 import de.domjos.cloudapp.database.dao.AuthenticationDAO
-import de.domjos.cloudapp.database.dao.CalendarEventDAO
 import de.domjos.cloudapp.database.dao.ContactDAO
-import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.database.model.contacts.Contact
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import java.util.LinkedList
 import javax.inject.Inject
 
@@ -19,18 +15,31 @@ interface ContactRepository {
     fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit)
     fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact)
     fun deleteContact(hasInternet: Boolean, contact: Contact)
+    fun hasAuthentications(): Boolean
 }
 
 class DefaultContactRepository @Inject constructor(
     private val authenticationDAO: AuthenticationDAO,
     private val contactDAO: ContactDAO
 ) : ContactRepository {
-    private val loader = ContactLoader(authenticationDAO.getSelectedItem()!!)
+    private val loader = ContactLoader(authenticationDAO.getSelectedItem())
     private var addressBook: String = ""
-    override var contacts = contactDAO.getAll(authenticationDAO.getSelectedItem()!!.id)
+    override var contacts = if(authenticationDAO.getSelectedItem()!=null) {
+        contactDAO.getAll(authenticationDAO.getSelectedItem()!!.id)
+    } else {
+        listOf()
+    }
 
     override suspend fun loadAddressBooks(): List<String> {
-        return this.contactDAO.getAddressBooks(authenticationDAO.getSelectedItem()!!.id)
+        return if(this.authenticationDAO.getSelectedItem()!=null) {
+            this.contactDAO.getAddressBooks(authenticationDAO.getSelectedItem()!!.id)
+        } else {
+            listOf()
+        }
+    }
+
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
     }
 
     override fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit) {

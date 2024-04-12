@@ -61,6 +61,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.DropDown
+import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
@@ -80,7 +81,7 @@ import java.util.Locale
 import java.util.UUID
 
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
+fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), toAuths: () -> Unit) {
     val events by viewModel.events.collectAsStateWithLifecycle()
     val calendars by viewModel.calendars.collectAsStateWithLifecycle()
     val days by viewModel.days.collectAsStateWithLifecycle()
@@ -100,7 +101,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel()) {
     viewModel.getCalendars()
     viewModel.load(selectedCalendar, start, end)
 
-    CalendarScreen(events, calendars, days, { mode, calendar ->
+    CalendarScreen(events, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
         val calStart = updateTime(0, 0, 0, calendar.clone() as Calendar)
         val calEnd = updateTime(23, 59, 59, calendar.clone() as Calendar)
         if(mode==Calendar.MONTH) {
@@ -135,6 +136,7 @@ fun CalendarScreen(
     calendarEvents: List<CalendarEvent>,
     calendars: List<String>,
     countDays: List<Int>,
+    hasAuths: Boolean, toAuths: () -> Unit,
     onChange: (Int, Calendar) -> Unit,
     onSave: (CalendarEvent) -> Unit,
     onDelete: (CalendarEvent) -> Unit,
@@ -192,12 +194,17 @@ fun CalendarScreen(
                         .fillMaxWidth()
                         .wrapContentHeight()
                         .verticalScroll(rememberScrollState())) {
-                    calendarEvents.forEach { CalendarEventItem(it) { item: CalendarEvent ->
-                        event = item
-                        dt = Date()
-                        showDialog = true
-                    }
-                    }
+                        if(hasAuths) {
+                            calendarEvents.forEach {
+                                CalendarEventItem(it) { item: CalendarEvent ->
+                                    event = item
+                                    dt = Date()
+                                    showDialog = true
+                                }
+                            }
+                        } else {
+                            NoAuthenticationItem(toAuths)
+                        }
                 }
             }
         }
@@ -726,7 +733,7 @@ fun CalendarItemPreview() {
 @Preview(showBackground = true)
 @Composable
 fun ScreenPreview() {
-    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf(), listOf(), {_,_->}, {}, {}, {})
+    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf(), listOf(), true, {}, {_,_->}, {}, {}, {})
 }
 
 @Preview(showBackground = true)

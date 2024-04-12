@@ -20,35 +20,36 @@ import ezvcard.property.StructuredName
 import ezvcard.property.Telephone
 import ezvcard.property.Uid
 import okhttp3.Credentials
-import okhttp3.internal.notify
-import java.io.ByteArrayInputStream
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.temporal.ChronoField
-import java.time.temporal.TemporalField
-import java.util.Date
+import java.util.Calendar
 import java.util.LinkedList
 import java.util.Locale
 
-class ContactLoader(private val authentication: Authentication) {
-    private val sardine: OkHttpSardine = OkHttpSardine()
-    private val basePath = "${authentication.url}/remote.php/dav/addressbooks/users/${authentication.userName}"
+class ContactLoader(private val authentication: Authentication?) {
+    private var sardine: OkHttpSardine? = null
+    private var basePath = ""
 
     init {
-        this.sardine.setCredentials(authentication.userName, authentication.password)
+        if(authentication != null) {
+            this.sardine = OkHttpSardine()
+            this.sardine?.setCredentials(authentication.userName, authentication.password)
+            this.basePath = "${authentication.url}/remote.php/dav/addressbooks/users/${authentication.userName}"
+        }
     }
 
     fun getAddressBooks() : List<String> {
         val addressBooks = LinkedList<String>()
-
-        var header = true
-        this.sardine.list(this.basePath).forEach { davResource ->
-            if(header) {
-                header = false
-            } else {
-                addressBooks.add(this.getName(davResource.path))
+        if(this.sardine != null) {
+            var header = true
+            this.sardine?.list(this.basePath)?.forEach { davResource ->
+                if(header) {
+                    header = false
+                } else {
+                    addressBooks.add(this.getName(davResource.path))
+                }
             }
         }
         return addressBooks
@@ -56,41 +57,48 @@ class ContactLoader(private val authentication: Authentication) {
 
     fun loadAddressBook(name: String): LinkedList<Contact> {
         val lst = LinkedList<Contact>()
-        val path = "$basePath/$name"
 
-        try {
-            var header = true
-            this.sardine.list(path).forEach {  davResource ->
-                if(header) {
-                    header = false
-                } else {
-                    try {
-                        val cardPath = "${authentication.url}${davResource.path}"
-                        val headers = this.buildHeaders()
+        if(this.sardine != null) {
+            val path = "$basePath/$name"
 
-                        val inputStream = this.sardine.get(cardPath, headers)
-                        val tmp = Ezvcard.parse(inputStream).all()
-                        tmp.forEach { vCard ->
-                            lst.add(this.vcardToContact(vCard, name))
+            try {
+                var header = true
+                this.sardine?.list(path)?.forEach {  davResource ->
+                    if(header) {
+                        header = false
+                    } else {
+                        try {
+                            val cardPath = "${authentication?.url}${davResource.path}"
+                            val headers = this.buildHeaders()
+
+                            val inputStream = this.sardine?.get(cardPath, headers)
+                            val tmp = Ezvcard.parse(inputStream).all()
+                            tmp.forEach { vCard ->
+                                lst.add(this.vcardToContact(vCard, name))
+                            }
+                        } catch (ex: Exception) {
+                            println(ex.message)
                         }
-                    } catch (ex: Exception) {
-                        println(ex.message)
                     }
                 }
-            }
-        } catch (_: Exception) {}
+            } catch (_: Exception) {}
+        }
 
         return lst
     }
 
     fun insertContact(name: String, contact: Contact) {
-        val cardPath = "${basePath}/$name/${contact.uid}.vcf"
-        this.sardine.put(cardPath, Ezvcard.write(this.contactToVCard(contact)).go().toByteArray())
+        if(this.sardine != null) {
+            val cardPath = "${basePath}/$name/${contact.uid}.vcf"
+            this.sardine?.put(cardPath, Ezvcard.write(this.contactToVCard(contact)).go().toByteArray())
+        }
     }
 
     fun deleteContact(name: String, contact: Contact) {
-        val cardPath = "${basePath}/$name/${contact.uid}.vcf"
-        this.sardine.delete(cardPath)
+        if(this.sardine != null) {
+            val cardPath = "${basePath}/$name/${contact.uid}.vcf"
+            this.sardine?.delete(cardPath)
+        }
     }
 
     private fun getName(path: String): String {
@@ -104,7 +112,7 @@ class ContactLoader(private val authentication: Authentication) {
 
     private fun buildHeaders(): Map<String, String> {
         val headers = LinkedHashMap<String, String>()
-        val auth = Credentials.basic(this.authentication.userName, this.authentication.password)
+        val auth = Credentials.basic(this.authentication?.userName!!, this.authentication.password)
         headers["Authorization"] = auth
         return headers
     }
@@ -141,7 +149,6 @@ class ContactLoader(private val authentication: Authentication) {
                     month = LocalDate.ofInstant(vCard.birthday.date as Instant, ZoneId.systemDefault())?.monthValue
                     day = LocalDate.ofInstant(vCard.birthday.date as Instant, ZoneId.systemDefault())?.dayOfMonth
                 } else {
-                    year = LocalDate.from(vCard.birthday.date).year
                     month = LocalDate.from(vCard.birthday.date).monthValue
                     year = LocalDate.from(vCard.birthday.date).dayOfMonth
                 }
@@ -172,7 +179,7 @@ class ContactLoader(private val authentication: Authentication) {
             vCard.uid.value, suffix, prefix,
             vCard.structuredName.family,
             vCard.structuredName.given, additional,
-            birthday, organization, photo, name, authentication.id)
+            birthday, organization, photo, name, authentication?.id!!)
         contact.categories = lst
         contact.addresses = addresses
         contact.phoneNumbers = phones
@@ -210,8 +217,13 @@ class ContactLoader(private val authentication: Authentication) {
             birthday = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 Birthday(LocalDate.ofInstant(contact.birthDay?.toInstant(), ZoneId.systemDefault()))
             } else {
+                val cal = Calendar.Builder().setInstant(contact.birthDay!!).build()
+                val year = cal.get(Calendar.YEAR)
+                val month = cal.get(Calendar.MONTH)
+                val day = cal.get(Calendar.DAY_OF_MONTH)
+
                 Birthday(
-                    LocalDate.of(contact.birthDay?.year!!, contact.birthDay?.month!!, contact.birthDay?.day!!)
+                    LocalDate.of(year, month, day)
                 )
             }
         }

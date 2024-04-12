@@ -77,6 +77,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.DropDown
+import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.ImageHelper
 import de.domjos.cloudapp.appbasics.helper.Validator
@@ -100,7 +101,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun ContactScreen(viewModel: ContactViewModel = hiltViewModel()) {
+fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), toAuths: () -> Unit) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressBooks by viewModel.addressBooks.collectAsStateWithLifecycle()
     val connectivity by connectivityState()
@@ -108,7 +109,7 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel()) {
     viewModel.getAddressBooks()
     viewModel.loadAddresses()
 
-    ContactScreen(contacts, addressBooks, onSelectedAddressBook = { addressBook: String ->
+    ContactScreen(contacts, addressBooks, viewModel.hasAuthentications(), toAuths, onSelectedAddressBook = { addressBook: String ->
         viewModel.loadAddresses(addressBook)
     }, onSave = {contact: Contact ->
         viewModel.addOrUpdateAddress(available, contact)
@@ -130,6 +131,7 @@ fun importContactAction(viewModel: ContactViewModel = hiltViewModel()): (updateP
 fun ContactScreen(
     contacts: List<Contact>,
     addressBooks: List<String>,
+    hasAuths: Boolean, toAuths: () -> Unit,
     onSelectedAddressBook: (String) -> Unit,
     onSave: (Contact) -> Unit,
     onDelete: (Contact) -> Unit) {
@@ -169,32 +171,38 @@ fun ContactScreen(
                 }
 
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    contacts.forEach {
-                        ContactItem(contact = it, { c ->
-                            contact = c
-                            showBottomSheet = true
-                        }) { c->
-                            contact = c
-                            showDialog = true
+                    if(hasAuths) {
+                        contacts.forEach {
+                            ContactItem(contact = it, { c ->
+                                contact = c
+                                showBottomSheet = true
+                            }) { c->
+                                contact = c
+                                showDialog = true
+                            }
                         }
+                    } else {
+                        NoAuthenticationItem(toAuths)
                     }
                 }
             }
         }
 
-        FloatingActionButton(
-            onClick = {
-                contact = null
-                showDialog = true
-            },
-            modifier = Modifier
-                .constrainAs(control) {
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
-                }
-                .padding(5.dp)) {
-            Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+        if(hasAuths) {
+            FloatingActionButton(
+                onClick = {
+                    contact = null
+                    showDialog = true
+                },
+                modifier = Modifier
+                    .constrainAs(control) {
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(5.dp)) {
+                Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+            }
         }
     }
 }

@@ -1,21 +1,14 @@
 package de.domjos.cloudapp.caldav
 
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
-import de.domjos.cloudapp.caldav.utils.Helper
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.data.CalendarOutputter
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Component
-import net.fortuna.ical4j.model.ComponentContainer
-import net.fortuna.ical4j.model.ParameterList
 import net.fortuna.ical4j.model.Property
-import net.fortuna.ical4j.model.PropertyContainer
-import net.fortuna.ical4j.model.TimeZoneRegistryFactory
-import net.fortuna.ical4j.model.component.CalendarComponent
 import net.fortuna.ical4j.model.component.VEvent
-import net.fortuna.ical4j.model.component.VTimeZone
 import net.fortuna.ical4j.model.property.Categories
 import net.fortuna.ical4j.model.property.Color
 import net.fortuna.ical4j.model.property.Description
@@ -27,63 +20,67 @@ import net.fortuna.ical4j.model.property.Summary
 import net.fortuna.ical4j.model.property.Uid
 import okhttp3.Credentials
 import java.io.ByteArrayOutputStream
-import java.time.LocalDateTime
-import java.util.Date
 import java.util.LinkedList
 
 
-class Calendar(private val authentication: Authentication) {
-    private val sardine: OkHttpSardine = OkHttpSardine()
+class Calendar(private val authentication: Authentication?) {
+    private var sardine: OkHttpSardine? = null
     val calendars = LinkedHashMap<String, LinkedList<CalendarEvent>>()
-    private val basePath = "${authentication.url}/remote.php/dav/calendars/${authentication.userName}"
+    private var basePath = ""
 
     init {
-        this.sardine.setCredentials(authentication.userName, authentication.password)
+        if(this.authentication != null) {
+            this.sardine = OkHttpSardine()
+            this.sardine?.setCredentials(authentication.userName, authentication.password)
+            basePath = "${authentication.url}/remote.php/dav/calendars/${authentication.userName}"
+        }
     }
 
     fun reloadCalendarEvents(updateProgress: (Float, String) -> Unit, progressLabel: String) {
         this.calendars.clear()
 
-        var first = true
-        this.sardine.list(this.basePath).forEach { davResource ->
-            if(first) {
-                first = false
-            } else {
-                if(davResource.isDirectory) {
-                    var firstSub = true
-                    val lst = this.sardine.list("${authentication.url}${davResource.path}")
-                    val tmp = "${davResource.path}-".replace("/-", "")
-                    val name = tmp.split("/")[tmp.split("/").size-1]
-                    val percentage = 100.0f / lst.size
-                    var item = 0
-                    lst.forEach { event ->
-                        try {
-                            if(firstSub) {
-                                firstSub = false
-                            } else {
-                                val inputStream = this.sardine.get("${authentication.url}${event.path}", this.buildHeaders())
-                                val builder = CalendarBuilder()
-                                val calendar = builder.build(inputStream)
-
-                                if(calendars.containsKey(name)) {
-                                    val model = this.iCalToModel(calendar, name)
-                                    if(model != null) {
-                                        calendars[name]?.add(model)
-                                    }
+        if(this.sardine != null) {
+            var first = true
+            this.sardine?.list(this.basePath)?.forEach { davResource ->
+                if(first) {
+                    first = false
+                } else {
+                    if(davResource.isDirectory) {
+                        var firstSub = true
+                        val lst = this.sardine?.list("${authentication?.url}${davResource.path}")
+                        val tmp = "${davResource.path}-".replace("/-", "")
+                        val name = tmp.split("/")[tmp.split("/").size-1]
+                        val percentage = 100.0f / lst?.size!!
+                        var item = 0
+                        lst.forEach { event ->
+                            try {
+                                if(firstSub) {
+                                    firstSub = false
                                 } else {
-                                    val list = LinkedList<CalendarEvent>()
-                                    val model = this.iCalToModel(calendar, name)
-                                    if(model != null) {
-                                        list.add(model)
+                                    val inputStream = this.sardine?.get("${authentication?.url}${event.path}", this.buildHeaders())
+                                    val builder = CalendarBuilder()
+                                    val calendar = builder.build(inputStream)
+
+                                    if(calendars.containsKey(name)) {
+                                        val model = this.iCalToModel(calendar, name)
+                                        if(model != null) {
+                                            calendars[name]?.add(model)
+                                        }
+                                    } else {
+                                        val list = LinkedList<CalendarEvent>()
+                                        val model = this.iCalToModel(calendar, name)
+                                        if(model != null) {
+                                            list.add(model)
+                                        }
+                                        calendars[name] = list
                                     }
-                                    calendars[name] = list
                                 }
+                            } catch (ex: Throwable) {
+                                println(ex.message)
                             }
-                        } catch (ex: Throwable) {
-                            println(ex.message)
+                            item += 1
+                            updateProgress((percentage*item)/100.0f, String.format(progressLabel, name))
                         }
-                        item += 1
-                        updateProgress((percentage*item)/100.0f, String.format(progressLabel, name))
                     }
                 }
             }
@@ -91,33 +88,35 @@ class Calendar(private val authentication: Authentication) {
     }
 
     fun updateCalendarEvent(calendarEvent: CalendarEvent) {
-        var first = true
-        this.sardine.list(this.basePath).forEach { davResource ->
-            if(first) {
-                first = false
-            } else {
-                if(davResource.isDirectory) {
-                    var firstSub = true
-                    this.sardine.list("${authentication.url}${davResource.path}").forEach { event ->
-                        try {
-                            if(firstSub) {
-                                firstSub = false
-                            } else {
-                                val inputStream = this.sardine.get("${authentication.url}${event.path}", this.buildHeaders())
-                                val builder = CalendarBuilder()
-                                var calendar = builder.build(inputStream)
-                                val uid = calendar.getComponents<VEvent>(VEvent::class.simpleName?.uppercase())[0].uid
-                                if(uid.value == calendarEvent.uid) {
-                                    calendar = this.modelToICal(calendarEvent)
-                                    if(calendar != null) {
-                                        this.sardine.put("${authentication.url}${event.path}", this.getData(calendar))
+        if(this.sardine != null) {
+            var first = true
+            this.sardine?.list(this.basePath)?.forEach { davResource ->
+                if(first) {
+                    first = false
+                } else {
+                    if(davResource.isDirectory) {
+                        var firstSub = true
+                        this.sardine?.list("${authentication?.url}${davResource.path}")?.forEach { event ->
+                            try {
+                                if(firstSub) {
+                                    firstSub = false
+                                } else {
+                                    val inputStream = this.sardine?.get("${authentication?.url}${event.path}", this.buildHeaders())
+                                    val builder = CalendarBuilder()
+                                    var calendar = builder.build(inputStream)
+                                    val uid = calendar.getComponents<VEvent>(VEvent::class.simpleName?.uppercase())[0].uid
+                                    if(uid.value == calendarEvent.uid) {
+                                        calendar = this.modelToICal(calendarEvent)
+                                        if(calendar != null) {
+                                            this.sardine?.put("${authentication?.url}${event.path}", this.getData(calendar))
+                                        }
+                                        return
                                     }
-                                    return
-                                }
 
+                                }
+                            } catch (ex: Exception) {
+                                println(ex.message)
                             }
-                        } catch (ex: Exception) {
-                            println(ex.message)
                         }
                     }
                 }
@@ -126,20 +125,22 @@ class Calendar(private val authentication: Authentication) {
     }
 
     fun newCalendarEvent(calendarEvent: CalendarEvent) {
-        var first = true
-        this.sardine.list(this.basePath).forEach { davResource ->
-            if(first) {
-                first = false
-            } else {
-                if(davResource.isDirectory) {
-                    val tmp = "${davResource.path}-".replace("/-", "")
-                    val name = tmp.split("/")[tmp.split("/").size-1]
-                    if(name==calendarEvent.calendar) {
-                        val calendar = this.modelToICal(calendarEvent)
-                        if(calendar != null) {
-                            this.sardine.put("${authentication.url}${davResource.path}/${calendarEvent.uid}.ics", this.getData(calendar))
+        if(this.sardine != null) {
+            var first = true
+            this.sardine?.list(this.basePath)?.forEach { davResource ->
+                if(first) {
+                    first = false
+                } else {
+                    if(davResource.isDirectory) {
+                        val tmp = "${davResource.path}-".replace("/-", "")
+                        val name = tmp.split("/")[tmp.split("/").size-1]
+                        if(name==calendarEvent.calendar) {
+                            val calendar = this.modelToICal(calendarEvent)
+                            if(calendar != null) {
+                                this.sardine?.put("${authentication?.url}${davResource.path}/${calendarEvent.uid}.ics", this.getData(calendar))
+                            }
+                            return
                         }
-                        return
                     }
                 }
             }
@@ -147,30 +148,32 @@ class Calendar(private val authentication: Authentication) {
     }
 
     fun deleteCalendarEvent(calendarEvent: CalendarEvent) {
-        var first = true
-        this.sardine.list(this.basePath).forEach { davResource ->
-            if(first) {
-                first = false
-            } else {
-                if(davResource.isDirectory) {
-                    var firstSub = true
-                    this.sardine.list("${authentication.url}${davResource.path}").forEach { event ->
-                        try {
-                            if(firstSub) {
-                                firstSub = false
-                            } else {
-                                val inputStream = this.sardine.get("${authentication.url}${event.path}", this.buildHeaders())
-                                val builder = CalendarBuilder()
-                                val calendar = builder.build(inputStream)
-                                val uid = calendar.getComponents<VEvent>(VEvent::class.simpleName?.uppercase())[0].uid
-                                if(uid.value == calendarEvent.uid) {
-                                    this.sardine.delete("${authentication.url}${event.path}")
-                                    return
-                                }
+        if(this.sardine != null) {
+            var first = true
+            this.sardine?.list(this.basePath)?.forEach { davResource ->
+                if(first) {
+                    first = false
+                } else {
+                    if(davResource.isDirectory) {
+                        var firstSub = true
+                        this.sardine?.list("${authentication?.url}${davResource.path}")?.forEach { event ->
+                            try {
+                                if(firstSub) {
+                                    firstSub = false
+                                } else {
+                                    val inputStream = this.sardine?.get("${authentication?.url}${event.path}", this.buildHeaders())
+                                    val builder = CalendarBuilder()
+                                    val calendar = builder.build(inputStream)
+                                    val uid = calendar.getComponents<VEvent>(VEvent::class.simpleName?.uppercase())[0].uid
+                                    if(uid.value == calendarEvent.uid) {
+                                        this.sardine?.delete("${authentication?.url}${event.path}")
+                                        return
+                                    }
 
+                                }
+                            } catch (ex: Exception) {
+                                println(ex.message)
                             }
-                        } catch (ex: Exception) {
-                            println(ex.message)
                         }
                     }
                 }
@@ -214,7 +217,7 @@ class Calendar(private val authentication: Authentication) {
                 to = net.fortuna.ical4j.model.Date(readPropertyToString<DtEnd>(component)).time
             }
 
-            return CalendarEvent(0L, uid, from, to, title, location, description, confirmation, categories, color, name, authentication.id)
+            return CalendarEvent(0L, uid, from, to, title, location, description, confirmation, categories, color, name, authentication?.id!!)
         } catch (_: Exception) {}
         return null
     }
@@ -245,7 +248,7 @@ class Calendar(private val authentication: Authentication) {
 
     private fun buildHeaders(): Map<String, String> {
         val headers = LinkedHashMap<String, String>()
-        val auth = Credentials.basic(this.authentication.userName, this.authentication.password)
+        val auth = Credentials.basic(this.authentication?.userName!!, this.authentication.password)
         headers["Authorization"] = auth
         return headers
     }

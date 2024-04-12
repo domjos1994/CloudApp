@@ -35,6 +35,7 @@ interface DataRepository {
     fun exists(item: Item): Boolean
 
     fun openFile(path: String, item: Item, context: Context)
+    fun hasAuthentications(): Boolean
 }
 
 class DefaultDataRepository @Inject constructor(
@@ -56,6 +57,10 @@ class DefaultDataRepository @Inject constructor(
             path = webDav!!.getPath()
         }
         webDav!!.checkUser()
+    }
+
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
     }
 
     override fun getList(): List<Item> {

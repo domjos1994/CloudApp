@@ -59,4 +59,8 @@ class CalendarViewModel @Inject constructor(
             calendarRepository.delete(calendarEvent)
         }
     }
+
+    fun hasAuthentications(): Boolean {
+        return calendarRepository.hasAuthentications()
+    }
 }

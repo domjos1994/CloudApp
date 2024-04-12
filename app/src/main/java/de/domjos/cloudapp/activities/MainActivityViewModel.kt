@@ -20,4 +20,8 @@ class MainActivityViewModel @Inject constructor(
             onResult(authenticationRepository.getCapabilities(authentication))
         }
     }
+
+    fun hasAuthentications(): Boolean {
+        return authenticationRepository.hasAuthentications()
+    }
 }

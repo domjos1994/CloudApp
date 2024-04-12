@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.DataRepository
 import de.domjos.cloudapp.webdav.model.Item
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -115,5 +114,9 @@ class DataViewModel @Inject constructor(
             _items.value = dataRepository.getList()
             _path.value = dataRepository.path
         }
+    }
+
+    fun hasAuthentications(): Boolean {
+        return dataRepository.hasAuthentications()
     }
 }

@@ -57,9 +57,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.custom.NoEntryItem
+import de.domjos.cloudapp.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.Validator
+import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.webrtc.model.user.User
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @Composable
 fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), onSelectedChange: (Authentication) -> Unit) {
@@ -116,6 +121,7 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), o
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun AuthenticationScreen(
     onSaveClick: (Authentication) -> Unit,
@@ -123,6 +129,9 @@ fun AuthenticationScreen(
     onConnectionCheck: (Authentication, onSuccess: (User?) -> Unit) -> Unit,
     select: (Authentication) -> Unit,
     authentications: List<Authentication>) {
+
+    val connection by connectivityState()
+    val isConnected = connection === ConnectionState.Available
 
     val showDialog =  remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Authentication?>(null) }
@@ -149,39 +158,53 @@ fun AuthenticationScreen(
                 top.linkTo(parent.top)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
-                bottom.linkTo(control.top)
+                bottom.linkTo(parent.bottom)
                 height = Dimension.fillToConstraints
                 width = Dimension.fillToConstraints
             }
             .padding(5.dp)
             .verticalScroll(rememberScrollState())) {
             AuthenticationList(
-                authentications = authentications, {
+                authentications = authentications, isConnected, {
                 selectedItem.value = it
                 showDialog.value = true
             }, select)
         }
-        FloatingActionButton(
-            onClick = {
-                selectedItem.value = Authentication(0, "", "", "", "", false, "", null)
-                showDialog.value = true
-            },
-            modifier = Modifier
-                .constrainAs(control) {
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
-                }
-                .padding(5.dp)) {
-            Icon(Icons.Filled.Add, stringResource(R.string.login_add))
+        if(isConnected) {
+            FloatingActionButton(
+                onClick = {
+                    selectedItem.value = Authentication(0, "", "", "", "", false, "", null)
+                    showDialog.value = true
+                },
+                modifier = Modifier
+                    .constrainAs(control) {
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(5.dp)) {
+                Icon(Icons.Filled.Add, stringResource(R.string.login_add))
+            }
         }
     }
 }
 
 @Composable
-fun AuthenticationList(authentications: List<Authentication>, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit) {
-    authentications.forEach { item ->
-        AuthenticationItem(authentication = item, onSelect, select)
+fun AuthenticationList(authentications: List<Authentication>, isConnected: Boolean, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit) {
+    if(isConnected) {
+        if(authentications.isEmpty()) {
+            Column {
+                NoEntryItem()
+            }
+        } else {
+            authentications.forEach { item ->
+                AuthenticationItem(authentication = item, onSelect, select)
+            }
+        }
+    } else {
+        Column {
+            NoInternetItem()
+        }
     }
 }
 

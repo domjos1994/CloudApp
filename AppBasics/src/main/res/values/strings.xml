@@ -85,4 +85,7 @@
     <string name="sys_format">yyyy-MM-dd HH:mm:ss</string>
     <string name="sys_no_entry">No Entry available!</string>
     <string name="sys_no_internet">No Internet-Connection available!</string>
+    <string name="sys_no_connection">No Authentication exists</string>
+    <string name="sys_no_connection_description">Please go to the Authentications and add an Account or select it!</string>
+    <string name="sys_no_connection_button">To the Accounts</string>
 </resources>

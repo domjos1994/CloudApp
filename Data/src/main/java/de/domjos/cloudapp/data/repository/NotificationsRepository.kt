@@ -4,7 +4,6 @@ import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.webrtc.model.notifications.Notification
 import de.domjos.cloudapp.webrtc.requests.NotificationRequest
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 interface NotificationsRepository {
@@ -12,6 +11,7 @@ interface NotificationsRepository {
 
     fun reload(): Flow<List<Notification>>
     fun getFullLink(notification: Notification): String
+    fun hasAuthentications(): Boolean
 }
 
 class DefaultNotificationsRepository @Inject constructor(
@@ -21,6 +21,10 @@ class DefaultNotificationsRepository @Inject constructor(
 
     override fun reload(): Flow<List<Notification>> {
         return NotificationRequest(authenticationDAO.getSelectedItem()).getNotifications()
+    }
+
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
     }
 
 

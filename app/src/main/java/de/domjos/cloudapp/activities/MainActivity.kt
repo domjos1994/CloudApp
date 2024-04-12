@@ -80,7 +80,9 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
+import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.Notifications
+import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.screens.SettingsScreen
 import de.domjos.cloudapp.features.calendars.screens.CalendarScreen
 import de.domjos.cloudapp.features.calendars.screens.importCalendarAction
@@ -91,6 +93,7 @@ import de.domjos.cloudapp.features.contacts.screens.importContactAction
 import de.domjos.cloudapp.features.data.screens.DataScreen
 import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp.screens.AuthenticationScreen
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 data class TabBarItem(
     val title: String,
@@ -102,7 +105,7 @@ data class TabBarItem(
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,6 +144,10 @@ class MainActivity : ComponentActivity() {
             var colorForeground by remember { mutableStateOf(tmpForeground) }
             var icon by remember { mutableStateOf("") }
             var authTitle by remember { mutableStateOf("") }
+            val connection by connectivityState()
+            val isConnected = connection === ConnectionState.Available
+            val hasAuthentications = viewModel.hasAuthentications()
+            val toAuths = {navController.navigate(authentications)}
 
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -149,14 +156,16 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Scaffold(bottomBar = { TabView(tabBarItems, navController) }, topBar = {
-                        viewModel.getCapabilities({
-                            if(it != null) {
-                                colorBackground = Color(android.graphics.Color.parseColor(it.capabilities.theming.background))
-                                colorForeground = Color(android.graphics.Color.parseColor(it.capabilities.theming.`color-text`))
-                                icon = it.capabilities.theming.logo
-                                authTitle = "(${it.capabilities.theming.url})"
-                            }
-                        }, null)
+                        if(isConnected) {
+                            viewModel.getCapabilities({
+                                if(it != null) {
+                                    colorBackground = Color(android.graphics.Color.parseColor(it.capabilities.theming.background))
+                                    colorForeground = Color(android.graphics.Color.parseColor(it.capabilities.theming.`color-text`))
+                                    icon = it.capabilities.theming.logo
+                                    authTitle = "(${it.capabilities.theming.url})"
+                                }
+                            }, null)
+                        }
 
 
                         TopAppBar(
@@ -175,7 +184,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             actions = {
-                        if(refreshVisible) {
+                        if(refreshVisible && isConnected && hasAuthentications) {
                             var showDialog by rememberSaveable { mutableStateOf(false) }
                             var currentProgress by remember { mutableFloatStateOf(0f) }
                             var currentText by remember { mutableStateOf("") }
@@ -238,41 +247,43 @@ class MainActivity : ComponentActivity() {
                     })}) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
-                                AuthenticationScreen() {auth ->
-                                    viewModel.getCapabilities({ data ->
-                                        if(data != null) {
-                                            colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
-                                            colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
-                                            icon = data.capabilities.theming.logo
-                                            authTitle = "(${data.capabilities.theming.url})"
-                                        }
-                                    }, auth)
+                                AuthenticationScreen {auth ->
+                                    if(isConnected) {
+                                        viewModel.getCapabilities({ data ->
+                                            if(data != null) {
+                                                colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
+                                                colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
+                                                icon = data.capabilities.theming.logo
+                                                authTitle = "(${data.capabilities.theming.url})"
+                                            }
+                                        }, auth)
+                                    }
                                 }
                                 title = authentications
                                 header = authentications
                                 refreshVisible = false
                             }
                             composable(notificationsTab.title) {
-                                NotificationScreen()
+                                NotificationScreen(toAuths = toAuths)
                                 title = notificationsTab.title
                                 header = notificationsTab.title
                                 refreshVisible = false
                             }
                             composable(dataTab.title) {
-                                DataScreen()
+                                DataScreen(toAuths = toAuths)
                                 title = dataTab.title
                                 header = dataTab.title
                                 refreshVisible = false
                             }
                             composable(calendarsTab.title) {
-                                CalendarScreen()
+                                CalendarScreen(toAuths = toAuths)
                                 title = calendarsTab.title
                                 header = calendarsTab.title
                                 refreshVisible = true
                                 progress = importCalendarAction()
                             }
                             composable(contactsTab.title) {
-                                ContactScreen()
+                                ContactScreen(toAuths = toAuths)
                                 title = contactsTab.title
                                 header = contactsTab.title
                                 refreshVisible = true
@@ -281,7 +292,7 @@ class MainActivity : ComponentActivity() {
                             composable(roomTab.title) {
                                 RoomScreen(onChatScreen = { x, y ->
                                     navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
-                                })
+                                }, toAuths = toAuths)
                                 title = chatsTab.title
                                 header = roomTab.title
                                 refreshVisible = false

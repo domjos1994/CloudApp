@@ -60,11 +60,24 @@ import de.domjos.cloudapp.webrtc.model.msg.Message
 import de.domjos.cloudapp.webrtc.model.room.Room
 import de.domjos.cloudapp.webrtc.model.room.Type
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
+import de.domjos.cloudapp.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp.appbasics.helper.ConnectionState
+import de.domjos.cloudapp.appbasics.helper.connectivityState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), onChatScreen: (Int, String) -> Unit) {
+fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
     val rooms by viewModel.rooms.collectAsStateWithLifecycle()
-    viewModel.reload()
+
+    val connection by connectivityState()
+    val isConnected = connection === ConnectionState.Available
+
+    if(isConnected) {
+        viewModel.reload()
+    }
+
     val context = LocalContext.current
 
     RoomScreen(
@@ -86,14 +99,15 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), onChatScreen: (Int, S
                 Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
             }
         },
-        rooms = rooms, onChatScreen)
+        rooms = rooms, isConnected, viewModel.hasAuthentications(), toAuths, onChatScreen)
 }
 
 @Composable
 fun RoomScreen(
     onSaveClick: (Room) -> Unit,
     onDeleteClick: (Room) -> Unit,
-    rooms: List<Room>,
+    rooms: List<Room>, isConnected: Boolean,
+    hasAuths: Boolean, toAuths: () -> Unit,
     onChatScreen: (Int, String) -> Unit) {
 
     val showDialog =  remember { mutableStateOf(false) }
@@ -127,30 +141,40 @@ fun RoomScreen(
                     height = Dimension.fillToConstraints
                     width = Dimension.fillToConstraints
                 }) {
-            rooms.forEach { room ->
-                RoomItem(room, {
-                    selectedItem.value = it
-                    onChatScreen(1, it.token)
-                }, {
-                    selectedItem.value = it
-                    showDialog.value = true
-                })
+            if(hasAuths) {
+                if(isConnected) {
+                    rooms.forEach { room ->
+                        RoomItem(room, {
+                            selectedItem.value = it
+                            onChatScreen(1, it.token)
+                        }, {
+                            selectedItem.value = it
+                            showDialog.value = true
+                        })
+                    }
+                } else {
+                    NoInternetItem()
+                }
+            } else {
+                NoAuthenticationItem(toAuths)
             }
         }
 
-        FloatingActionButton(
-            onClick = {
-                showDialog.value = true
-                selectedItem.value = null
-            },
-            modifier = Modifier
-                .constrainAs(control) {
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
-                }
-                .padding(5.dp)) {
-            Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+        if(isConnected && hasAuths) {
+            FloatingActionButton(
+                onClick = {
+                    showDialog.value = true
+                    selectedItem.value = null
+                },
+                modifier = Modifier
+                    .constrainAs(control) {
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(5.dp)) {
+                Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+            }
         }
     }
 }
@@ -174,7 +198,8 @@ fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
                 room.name,
                 modifier = Modifier
                     .padding(5.dp)
-                    .height(60.dp).width(60.dp)
+                    .height(60.dp)
+                    .width(60.dp)
                     .clip(RoundedCornerShape(5.dp)))
         } else {
             Image(
@@ -182,7 +207,8 @@ fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
                 room.name,
                 modifier = Modifier
                     .padding(5.dp)
-                    .height(60.dp).width(60.dp)
+                    .height(60.dp)
+                    .width(60.dp)
                     .clip(RoundedCornerShape(5.dp)))
         }
         Column {
@@ -348,7 +374,10 @@ fun DialogUpdatePreview() {
 @Preview(showBackground = true)
 @Composable
 fun RoomScreenPreview() {
-    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)), { _, _->})
+    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)),
+        isConnected = true,
+        hasAuths = true, {},
+        onChatScreen = { _, _->})
 }
 
 @Preview(showBackground = true)

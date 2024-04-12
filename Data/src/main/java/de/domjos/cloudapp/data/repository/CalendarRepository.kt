@@ -15,26 +15,38 @@ interface CalendarRepository {
     fun insert(calendarEvent: CalendarEvent)
     fun update(calendarEvent: CalendarEvent)
     fun delete(calendarEvent: CalendarEvent)
+    fun hasAuthentications(): Boolean
 }
 
 class DefaultCalendarRepository @Inject constructor(
     private val authenticationDAO: AuthenticationDAO,
     private val calendarEventDAO: CalendarEventDAO
 ) : CalendarRepository {
-    private val calendar = Calendar(authenticationDAO.getSelectedItem()!!)
+    private val calendar = Calendar(authenticationDAO.getSelectedItem())
 
     override fun loadData(calendar: String, startTime: Long, endTime: Long): List<CalendarEvent> {
-        return if(calendar == "") {
-            calendarEventDAO.getItemsByTime(startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+        return if(authenticationDAO.getSelectedItem()!=null) {
+            if(calendar == "") {
+                calendarEventDAO.getItemsByTime(startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+            } else {
+                calendarEventDAO.getItemsByTimeAndCalendar(calendar, startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+            }
         } else {
-            calendarEventDAO.getItemsByTimeAndCalendar(calendar, startTime, endTime, authenticationDAO.getSelectedItem()!!.id)
+            listOf()
         }
+    }
+
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
     }
 
     override fun getCalendars(): List<String> {
         val lst = LinkedList<String>()
-        lst.add("")
-        lst.addAll(calendarEventDAO.getCalendars(authenticationDAO.getSelectedItem()!!.id))
+        val auth = authenticationDAO.getSelectedItem()
+        if(auth != null) {
+            lst.add("")
+            lst.addAll(calendarEventDAO.getCalendars(auth.id))
+        }
         return lst
     }
 

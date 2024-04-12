@@ -195,7 +195,7 @@ fun MsgItem(message: Message, onDate: (Long) -> String) {
 @Preview(showBackground = true)
 @Composable
 fun ChatScreenPreview() {
-    ChatScreen(listOf(fakeMessage(1), fakeMessage(2), fakeMessage(3, true)), "Test1", { "2023-03-19 11:24:36" }) {"Test"}
+    ChatScreen(listOf(fakeMessage(1), fakeMessage(2), fakeMessage(3, true)), "Test1", { "2023-03-19 11:24:36" }) {}
 }
 
 @Preview(showBackground = true)

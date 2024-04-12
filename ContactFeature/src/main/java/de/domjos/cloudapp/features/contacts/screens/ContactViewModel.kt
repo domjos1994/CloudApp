@@ -1,9 +1,5 @@
 package de.domjos.cloudapp.features.contacts.screens
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,19 +16,10 @@ import javax.inject.Inject
 class ContactViewModel @Inject constructor(
     private val contactRepository: ContactRepository
 ): ViewModel() {
-    private val _formFields = mutableStateListOf<PhoneField>()
-    val formFields: List<PhoneField> = _formFields
     private val _addressBooks = MutableStateFlow(listOf<String>())
     val addressBooks: StateFlow<List<String>> get() = _addressBooks
     private val _contacts = MutableStateFlow(listOf<Contact>())
     val contacts: StateFlow<List<Contact>> get() = _contacts
-
-    fun addAddressField(field: PhoneField) {
-        _formFields.add(field)
-    }
-    fun removeFormField(field: PhoneField) {
-        _formFields.remove(field)
-    }
 
 
     fun getAddressBooks() {
@@ -80,13 +67,8 @@ class ContactViewModel @Inject constructor(
             _contacts.value = contactRepository.contacts
         }
     }
-}
 
-data class PhoneField(
-    val type: String,
-    val phoneNumber: TextFieldValue
-)
-enum class FieldType {
-    TEXT,
-    NUMBER
+    fun hasAuthentications(): Boolean {
+        return contactRepository.hasAuthentications()
+    }
 }

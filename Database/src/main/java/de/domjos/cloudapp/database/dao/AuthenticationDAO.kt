@@ -23,6 +23,9 @@ interface AuthenticationDAO {
     @Query("UPDATE authentications SET selected=0")
     fun unCheck()
 
+    @Query("SELECT count(*) FROM authentications WHERE selected=1")
+    fun selected(): Long
+
     @Insert
     fun insertAuthentication(authentication: Authentication): Long
 

@@ -14,6 +14,7 @@ interface RoomRepository {
     suspend fun insertRoom(input: RoomInput)
     suspend fun updateRoom(token: String, name: String?, description: String?)
     suspend fun deleteRoom(token: String)
+    fun hasAuthentications(): Boolean
 }
 
 class DefaultRoomRepository @Inject constructor(
@@ -25,6 +26,10 @@ class DefaultRoomRepository @Inject constructor(
 
     override fun reload(): Flow<List<Room>> {
         return this.request.getRooms()
+    }
+
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
     }
 
     @Throws(Exception::class)
