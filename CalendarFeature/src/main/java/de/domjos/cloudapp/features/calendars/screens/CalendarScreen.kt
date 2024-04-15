@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -64,6 +65,8 @@ import de.domjos.cloudapp.appbasics.custom.DropDown
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
+import de.domjos.cloudapp.appbasics.helper.execCatch
+import de.domjos.cloudapp.appbasics.helper.execCatchItem
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
@@ -81,7 +84,7 @@ import java.util.Locale
 import java.util.UUID
 
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), toAuths: () -> Unit) {
+fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
     val events by viewModel.events.collectAsStateWithLifecycle()
     val calendars by viewModel.calendars.collectAsStateWithLifecycle()
     val days by viewModel.days.collectAsStateWithLifecycle()
@@ -100,8 +103,9 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), toAuths: () -
     var selectedCalendar by remember { mutableStateOf("") }
     viewModel.getCalendars()
     viewModel.load(selectedCalendar, start, end)
+    val context = LocalContext.current
 
-    CalendarScreen(events, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
+    CalendarScreen(events, colorBackground, colorForeground, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
         val calStart = updateTime(0, 0, 0, calendar.clone() as Calendar)
         val calEnd = updateTime(23, 59, 59, calendar.clone() as Calendar)
         if(mode==Calendar.MONTH) {
@@ -112,8 +116,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), toAuths: () -
         end = calEnd.time.time
         viewModel.load(selectedCalendar, start, end)
         viewModel.count(selectedCalendar, calStart)
-    }, { item: CalendarEvent -> viewModel.insertCalendar(item)},
-        { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> selectedCalendar = selected})
+    }, { item: CalendarEvent -> execCatchItem({t -> viewModel.insertCalendar(t)}, item, context) },
+        { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> execCatch({selectedCalendar = selected}, context)})
 }
 
 @Composable
@@ -134,6 +138,8 @@ fun updateTime(hour: Int, minute: Int, seconds: Int, cal: Calendar) : Calendar {
 @Composable
 fun CalendarScreen(
     calendarEvents: List<CalendarEvent>,
+    colorBackground: Color,
+    colorForeground: Color,
     calendars: List<String>,
     countDays: List<Int>,
     hasAuths: Boolean, toAuths: () -> Unit,
@@ -170,7 +176,7 @@ fun CalendarScreen(
             width = Dimension.fillToConstraints
         }) {
             DropDown(calendars, initial, onCalendarSelected)
-            Separator()
+            Separator(colorForeground)
         }
 
         Column(Modifier.constrainAs(list) {
@@ -182,7 +188,7 @@ fun CalendarScreen(
             width = Dimension.fillToConstraints
         }) {
             Row {
-                Calendar(onChange = onChange, countDays = countDays) {
+                Calendar(colorBackground, colorForeground, onChange = onChange, countDays = countDays) {
                     dt = it
                     event = null
                     showDialog = true
@@ -196,14 +202,14 @@ fun CalendarScreen(
                         .verticalScroll(rememberScrollState())) {
                         if(hasAuths) {
                             calendarEvents.forEach {
-                                CalendarEventItem(it) { item: CalendarEvent ->
+                                CalendarEventItem(it, colorBackground, colorForeground) { item: CalendarEvent ->
                                     event = item
                                     dt = Date()
                                     showDialog = true
                                 }
                             }
                         } else {
-                            NoAuthenticationItem(toAuths)
+                            NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                         }
                 }
             }
@@ -228,7 +234,10 @@ fun CalendarScreen(
 }
 
 @Composable
-fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
+fun Calendar(
+    colorBackground: Color,
+    colorForeground: Color,
+    calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     var dt by remember { mutableStateOf(calendar) }
     var format by remember { mutableStateOf("MM.yyyy") }
     val sdfMonth = SimpleDateFormat("MM.yyyy", Locale.getDefault())
@@ -260,7 +269,7 @@ fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calend
                     dt = cal
                     format = "MM.yyyy"
                     onChange(Calendar.MONTH, dt)
-                }) {
+                }, colors = ButtonDefaults.buttonColors(containerColor = colorBackground, contentColor = colorForeground) ) {
                     Text(sdfMonth.format(dt.time))
                 }
             }
@@ -305,7 +314,7 @@ fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calend
                 .fillMaxWidth()) {
                 for (col in 0..6) {
                     Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Day(row, col, dt, {selected ->
+                        Day(row, col, dt, colorBackground, colorForeground, {selected ->
                             selectedDate = selected.get(Calendar.DAY_OF_MONTH)
                             format = "dd.MM.yyyy"
                             onChange(Calendar.DAY_OF_MONTH, selected)
@@ -328,17 +337,13 @@ fun Calendar(calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calend
                 .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(fsdf.format(tmp.time), fontWeight = FontWeight.Bold)
         }
-        Row(
-            Modifier
-                .height(1.dp)
-                .fillMaxWidth()
-                .background(color = Color.Black)) {}
+        Separator(color = colorForeground)
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
+fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForeground: Color, onSelected: (Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     // get first day
     val firstDayCal = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, 1)
     val firstDay = firstDayCal.dayOfWeek.value
@@ -375,7 +380,8 @@ fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, count
             cal.get(Calendar.MONTH)==today.get(Calendar.MONTH) &&
             day==today.get(Calendar.DAY_OF_MONTH)) {
 
-            bgColor = MaterialTheme.colorScheme.primaryContainer
+            bgColor = colorBackground
+            color = colorForeground
         }
     }
 
@@ -400,23 +406,23 @@ fun Day(row: Int, col: Int, cal: Calendar, onSelected: (Calendar) -> Unit, count
 }
 
 @Composable
-fun CalendarEventItem(calendarEvent: CalendarEvent, onClick: (CalendarEvent)->Unit) {
+fun CalendarEventItem(calendarEvent: CalendarEvent, colorBackground: Color, colorForeground: Color, onClick: (CalendarEvent)->Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(5.dp)
-            .background(MaterialTheme.colorScheme.primaryContainer)
+            .background(colorBackground)
             .clickable { onClick(calendarEvent) }) {
         Column(Modifier.weight(1f)) {
-            Icon(Icons.Default.DateRange, calendarEvent.title)
+            Icon(Icons.Default.DateRange, calendarEvent.title, tint = colorForeground)
         }
         Column(Modifier.weight(if(calendarEvent.categories=="") 6f else 4f)) {
             Row {
-                Text(calendarEvent.title, fontWeight = FontWeight.Bold)
+                Text(calendarEvent.title, fontWeight = FontWeight.Bold, color = colorForeground)
             }
             Row {
-                Text(calendarEvent.description, fontWeight = FontWeight.Normal, fontSize = 10.sp)
+                Text(calendarEvent.description, fontWeight = FontWeight.Normal, fontSize = 10.sp, color = colorForeground)
             }
         }
         if(calendarEvent.categories != "") {
@@ -427,10 +433,10 @@ fun CalendarEventItem(calendarEvent: CalendarEvent, onClick: (CalendarEvent)->Un
                             Modifier
                                 .padding(1.dp)
                                 .clip(RoundedCornerShape(5.dp))
-                                .background(MaterialTheme.colorScheme.primary)) {
+                                .background(colorForeground)) {
                             Text(tag.trim(),
                                 Modifier.padding(2.dp),
-                                color = MaterialTheme.colorScheme.inversePrimary,
+                                color = colorBackground,
                                 fontSize = 8.sp)
                         }
                     }
@@ -455,19 +461,15 @@ fun CalendarEventItem(calendarEvent: CalendarEvent, onClick: (CalendarEvent)->Un
         Column(Modifier.weight(3f)) {
             Row {
                 Text(start,
-                    Modifier.padding(2.dp))
+                    Modifier.padding(2.dp), colorForeground)
             }
             Row {
                 Text(end,
-                    Modifier.padding(2.dp))
+                    Modifier.padding(2.dp), colorForeground)
             }
         }
     }
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(Color.Black)) {}
+    Separator(color = colorForeground)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -519,8 +521,7 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
         Surface(
             Modifier
                 .padding(5.dp)
-                .verticalScroll(rememberScrollState()),
-            color = Color.White) {
+                .verticalScroll(rememberScrollState())) {
             Column {
                 Row {
                     Column(
@@ -720,20 +721,20 @@ private fun isDate(sdf: SimpleDateFormat, dt: String): Date? {
 @Composable
 fun CalendarPreview() {
     CloudAppTheme {
-        Calendar(onChange = {_,_->}, countDays = listOf(), onClick = {})
+        Calendar(onChange = {_,_->}, colorBackground = Color.Blue, colorForeground = Color.White, countDays = listOf(), onClick = {})
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun CalendarItemPreview() {
-    CalendarEventItem(fakeEvent(1)) {}
+    CalendarEventItem(fakeEvent(1), colorBackground = Color.Blue, colorForeground = Color.White) {}
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ScreenPreview() {
-    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), listOf(), listOf(), true, {}, {_,_->}, {}, {}, {})
+    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), colorBackground = Color.Blue, colorForeground = Color.White, listOf(), listOf(), true, {}, {_,_->}, {}, {}, {})
 }
 
 @Preview(showBackground = true)

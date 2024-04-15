@@ -42,7 +42,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SecondaryTabRow
@@ -61,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -101,7 +101,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), toAuths: () -> Unit) {
+fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressBooks by viewModel.addressBooks.collectAsStateWithLifecycle()
     val connectivity by connectivityState()
@@ -109,7 +109,7 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), toAuths: () -> 
     viewModel.getAddressBooks()
     viewModel.loadAddresses()
 
-    ContactScreen(contacts, addressBooks, viewModel.hasAuthentications(), toAuths, onSelectedAddressBook = { addressBook: String ->
+    ContactScreen(contacts, colorBackground, colorForeground, addressBooks, viewModel.hasAuthentications(), toAuths, onSelectedAddressBook = { addressBook: String ->
         viewModel.loadAddresses(addressBook)
     }, onSave = {contact: Contact ->
         viewModel.addOrUpdateAddress(available, contact)
@@ -130,6 +130,8 @@ fun importContactAction(viewModel: ContactViewModel = hiltViewModel()): (updateP
 @Composable
 fun ContactScreen(
     contacts: List<Contact>,
+    colorBackground: Color,
+    colorForeground: Color,
     addressBooks: List<String>,
     hasAuths: Boolean, toAuths: () -> Unit,
     onSelectedAddressBook: (String) -> Unit,
@@ -173,7 +175,7 @@ fun ContactScreen(
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     if(hasAuths) {
                         contacts.forEach {
-                            ContactItem(contact = it, { c ->
+                            ContactItem(contact = it, colorBackground, colorForeground, { c ->
                                 contact = c
                                 showBottomSheet = true
                             }) { c->
@@ -182,7 +184,11 @@ fun ContactScreen(
                             }
                         }
                     } else {
-                        NoAuthenticationItem(toAuths)
+                        NoAuthenticationItem(
+                            colorBackground = colorBackground,
+                            colorForeground = colorForeground,
+                            toAuths = toAuths
+                        )
                     }
                 }
             }
@@ -209,7 +215,7 @@ fun ContactScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ContactItem(contact: Contact, onClick: (Contact) -> Unit, onLongClick: (Contact) -> Unit) {
+fun ContactItem(contact: Contact, colorBackground: Color, colorForeground: Color, onClick: (Contact) -> Unit, onLongClick: (Contact) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -224,19 +230,21 @@ fun ContactItem(contact: Contact, onClick: (Contact) -> Unit, onLongClick: (Cont
             modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.primaryContainer),
+                .background(colorBackground),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             if(contact.photo != null) {
                 Image(
                     ImageHelper.convertImageByteArrayToBitmap(contact.photo!!)
                         .asImageBitmap(),
-                    contentDescription = ""
+                    contentDescription = contact.familyName,
+                    colorFilter = ColorFilter.tint(colorForeground)
                 )
             } else {
                 Image(
                     painterResource(id = R.drawable.baseline_person_24),
-                    contentDescription = ""
+                    contentDescription = contact.familyName,
+                    colorFilter = ColorFilter.tint(colorForeground)
                 )
             }
         }
@@ -256,13 +264,15 @@ fun ContactItem(contact: Contact, onClick: (Contact) -> Unit, onLongClick: (Cont
                 val name = "$prefix$given$family$suffix"
                 Text(
                     text = name.trim(),
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = colorForeground
                 )
             }
             if(contact.birthDay != null) {
                 Row {
                     val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                    Text(sdf.format(contact.birthDay!!))
+                    Text(sdf.format(contact.birthDay!!),
+                        color = colorForeground)
                 }
             }
         }
@@ -272,14 +282,14 @@ fun ContactItem(contact: Contact, onClick: (Contact) -> Unit, onLongClick: (Cont
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(contact.addressBook)
+            Text(contact.addressBook, color = colorForeground)
         }
     }
     Row(
         Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(color = Color.Black)) {}
+            .background(color = colorForeground)) {}
 }
 
 @Composable

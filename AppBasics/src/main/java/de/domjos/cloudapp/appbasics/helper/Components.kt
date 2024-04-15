@@ -12,12 +12,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Separator() {
+fun Separator(color: Color) {
     Row(
         Modifier
             .fillMaxWidth()
             .height(1.dp)
-            .background(Color.Black)) {}
+            .background(color)) {}
 }
 
 fun execCatch(exec: ()->Unit, context: Context) {

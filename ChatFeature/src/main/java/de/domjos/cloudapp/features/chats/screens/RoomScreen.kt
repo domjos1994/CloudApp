@@ -28,7 +28,6 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -63,12 +63,13 @@ import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
+import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
+fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
     val rooms by viewModel.rooms.collectAsStateWithLifecycle()
 
     val connection by connectivityState()
@@ -99,7 +100,8 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), toAuths: () -> Unit, 
                 Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
             }
         },
-        rooms = rooms, isConnected, viewModel.hasAuthentications(), toAuths, onChatScreen)
+        rooms = rooms, isConnected, viewModel.hasAuthentications(), toAuths, onChatScreen,
+        colorBackground, colorForeground)
 }
 
 @Composable
@@ -108,7 +110,9 @@ fun RoomScreen(
     onDeleteClick: (Room) -> Unit,
     rooms: List<Room>, isConnected: Boolean,
     hasAuths: Boolean, toAuths: () -> Unit,
-    onChatScreen: (Int, String) -> Unit) {
+    onChatScreen: (Int, String) -> Unit,
+    colorBackground: Color,
+    colorForeground: Color) {
 
     val showDialog =  remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Room?>(null) }
@@ -144,7 +148,7 @@ fun RoomScreen(
             if(hasAuths) {
                 if(isConnected) {
                     rooms.forEach { room ->
-                        RoomItem(room, {
+                        RoomItem(room, colorBackground, colorForeground, {
                             selectedItem.value = it
                             onChatScreen(1, it.token)
                         }, {
@@ -153,10 +157,10 @@ fun RoomScreen(
                         })
                     }
                 } else {
-                    NoInternetItem()
+                    NoInternetItem(colorForeground, colorBackground)
                 }
             } else {
-                NoAuthenticationItem(toAuths)
+                NoAuthenticationItem(colorForeground, colorBackground, toAuths)
             }
         }
 
@@ -181,13 +185,14 @@ fun RoomScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
+fun RoomItem(room: Room, colorBackground: Color, colorForeground: Color,
+             onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .height(70.dp)
-            .background(color = MaterialTheme.colorScheme.primaryContainer)
+            .background(colorBackground)
             .combinedClickable(
                 onClick = { onClick(room) },
                 onLongClick = { onLongClick(room) })
@@ -200,7 +205,8 @@ fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
                     .padding(5.dp)
                     .height(60.dp)
                     .width(60.dp)
-                    .clip(RoundedCornerShape(5.dp)))
+                    .clip(RoundedCornerShape(5.dp)),
+                colorFilter = ColorFilter.tint(colorForeground))
         } else {
             Image(
                 painterResource(R.drawable.baseline_person_24),
@@ -209,7 +215,8 @@ fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
                     .padding(5.dp)
                     .height(60.dp)
                     .width(60.dp)
-                    .clip(RoundedCornerShape(5.dp)))
+                    .clip(RoundedCornerShape(5.dp)),
+                colorFilter = ColorFilter.tint(colorForeground))
         }
         Column {
             val content: String = if(room.lastMessage.actorDisplayName!="") {
@@ -217,19 +224,19 @@ fun RoomItem(room: Room, onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
             } else {
                 room.lastMessage.message
             }
-            Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(1.dp))
+            Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(1.dp),
+                color = colorForeground)
             Text(
                 content,
                 modifier = Modifier
                     .padding(1.dp), maxLines = 1,
                 fontStyle = if(room.unreadMessages==0) FontStyle.Normal else FontStyle.Italic,
-                fontWeight = if(room.unreadMessages==0) FontWeight.Normal else FontWeight.Bold
+                fontWeight = if(room.unreadMessages==0) FontWeight.Normal else FontWeight.Bold,
+                color = colorForeground
             )
         }
     }
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .height(1.dp)) {}
+    Separator(color = colorForeground)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -377,13 +384,13 @@ fun RoomScreenPreview() {
     RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)),
         isConnected = true,
         hasAuths = true, {},
-        onChatScreen = { _, _->})
+        onChatScreen = { _, _->}, colorBackground = Color.Blue, colorForeground = Color.White)
 }
 
 @Preview(showBackground = true)
 @Composable
 fun RoomItemPreview() {
-    RoomItem(fakeRoom(1), {}, {})
+    RoomItem(fakeRoom(1), colorBackground = Color.Blue, colorForeground = Color.White, {}, {})
 }
 
 fun fakeRoom(no: Int): Room {

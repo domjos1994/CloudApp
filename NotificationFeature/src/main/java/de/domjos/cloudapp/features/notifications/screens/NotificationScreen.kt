@@ -15,12 +15,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -44,7 +46,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), toAuths: () -> Unit) {
+fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
 
     val connection by connectivityState()
@@ -58,11 +60,11 @@ fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), toAut
 
     NotificationScreen(notifications, {
         viewModel.getFullIconLink(it)
-    }, isConnected, viewModel.hasAuthentications(), toAuths)
+    }, isConnected, viewModel.hasAuthentications(), colorBackground, colorForeground, toAuths)
 }
 
 @Composable
-fun NotificationScreen(rooms: List<Notification>, onIconLoad: (Notification) -> String, isConnected: Boolean, hasAuthentications: Boolean, toAuths: () -> Unit) {
+fun NotificationScreen(rooms: List<Notification>, onIconLoad: (Notification) -> String, isConnected: Boolean, hasAuthentications: Boolean, colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(5.dp)
@@ -71,27 +73,27 @@ fun NotificationScreen(rooms: List<Notification>, onIconLoad: (Notification) -> 
         if(hasAuthentications) {
             if(isConnected) {
                 if(rooms.isEmpty()) {
-                    NoEntryItem()
+                    NoEntryItem(colorForeground, colorBackground)
                 } else {
-                    rooms.forEach { room -> NotificationItem(room, onIconLoad)}
+                    rooms.forEach { room -> NotificationItem(room, colorBackground, colorForeground, onIconLoad)}
                 }
             } else {
-                NoInternetItem()
+                NoInternetItem(colorForeground, colorBackground)
             }
         } else {
-            NoAuthenticationItem(toAuths)
+            NoAuthenticationItem(colorForeground, colorBackground, toAuths)
         }
     }
 }
 
 @Composable
-fun NotificationItem(notification: Notification, onIconLoad: (Notification) -> String) {
+fun NotificationItem(notification: Notification, colorBackground: Color, colorForeground: Color, onIconLoad: (Notification) -> String) {
     val uriHandler = LocalUriHandler.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.primaryContainer)
+            .background(colorBackground)
             .clickable {
                 if (notification.link != "") {
                     uriHandler.openUri(notification.link)
@@ -105,7 +107,8 @@ fun NotificationItem(notification: Notification, onIconLoad: (Notification) -> S
                 modifier = Modifier
                     .padding(5.dp)
                     .weight(1f),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.tint(colorForeground)
             )
         } else {
             AsyncImage(
@@ -118,7 +121,8 @@ fun NotificationItem(notification: Notification, onIconLoad: (Notification) -> S
                 modifier = Modifier
                     .padding(5.dp)
                     .weight(1f),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.tint(colorForeground)
             )
         }
 
@@ -126,10 +130,10 @@ fun NotificationItem(notification: Notification, onIconLoad: (Notification) -> S
         Column(modifier = Modifier
             .padding(5.dp)
             .weight(9f)) {
-            Text(notification.subject, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp))
+            Text(notification.subject, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp), color = colorForeground)
             Text(
                 "${notification.app}: ${notification.message}",
-                modifier = Modifier.padding(5.dp)
+                modifier = Modifier.padding(5.dp), color = colorForeground
             )
         }
     }
@@ -137,13 +141,12 @@ fun NotificationItem(notification: Notification, onIconLoad: (Notification) -> S
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .wrapContentHeight()
-            .background(color = MaterialTheme.colorScheme.primaryContainer)) {
+            .wrapContentHeight().background(colorBackground)) {
         notification.actions.forEach { action ->
             Button(
                 onClick = { uriHandler.openUri(action.link) },
-                modifier = Modifier.padding(2.dp)) {
-                Text(action.label, fontWeight = if(action.primary) FontWeight.Bold else FontWeight.Normal)
+                modifier = Modifier.padding(2.dp), colors = ButtonDefaults.buttonColors(containerColor = colorForeground, contentColor = colorBackground)) {
+                Text(action.label, fontWeight = if(action.primary) FontWeight.Bold else FontWeight.Normal, color = colorBackground)
             }
         }
     }
@@ -156,13 +159,13 @@ fun NotificationItem(notification: Notification, onIconLoad: (Notification) -> S
 @Composable
 fun NotificationScreenPreview() {
     NotificationScreen(listOf(fake(1), fake(2), fake(3)), { "" },
-        isConnected = true, hasAuthentications = true) {}
+        isConnected = true, hasAuthentications = true, colorBackground = Color.Blue, colorForeground = Color.White) {}
 }
 
 @Preview(showBackground = true)
 @Composable
 fun NotificationItemPreview() {
-    NotificationItem(fake(1)) { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
+    NotificationItem(fake(1), colorBackground = Color.Blue, colorForeground = Color.White) { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
 }
 
 private fun fake(id: Long): Notification {

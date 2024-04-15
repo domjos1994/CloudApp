@@ -161,6 +161,7 @@ class MainActivity : ComponentActivity() {
                                 if(it != null) {
                                     colorBackground = Color(android.graphics.Color.parseColor(it.capabilities.theming.background))
                                     colorForeground = Color(android.graphics.Color.parseColor(it.capabilities.theming.`color-text`))
+
                                     icon = it.capabilities.theming.logo
                                     authTitle = "(${it.capabilities.theming.url})"
                                 }
@@ -205,7 +206,7 @@ class MainActivity : ComponentActivity() {
                                     })
                                 }
                             }) {
-                                Icon(imageVector = Icons.Outlined.Refresh, import)
+                                Icon(imageVector = Icons.Outlined.Refresh, import, tint = colorForeground)
                             }
 
                             if(showDialog) {
@@ -223,7 +224,8 @@ class MainActivity : ComponentActivity() {
                             if(icon == "") {
                                 Icon(
                                     imageVector = Icons.Filled.Person,
-                                    contentDescription = stringResource(R.string.login)
+                                    contentDescription = stringResource(R.string.login),
+                                    tint = colorForeground
                                 )
                             } else {
                                 AsyncImage(model = ImageRequest.Builder(LocalContext.current)
@@ -239,6 +241,7 @@ class MainActivity : ComponentActivity() {
                             Icon(
                                 imageVector = Icons.Filled.MoreVert,
                                 contentDescription = "More",
+                                tint = colorForeground
                             )
                         }
                         if(menuExpanded) {
@@ -247,7 +250,7 @@ class MainActivity : ComponentActivity() {
                     })}) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
-                                AuthenticationScreen {auth ->
+                                AuthenticationScreen(colorForeground = colorForeground, colorBackground = colorBackground) {auth ->
                                     if(isConnected) {
                                         viewModel.getCapabilities({ data ->
                                             if(data != null) {
@@ -264,26 +267,26 @@ class MainActivity : ComponentActivity() {
                                 refreshVisible = false
                             }
                             composable(notificationsTab.title) {
-                                NotificationScreen(toAuths = toAuths)
+                                NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = notificationsTab.title
                                 header = notificationsTab.title
                                 refreshVisible = false
                             }
                             composable(dataTab.title) {
-                                DataScreen(toAuths = toAuths)
+                                DataScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = dataTab.title
                                 header = dataTab.title
                                 refreshVisible = false
                             }
                             composable(calendarsTab.title) {
-                                CalendarScreen(toAuths = toAuths)
+                                CalendarScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = calendarsTab.title
                                 header = calendarsTab.title
                                 refreshVisible = true
                                 progress = importCalendarAction()
                             }
                             composable(contactsTab.title) {
-                                ContactScreen(toAuths = toAuths)
+                                ContactScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = contactsTab.title
                                 header = contactsTab.title
                                 refreshVisible = true
@@ -292,7 +295,7 @@ class MainActivity : ComponentActivity() {
                             composable(roomTab.title) {
                                 RoomScreen(onChatScreen = { x, y ->
                                     navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
-                                }, toAuths = toAuths)
+                                }, toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = chatsTab.title
                                 header = roomTab.title
                                 refreshVisible = false
@@ -306,7 +309,7 @@ class MainActivity : ComponentActivity() {
                                 ) { stack ->
                                 val x = stack.arguments?.getInt("lookIntoFuture")!!
                                 val y = stack.arguments?.getString("token")!!
-                                ChatScreen(lookIntoFuture = x, token = y)
+                                ChatScreen(lookIntoFuture = x, token = y, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = chatsTab.title
                                 header = chatsTab.title
                             }

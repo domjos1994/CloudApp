@@ -28,7 +28,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -67,7 +66,7 @@ import de.domjos.cloudapp.webrtc.model.user.User
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @Composable
-fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), onSelectedChange: (Authentication) -> Unit) {
+fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, onSelectedChange: (Authentication) -> Unit) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val authentications by produceState<AuthenticationUiState>(
         initialValue = AuthenticationUiState.Loading,
@@ -85,7 +84,7 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), o
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(error.throwable.message!!)
+                Text(error.throwable.message!!, color = colorForeground)
             }
         }
     }
@@ -116,7 +115,8 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), o
                 viewModel.checkConnection(auth, onSuccess) },
             select = { auth -> viewModel.checkAuthentications(auth)
                 onSelectedChange(auth)},
-            (authentications as AuthenticationUiState.Success).data
+            (authentications as AuthenticationUiState.Success).data,
+            colorBackground, colorForeground
         )
     }
 }
@@ -128,7 +128,7 @@ fun AuthenticationScreen(
     onDeleteClick: (Authentication) -> Unit,
     onConnectionCheck: (Authentication, onSuccess: (User?) -> Unit) -> Unit,
     select: (Authentication) -> Unit,
-    authentications: List<Authentication>) {
+    authentications: List<Authentication>, colorBackground: Color, colorForeground: Color) {
 
     val connection by connectivityState()
     val isConnected = connection === ConnectionState.Available
@@ -168,7 +168,7 @@ fun AuthenticationScreen(
                 authentications = authentications, isConnected, {
                 selectedItem.value = it
                 showDialog.value = true
-            }, select)
+            }, select, colorBackground, colorForeground)
         }
         if(isConnected) {
             FloatingActionButton(
@@ -182,39 +182,39 @@ fun AuthenticationScreen(
                         bottom.linkTo(parent.bottom)
                         width = Dimension.fillToConstraints
                     }
-                    .padding(5.dp)) {
-                Icon(Icons.Filled.Add, stringResource(R.string.login_add))
+                    .padding(5.dp), containerColor = colorBackground) {
+                Icon(Icons.Filled.Add, stringResource(R.string.login_add), tint = colorForeground)
             }
         }
     }
 }
 
 @Composable
-fun AuthenticationList(authentications: List<Authentication>, isConnected: Boolean, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit) {
+fun AuthenticationList(authentications: List<Authentication>, isConnected: Boolean, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit, colorBackground: Color, colorForeground: Color) {
     if(isConnected) {
         if(authentications.isEmpty()) {
             Column {
-                NoEntryItem()
+                NoEntryItem(colorForeground, colorBackground)
             }
         } else {
             authentications.forEach { item ->
-                AuthenticationItem(authentication = item, onSelect, select)
+                AuthenticationItem(authentication = item, onSelect, select, colorBackground, colorForeground)
             }
         }
     } else {
         Column {
-            NoInternetItem()
+            NoInternetItem(colorForeground, colorBackground)
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit) {
+fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit, colorBackground: Color, colorForeground: Color) {
     Column(modifier = Modifier
         .fillMaxWidth()
         .wrapContentHeight()
-        .background(color = MaterialTheme.colorScheme.primaryContainer)
+        .background(color = colorBackground)
         .combinedClickable(
             onClick = { onSelect(authentication) },
             onLongClick = { select(authentication) }
@@ -235,7 +235,7 @@ fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication
                     .padding(all = 5.dp), Arrangement.Center) {
                     Text(text = authentication.title, modifier = Modifier
                         .padding(start = 5.dp, bottom = 2.dp)
-                        .fillMaxWidth(), fontWeight =  FontWeight.Bold)
+                        .fillMaxWidth(), fontWeight =  FontWeight.Bold, color = colorForeground)
                 }
                 Row(modifier = Modifier
                     .wrapContentHeight()
@@ -243,12 +243,12 @@ fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication
                     Column(modifier = Modifier.wrapContentWidth()) {
                         Text(text = authentication.url, modifier = Modifier
                             .padding(start = 5.dp)
-                            .wrapContentWidth(), fontWeight =  FontWeight.Normal)
+                            .wrapContentWidth(), fontWeight =  FontWeight.Normal, color = colorForeground)
                     }
                     Column(modifier = Modifier
                         .wrapContentWidth()
                         .padding(start = 5.dp)) {
-                        Text(text = "@${authentication.userName}", modifier = Modifier.fillMaxWidth(), fontWeight =  FontWeight.Normal)
+                        Text(text = "@${authentication.userName}", modifier = Modifier.fillMaxWidth(), fontWeight =  FontWeight.Normal, color = colorForeground)
                     }
                 }
             }
@@ -256,7 +256,8 @@ fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication
     }
     Column(modifier = Modifier
         .fillMaxWidth()
-        .height(1.dp)) {}
+        .height(1.dp)
+        .background(colorForeground)) {}
 }
 
 @Composable
@@ -418,13 +419,13 @@ private fun fake(no: Long): Authentication {
 @Preview(showBackground = true)
 @Composable
 fun AuthenticationItemPreview() {
-    AuthenticationItem(authentication = fake(1L), {}) {}
+    AuthenticationItem(authentication = fake(1L), onSelect = {}, colorBackground = Color.Red, colorForeground = Color.Green, select = {})
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AuthenticationScreenPreview() {
-    AuthenticationScreen({}, {}, {_,_->}, {}, listOf(fake(1L), fake(2L)))
+    AuthenticationScreen({}, {}, {_,_->}, {}, listOf(fake(1L), fake(2L)), Color.Red, Color.Green)
 }
 
 @Preview(showBackground = true)

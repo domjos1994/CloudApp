@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,7 +17,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,6 +41,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.webrtc.model.msg.Message
 
 
@@ -50,20 +49,20 @@ import de.domjos.cloudapp.webrtc.model.msg.Message
 fun ChatScreen(
     viewModel: ChatViewModel = hiltViewModel(),
     lookIntoFuture: Int,
-    token: String) {
+    token: String, colorBackground: Color, colorForeground: Color) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
     viewModel.initChats(lookIntoFuture, token)
 
     val context = LocalContext.current
 
-    ChatScreen(messages, token, {viewModel.getDate(it, context)}) {
+    ChatScreen(messages, colorBackground, colorForeground, token, {viewModel.getDate(it, context)}) {
         viewModel.sendMessage(it)
     }
 }
 
 
 @Composable
-fun ChatScreen(messages: List<Message>, token: String, onDate: (Long) -> String, onSend: (String) -> Unit) {
+fun ChatScreen(messages: List<Message>, colorBackground: Color, colorForeground: Color, token: String, onDate: (Long) -> String, onSend: (String) -> Unit) {
     var msg by remember { mutableStateOf(TextFieldValue("")) }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -79,13 +78,14 @@ fun ChatScreen(messages: List<Message>, token: String, onDate: (Long) -> String,
         }) {
             LazyColumn(Modifier.fillMaxHeight()) {
                 itemsIndexed(messages, {_, item -> item.id}) { _, message ->
-                    ChatItem(token, message, onDate)
+                    ChatItem(token, colorBackground, colorForeground, message, onDate)
                 }
             }
         }
 
         Row(
-            Modifier.wrapContentHeight()
+            Modifier
+                .wrapContentHeight()
                 .constrainAs(control) {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -93,13 +93,9 @@ fun ChatScreen(messages: List<Message>, token: String, onDate: (Long) -> String,
                     top.linkTo(list.bottom)
                     width = Dimension.fillToConstraints
                 }
-                .background(MaterialTheme.colorScheme.primaryContainer)) {
+                .background(colorBackground)) {
             Column {
-                Row(
-                    Modifier
-                        .height(1.dp)
-                        .fillMaxWidth()
-                        .background(Color.Black)) {}
+                Separator(color = colorForeground)
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -110,17 +106,20 @@ fun ChatScreen(messages: List<Message>, token: String, onDate: (Long) -> String,
                         OutlinedTextField(
                             value = msg,
                             onValueChange = {msg = it},
-                            label = {Text(stringResource(R.string.chats_msg), fontSize = 12.sp)}
+                            label = {Text(stringResource(R.string.chats_msg),
+                            fontSize = 12.sp,
+                            color = colorForeground)}
                         )
                     }
                     Column(
                         Modifier
-                            .weight(2f), verticalArrangement = Arrangement.Center) {
+                            .weight(2f),
+                        verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             onSend(msg.text)
                             msg = TextFieldValue("")
                         }) {
-                            Icon(Icons.AutoMirrored.Filled.Send, stringResource(R.string.chats_send))
+                            Icon(Icons.AutoMirrored.Filled.Send, stringResource(R.string.chats_send), tint = colorForeground)
                         }
                     }
                 }
@@ -130,7 +129,7 @@ fun ChatScreen(messages: List<Message>, token: String, onDate: (Long) -> String,
 }
 
 @Composable
-fun ChatItem(token: String, message: Message, onDate: (Long) -> String) {
+fun ChatItem(token: String, colorBackground: Color, colorForeground: Color, message: Message, onDate: (Long) -> String) {
     Row(modifier = Modifier
         .fillMaxWidth()
         .wrapContentHeight()
@@ -140,10 +139,10 @@ fun ChatItem(token: String, message: Message, onDate: (Long) -> String) {
             Modifier
                 .weight(3f)
                 .clip(RoundedCornerShape(5.dp))
-                .background(color = MaterialTheme.colorScheme.primaryContainer)
+                .background(colorBackground)
                 .padding(2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally) {
-                MsgItem(message, onDate)
+                MsgItem(message, colorForeground, onDate)
             }
         } else {
             if(message.token==token) {
@@ -151,10 +150,10 @@ fun ChatItem(token: String, message: Message, onDate: (Long) -> String) {
                 Modifier
                     .weight(2f)
                     .clip(RoundedCornerShape(5.dp))
-                    .background(color = MaterialTheme.colorScheme.primaryContainer)
+                    .background(colorBackground)
                     .padding(2.dp),
                     horizontalAlignment = Alignment.Start) {
-                    MsgItem(message, onDate)
+                    MsgItem(message, colorForeground, onDate)
                 }
                 Column(modifier = Modifier.weight(1f)) {}
             } else {
@@ -163,10 +162,10 @@ fun ChatItem(token: String, message: Message, onDate: (Long) -> String) {
                 Modifier
                     .weight(2f)
                     .clip(RoundedCornerShape(5.dp))
-                    .background(color = MaterialTheme.colorScheme.primaryContainer)
+                    .background(colorBackground)
                     .padding(2.dp),
                     horizontalAlignment = Alignment.End) {
-                    MsgItem(message, onDate)
+                    MsgItem(message, colorForeground, onDate)
                 }
             }
         }
@@ -174,20 +173,20 @@ fun ChatItem(token: String, message: Message, onDate: (Long) -> String) {
 }
 
 @Composable
-fun MsgItem(message: Message, onDate: (Long) -> String) {
+fun MsgItem(message: Message, colorForeground: Color, onDate: (Long) -> String) {
     Row {
-        Text(if(message.actorDisplayName=="") "System" else message.actorDisplayName, fontWeight = FontWeight.Bold)
+        Text(if(message.actorDisplayName=="") "System" else message.actorDisplayName, fontWeight = FontWeight.Bold, color = colorForeground)
     }
     Row {
-        Text(message.message)
+        Text(message.message, color = colorForeground)
     }
     Row {
         Text(
             onDate(message.timestamp),
             modifier = Modifier.padding(2.dp),
-            color = Color.DarkGray,
             fontSize = 10.sp,
-            fontStyle = FontStyle.Italic
+            fontStyle = FontStyle.Italic,
+            color = colorForeground
         )
     }
 }
@@ -195,25 +194,25 @@ fun MsgItem(message: Message, onDate: (Long) -> String) {
 @Preview(showBackground = true)
 @Composable
 fun ChatScreenPreview() {
-    ChatScreen(listOf(fakeMessage(1), fakeMessage(2), fakeMessage(3, true)), "Test1", { "2023-03-19 11:24:36" }) {}
+    ChatScreen(listOf(fakeMessage(1), fakeMessage(2), fakeMessage(3, true)), Color.Blue, Color.White, "Test1", { "2023-03-19 11:24:36" }) {}
 }
 
 @Preview(showBackground = true)
 @Composable
 fun OwnChatItemPreview() {
-    ChatItem("Test1", fakeMessage(1)) { "2023-03-19 11:24:36" }
+    ChatItem("Test1", Color.Blue, Color.White, fakeMessage(1)) { "2023-03-19 11:24:36" }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ForeignChatItemPreview() {
-    ChatItem("Test1", fakeMessage(2)) { "2023-03-19 11:24:36" }
+    ChatItem("Test1", Color.Blue, Color.White, fakeMessage(2)) { "2023-03-19 11:24:36" }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun BotChatItemPreview() {
-    ChatItem("Test1", fakeMessage(2, true)) { "2023-03-19 11:24:36" }
+    ChatItem("Test1", Color.Blue, Color.White, fakeMessage(2, true)) { "2023-03-19 11:24:36" }
 }
 
 fun fakeMessage(no: Int, isBot: Boolean = false): Message {

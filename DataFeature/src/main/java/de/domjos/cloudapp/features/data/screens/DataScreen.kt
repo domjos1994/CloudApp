@@ -22,12 +22,13 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -38,6 +39,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -70,7 +73,7 @@ import java.io.InputStream
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun DataScreen(viewModel: DataViewModel = hiltViewModel(), toAuths: () -> Unit) {
+fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
     val items by viewModel.items.collectAsStateWithLifecycle()
 
     val connection by connectivityState()
@@ -82,7 +85,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), toAuths: () -> Unit) 
 
     val context = LocalContext.current
 
-    DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths,
+    DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
         {item: Item -> execCatchItem<Item?>({
             try {
                 if(it!!.directory) {
@@ -109,13 +112,13 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), toAuths: () -> Unit) 
 }
 
 @Composable
-fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, uploadFile: (String, InputStream) -> Unit) {
+fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, uploadFile: (String, InputStream) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (breadCrumb, list, controls) = createRefs()
 
-        BreadCrumb(onPath, Modifier.constrainAs(breadCrumb) {
+        BreadCrumb(onPath, colorBackground, colorForeground, Modifier.constrainAs(breadCrumb) {
             top.linkTo(parent.top)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
@@ -134,12 +137,12 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
                 .verticalScroll(rememberScrollState())) {
                 if(hasAuths) {
                     if(isConnected) {
-                        items.forEach { item -> DataItem(item, onClick, onExists, onDelete, onSetCutElement, onMoveFolder, hasCutElement) }
+                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, onExists, onDelete, onSetCutElement, onMoveFolder, hasCutElement) }
                     } else {
-                        NoInternetItem()
+                        NoInternetItem(colorForeground, colorBackground)
                     }
                 } else {
-                    NoAuthenticationItem(toAuths)
+                    NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                 }
             }
         }
@@ -165,7 +168,7 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
             }
             Column {
                 if(isConnected && hasAuths) {
-                    Separator()
+                    Separator(colorBackground)
                     Row {
                         Column(
                             Modifier.weight(1f),
@@ -216,21 +219,21 @@ fun getFileName(uri: Uri, context: Context): String? {
 }
 
 @Composable
-fun BreadCrumb(onPath: ()->String, modifier: Modifier = Modifier) {
+fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Color, modifier: Modifier = Modifier) {
     Column(modifier) {
-        Separator()
+        Separator(colorForeground)
         Row(
             Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .background(MaterialTheme.colorScheme.primaryContainer)) {
-            Image(
-                painterResource(R.drawable.baseline_arrow_forward_24),
+                .background(colorBackground)) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForward,
                 stringResource(R.string.data_breadcrumb),
                 modifier = Modifier
                     .padding(5.dp)
                     .weight(1f),
-                contentScale = ContentScale.Crop
+                tint = colorForeground
             )
 
             Column(
@@ -241,21 +244,22 @@ fun BreadCrumb(onPath: ()->String, modifier: Modifier = Modifier) {
                     onPath(),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic
+                    fontStyle = FontStyle.Italic,
+                    color = colorForeground
                 )
             }
         }
-        Separator()
+        Separator(colorForeground)
     }
 }
 
 @Composable
-fun DataItem(item: Item, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean) {
+fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.primaryContainer)
+            .background(colorBackground)
             .clickable { onClick(item) }) {
 
         var id = R.drawable.baseline_folder_24
@@ -283,14 +287,15 @@ fun DataItem(item: Item, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, o
             modifier = Modifier
                 .padding(5.dp)
                 .weight(1f),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Crop,
+            colorFilter = ColorFilter.tint(colorForeground)
         )
 
 
         Column(modifier = Modifier
             .padding(5.dp)
             .weight(9f)) {
-            Text(item.name, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp))
+            Text(item.name, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp), color = colorForeground)
         }
         Column(
             Modifier
@@ -299,10 +304,12 @@ fun DataItem(item: Item, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, o
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             if(item.name != "..") {
-                IconButton(onClick = { onSetCutElement(item) }) {
+                IconButton(onClick = { onSetCutElement(item) },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
                     Icon(
                         painterResource(R.drawable.baseline_content_cut_24),
-                        stringResource(R.string.data_folder_cut)
+                        stringResource(R.string.data_folder_cut),
+                        tint = colorForeground
                     )
                 }
             }
@@ -314,10 +321,12 @@ fun DataItem(item: Item, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, o
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             if(item.name != "..") {
-                IconButton(onClick = { onMoveFolder(item) }, enabled = hasCutElement()) {
+                IconButton(onClick = { onMoveFolder(item) }, enabled = hasCutElement(),
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
                     Icon(
                         painterResource(R.drawable.baseline_content_paste_24),
-                        stringResource(R.string.data_folder_cut)
+                        stringResource(R.string.data_folder_cut),
+                        tint = colorForeground
                     )
                 }
             }
@@ -326,8 +335,9 @@ fun DataItem(item: Item, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, o
             .padding(5.dp)
             .weight(1f)) {
             if(item.name != "..") {
-                IconButton(onClick = { onDelete(item) }) {
-                    Icon(Icons.Rounded.Delete, stringResource(R.string.calendar_delete))
+                IconButton(onClick = { onDelete(item) },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
+                    Icon(Icons.Rounded.Delete, stringResource(R.string.calendar_delete), tint = colorForeground)
                 }
             }
         }
@@ -338,7 +348,8 @@ fun DataItem(item: Item, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, o
                 Image(
                     painterResource(R.drawable.baseline_sync_24),
                     item.name,
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    colorFilter = ColorFilter.tint(colorForeground)
                 )
             }
         }
@@ -412,26 +423,33 @@ fun CreateFolderDialog(showDialog: (Boolean) -> Unit, onSave: (String) -> Unit) 
 
 
 @Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun DataScreenPreview() {
-    DataScreen(listOf(fake(1L), fake(2L), fake(3L)),
-        isConnected = true,
-        hasAuths = true,
-        toAuths = {},
-        onClick = {},
-        onPath = {"cxgygf"},
-        onExists = {true},
-        onDelete = {},
-        onCreateFolder = {},
-        onSetCutElement = {},
-        onMoveFolder = {},
-        hasCutElement = {true}) { _, _->}
+    CloudAppTheme {
+        DataScreen(listOf(fake(1L), fake(2L), fake(3L)),
+            isConnected = true,
+            hasAuths = true,
+            colorForeground = Color.White,
+            colorBackground = Color.Blue,
+            toAuths = {},
+            onClick = {},
+            onPath = {"cxgygf"},
+            onExists = {true},
+            onDelete = {},
+            onCreateFolder = {},
+            onSetCutElement = {},
+            onMoveFolder = {},
+            hasCutElement = {true}) { _, _->}
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DataItemPreview() {
-    DataItem(fake(1L), {}, {true}, {}, {}, {}) {true}
+    DataItem(fake(1L),
+        Color.Blue,
+        Color.White, {}, {true}, {}, {}, {}) {true}
 }
 
 @Preview(showBackground = true)
