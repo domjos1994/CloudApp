@@ -25,6 +25,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
+import java.util.Date
 import java.util.LinkedList
 import java.util.Locale
 
@@ -179,7 +180,7 @@ class ContactLoader(private val authentication: Authentication?) {
             vCard.uid.value, suffix, prefix,
             vCard.structuredName.family,
             vCard.structuredName.given, additional,
-            birthday, organization, photo, name, authentication?.id!!)
+            birthday, organization, photo, name, "", 0L, Date().time, authentication?.id!!)
         contact.categories = lst
         contact.addresses = addresses
         contact.phoneNumbers = phones

@@ -1,8 +1,13 @@
 package de.domjos.cloudapp.activities
 
+import android.Manifest
+import android.accounts.Account
+import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Context
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -64,7 +69,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -94,6 +101,14 @@ import de.domjos.cloudapp.features.data.screens.DataScreen
 import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import de.domjos.cloudapp.services.AuthenticatorService
+import android.content.ContentResolver
+import android.provider.ContactsContract.AUTHORITY
+
+
+
+
+
 
 data class TabBarItem(
     val title: String,
@@ -102,13 +117,28 @@ data class TabBarItem(
     val badgeAmount: Int? = null
 )
 
+const val ACCOUNT_TYPE = "com.android.cloudapp.datasync"
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private lateinit var mAccount: Account
+    private val PERMISSIONS_REQUEST_CODE: Int = 1
+
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)!= PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS),
+                PERMISSIONS_REQUEST_CODE
+            )
+        } else {
+            mAccount = createSyncAccount()
+        }
 
         val channel = NotificationChannel("cloud_app_notifications", "CloudApp", NotificationManager.IMPORTANCE_DEFAULT)
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -323,6 +353,15 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+    private fun createSyncAccount(): Account {
+        val account = AuthenticatorService.getAccount(this.applicationContext, ACCOUNT_TYPE)
+        val accountManager = getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
+        accountManager.addAccountExplicitly(account, null, null)
+        ContentResolver.setIsSyncable(account, AUTHORITY, 1)
+        ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
+        ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle(), (60 * 1000).toLong())
+         return account
     }
 }
 

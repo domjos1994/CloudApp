@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package de.domjos.cloudapp.database.model.contacts
 
 import androidx.room.ColumnInfo
@@ -28,6 +30,9 @@ data class Contact(
     var organization: String,
     var photo: ByteArray?,
     var addressBook: String,
+    @ColumnInfo("contactId", defaultValue = "") var contactId: String,
+    @ColumnInfo("lastUpdatedContactPhone", defaultValue = "-1") var lastUpdatedContactPhone: Long,
+    @ColumnInfo("lastUpdatedContactServer", defaultValue = "-1") var lastUpdatedContactServer: Long,
     @ColumnInfo("authId", defaultValue = "0") var authId: Long
 ) {
     @Ignore var addresses: LinkedList<Address>? = null

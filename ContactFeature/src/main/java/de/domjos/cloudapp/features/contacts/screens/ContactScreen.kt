@@ -221,6 +221,7 @@ fun ContactItem(contact: Contact, colorBackground: Color, colorForeground: Color
             .fillMaxWidth()
             .wrapContentSize(Alignment.TopEnd)
             .height(40.dp)
+            .background(colorBackground)
             .combinedClickable(
                 onClick = { onClick(contact) },
                 onLongClick = { onLongClick(contact) },
@@ -552,7 +553,7 @@ fun EditDialog(
                             val addressBook = contact?.addressBook ?: ""
                             val id = contact?.id ?: 0L
 
-                            val new = Contact(id, uid, suf, pre, last, first, add, bd, org, photo, addressBook, 0L)
+                            val new = Contact(id, uid, suf, pre, last, first, add, bd, org, photo, addressBook, "", -1L, -1L, 0L)
                             new.addresses = a
                             new.emailAddresses = em
                             new.phoneNumbers = ph
@@ -1464,5 +1465,5 @@ fun fakeContact(id: Int): Contact {
     bDate.add(Calendar.DAY_OF_MONTH, id)
     return Contact(0L,
         "$id", "", "", "Doe", "John$id", "",
-        bDate.time, "", null, "Test", 0L)
+        bDate.time, "", null, "Test", "", -1L, -1L, 0L)
 }

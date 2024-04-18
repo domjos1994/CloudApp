@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContactsAccountType>
+    <EditSchema>
+        <DataKind kind="name"
+            maxOccurs="1"
+            supportsDisplayName="true"
+            supportsPrefix="true"
+            supportsMiddleName="true"
+            supportsSuffix="true"
+            supportsPhoneticFamilyName="true"
+            supportsPhoneticMiddleName="true"
+            supportsPhoneticGivenName="true"
+            >
+        </DataKind>
+
+        <DataKind kind="postal" needsStructured="false" >
+            <Type type="home" />
+            <Type type="work" />
+            <Type type="other" />
+        </DataKind>
+
+        <DataKind kind="email" >
+            <Type type="home" />
+        </DataKind>
+
+        <DataKind kind="phone" >
+            <Type type="mobile" />
+            <Type type="home" />
+            <Type type="work" />
+            <Type type="main" />
+            <Type type="fax_home" />
+            <Type type="mms" />
+        </DataKind>
+
+        <DataKind kind="photo" maxOccurs="1" />
+    </EditSchema>
+</ContactsAccountType>

@@ -50,6 +50,9 @@ interface ContactDAO {
     @Transaction
     fun getAddressBookWithPhones(addressBook: String, authId: Long): List<ContactWithPhones>
 
+    @Query("UPDATE contacts SET contactId=:contactId, lastUpdatedContactPhone=:lastUpdated WHERE id=:id")
+    fun updateContactSync(contactId: String, lastUpdated: Long, id: Long)
+
     @Insert
     fun insertContact(contact: Contact)
 

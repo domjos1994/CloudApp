@@ -74,6 +74,11 @@ dependencies {
     implementation(project(":DataFeature"))
     implementation(project(":NotificationFeature"))
 
+    ksp(libs.room.compiler)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    annotationProcessor(libs.room.compiler)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.constraint)
