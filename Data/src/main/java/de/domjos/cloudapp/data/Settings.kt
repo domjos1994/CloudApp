@@ -13,20 +13,24 @@ class Settings(private val context: Context) {
 
     companion object {
         val timeSpanKey = floatPreferencesKey("user_time_span")
+        val contactRegularityKey = floatPreferencesKey("user_contact_regularity")
     }
 
     var timeSpan: Float = 20.0f
+    var contactRegularity: Float = 20.0f
 
     init {
 
         this.context.userPreferenceDataStore.data.map { preferences ->
             timeSpan = preferences[timeSpanKey] ?: 20.0F
+            contactRegularity = preferences[contactRegularityKey] ?: 1.0F
         }
     }
 
     suspend fun save() {
         this.context.userPreferenceDataStore.edit { preferences ->
             preferences[timeSpanKey] = timeSpan
+            preferences[contactRegularityKey] = contactRegularity
         }
     }
 

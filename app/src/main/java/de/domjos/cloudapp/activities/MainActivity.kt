@@ -104,10 +104,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp.services.AuthenticatorService
 import android.content.ContentResolver
 import android.provider.ContactsContract.AUTHORITY
-
-
-
-
+import de.domjos.cloudapp.data.Settings
 
 
 data class TabBarItem(
@@ -360,7 +357,9 @@ class MainActivity : ComponentActivity() {
         accountManager.addAccountExplicitly(account, null, null)
         ContentResolver.setIsSyncable(account, AUTHORITY, 1)
         ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
-        ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle(), (60 * 1000).toLong())
+
+        val settings = Settings(applicationContext)
+        ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle(), (settings.contactRegularity * 60 * 1000).toLong())
          return account
     }
 }
