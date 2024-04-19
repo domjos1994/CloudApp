@@ -8,6 +8,7 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.SyncResult
+import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.provider.ContactsContract.CommonDataKinds.Email
@@ -23,6 +24,10 @@ import de.domjos.cloudapp.database.model.contacts.AddressType
 import de.domjos.cloudapp.database.model.contacts.PhoneType
 import java.util.Date
 import java.util.LinkedList
+import java.util.Objects
+
+
+
 
 
 class ContactSyncAdapter @JvmOverloads constructor(
@@ -31,6 +36,8 @@ class ContactSyncAdapter @JvmOverloads constructor(
     allowParallelSyncs: Boolean = false,
     private val contentResolver: ContentResolver = context.contentResolver
 ) : AbstractThreadedSyncAdapter(context, autoInitialize, allowParallelSyncs) {
+    private var account: Account? = null
+
     override fun onPerformSync(
         account: Account?,
         extras: Bundle?,
@@ -38,6 +45,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
         provider: ContentProviderClient?,
         syncResult: SyncResult?
     ) {
+        this.account = account
         val db = DB.newInstance(this.context)
         val id = db.authenticationDao().getSelectedItem()?.id
 
@@ -46,6 +54,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
             val addresses = db.contactDao().getAllWithAddresses(id)
             val emails = db.contactDao().getAllWithEmails(id)
             db.contactDao().getAll(id).forEach { contact ->
+                val groupId = this.addOrGetGroup(contact.addressBook, provider!!)
                 val phoneItems = LinkedList<de.domjos.cloudapp.database.model.contacts.Phone>()
                 val emailItems = LinkedList<de.domjos.cloudapp.database.model.contacts.Email>()
                 val addressItems = LinkedList<Address>()
@@ -57,9 +66,9 @@ class ContactSyncAdapter @JvmOverloads constructor(
                     var insert = false
                     val contactId = if(contact.contactId == "") {
                         val values = ContentValues()
-                        values.put(RawContacts.ACCOUNT_TYPE, context.getString(R.string.sys_account_type))
-                        values.put(RawContacts.ACCOUNT_NAME, context.getString(R.string.app_name))
-                        val uri = this.contentResolver.insert(RawContacts.CONTENT_URI, values)
+                        values.put(RawContacts.ACCOUNT_TYPE, this.account?.type)
+                        values.put(RawContacts.ACCOUNT_NAME, this.account?.name)
+                        val uri = provider.insert(asSyncAdapter(RawContacts.CONTENT_URI), values)
                         insert = true
                         ContentUris.parseId(uri!!)
                     } else {
@@ -67,34 +76,47 @@ class ContactSyncAdapter @JvmOverloads constructor(
                     }
 
                     val values = ContentValues()
-                    values.put(ContactsContract.Data.RAW_CONTACT_ID, contactId)
-                    values.put(ContactsContract.Data.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
-                    values.put(StructuredName.SUFFIX, contact.suffix)
+                    values.put(StructuredName.RAW_CONTACT_ID, contactId)
+                    values.put(StructuredName.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
+                    values.put(RawContacts.ACCOUNT_TYPE, this.account?.type)
+                    values.put(RawContacts.ACCOUNT_NAME, this.account?.name)
+                    values.put(StructuredName.SUFFIX, contact.suffix ?: "")
                     values.put(StructuredName.GIVEN_NAME, contact.givenName)
-                    values.put(StructuredName.FAMILY_NAME, contact.familyName)
-                    values.put(StructuredName.PREFIX, contact.prefix)
+                    values.put(StructuredName.FAMILY_NAME, contact.familyName ?: "")
+                    values.put(StructuredName.PREFIX, contact.prefix ?: "")
                     if(insert) {
-                        this.contentResolver.insert(ContactsContract.Data.CONTENT_URI, values)
+                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                     } else {
                         val selectionClause = "${StructuredName.GIVEN_NAME}=? and ${StructuredName.FAMILY_NAME}=?"
-                        val selectionArgs = arrayOf(contact.givenName, contact.familyName)
-                        this.contentResolver.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                        val selectionArgs = arrayOf(contact.givenName, contact.familyName ?: "")
+                        provider.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                    }
+
+                    values.clear()
+                    values.put(ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID, groupId)
+                    values.put(ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID, contactId)
+                    values.put(ContactsContract.CommonDataKinds.GroupMembership.MIMETYPE, ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE)
+                    if(insert) {
+                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
+                    } else {
+                        provider.delete(ContactsContract.Data.CONTENT_URI, "${ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID}=?", arrayOf("$contactId"))
+                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                     }
 
                     if(contact.photo != null) {
                         values.clear()
-                        values.put(ContactsContract.Data.RAW_CONTACT_ID, contactId)
-                        values.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
-                        values.put(ContactsContract.Data.IS_SUPER_PRIMARY, 1)
+                        values.put(ContactsContract.CommonDataKinds.Photo.RAW_CONTACT_ID, contactId)
+                        values.put(ContactsContract.CommonDataKinds.Photo.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
+                        values.put(ContactsContract.CommonDataKinds.Photo.IS_SUPER_PRIMARY, 1)
                         values.put(ContactsContract.CommonDataKinds.Photo.PHOTO, contact.photo)
-                        this.contentResolver.delete(ContactsContract.Data.CONTENT_URI, "${ContactsContract.Data.RAW_CONTACT_ID}=?", arrayOf("$contactId"))
-                        this.contentResolver.insert(ContactsContract.Data.CONTENT_URI, values)
+                        provider.delete(ContactsContract.Data.CONTENT_URI, "${ContactsContract.CommonDataKinds.Photo.RAW_CONTACT_ID}=?", arrayOf("$contactId"))
+                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                     }
 
                     phoneItems.forEach { phone ->
                         values.clear()
-                        values.put(ContactsContract.Data.RAW_CONTACT_ID, contactId)
-                        values.put(ContactsContract.Data.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
+                        values.put(Phone.RAW_CONTACT_ID, contactId)
+                        values.put(Phone.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
                         values.put(Phone.NUMBER, phone.value)
                         if(phone.types.size > 0) {
                             when(phone.types[0]) {
@@ -108,11 +130,11 @@ class ContactSyncAdapter @JvmOverloads constructor(
                             }
                         }
                         if(insert) {
-                            this.contentResolver.insert(ContactsContract.Data.CONTENT_URI, values)
+                            provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                         } else {
                             val selectionClause = "${Phone.NUMBER}=?"
                             val selectionArgs = arrayOf(phone.value)
-                            this.contentResolver.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                            provider.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
                         }
                     }
 
@@ -123,11 +145,11 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         values.put(Email.ADDRESS, email.value)
                         values.put(Email.TYPE, "home")
                         if(insert) {
-                            this.contentResolver.insert(ContactsContract.Data.CONTENT_URI, values)
+                            provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                         } else {
                             val selectionClause = "${Email.ADDRESS}=?"
                             val selectionArgs = arrayOf(email.value)
-                            this.contentResolver.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                            provider.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
                         }
                     }
 
@@ -149,11 +171,11 @@ class ContactSyncAdapter @JvmOverloads constructor(
                             }
                         }
                         if(insert) {
-                            this.contentResolver.insert(ContactsContract.Data.CONTENT_URI, values)
+                            provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                         } else {
                             val selectionClause = "${StructuredPostal.CITY}=? and ${StructuredPostal.STREET}=?"
                             val selectionArgs = arrayOf(address.locality, address.street)
-                            this.contentResolver.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                            provider.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
                         }
                     }
                     db.contactDao().updateContactSync("$contactId", Date().time, contact.id)
@@ -162,6 +184,52 @@ class ContactSyncAdapter @JvmOverloads constructor(
                     e.printStackTrace()
                 }
             }
+        }
+    }
+
+    @Throws(java.lang.Exception::class)
+    private fun getContactLists(provider: ContentProviderClient): Map<String, Long> {
+        val directoryMap: MutableMap<String, Long> = LinkedHashMap()
+        val projection = arrayOf(ContactsContract.Groups._ID, ContactsContract.Groups.TITLE)
+        val groupCursor =
+            provider.query(asSyncAdapter(ContactsContract.Groups.CONTENT_URI), projection, null, null, null)
+        if (groupCursor != null) {
+            while (groupCursor.moveToNext()) {
+                directoryMap[groupCursor.getString(1)] = groupCursor.getLong(0)
+            }
+            groupCursor.close()
+        }
+        return directoryMap
+    }
+
+    @Throws(java.lang.Exception::class)
+    private fun addOrGetGroup(group: String, provider: ContentProviderClient): Long {
+        val lst = getContactLists(provider)
+        return if(lst.containsKey(group)) {
+            lst[group]!!
+        } else {
+            val contentValues = ContentValues()
+            contentValues.put(ContactsContract.Groups.ACCOUNT_NAME, this.context.getString(R.string.app_name))
+            contentValues.put(ContactsContract.Groups.ACCOUNT_TYPE, this.context.getString(R.string.sys_account_type))
+            contentValues.put(ContactsContract.Groups.TITLE, group)
+            contentValues.put(ContactsContract.Groups.GROUP_VISIBLE, 1)
+            contentValues.put(ContactsContract.Groups.SHOULD_SYNC, true)
+            val newGroupUri = provider.insert(
+                asSyncAdapter(ContactsContract.Groups.CONTENT_URI),
+                contentValues
+            )
+            ContentUris.parseId(Objects.requireNonNull<Uri?>(newGroupUri))
+        }
+    }
+
+    private fun asSyncAdapter(uri: Uri): Uri {
+        return if(this.account != null) {
+            uri.buildUpon()
+                .appendQueryParameter(ContactsContract.CALLER_IS_SYNCADAPTER, "true")
+                .appendQueryParameter(ContactsContract.PRIMARY_ACCOUNT_NAME, this.account?.name)
+                .appendQueryParameter(ContactsContract.PRIMARY_ACCOUNT_TYPE, this.account?.type).build()
+        } else {
+            uri
         }
     }
 }

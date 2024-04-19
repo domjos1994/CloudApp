@@ -103,7 +103,8 @@ import de.domjos.cloudapp.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp.services.AuthenticatorService
 import android.content.ContentResolver
-import android.provider.ContactsContract.AUTHORITY
+import android.provider.ContactsContract.AUTHORITY as CONTACT_AUTHORITY
+import android.provider.CalendarContract.AUTHORITY as CALENDAR_AUTHORITY
 import de.domjos.cloudapp.data.Settings
 
 
@@ -113,8 +114,6 @@ data class TabBarItem(
     val unselectedIcon: ImageVector,
     val badgeAmount: Int? = null
 )
-
-const val ACCOUNT_TYPE = "com.android.cloudapp.datasync"
 
 
 @AndroidEntryPoint
@@ -127,10 +126,16 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)!= PackageManager.PERMISSION_GRANTED) {
+        if(
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)!= PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS),
+                arrayOf(
+                    Manifest.permission.READ_CONTACTS,
+                    Manifest.permission.WRITE_CONTACTS,
+                    Manifest.permission.READ_CALENDAR,
+                    Manifest.permission.WRITE_CALENDAR),
                 PERMISSIONS_REQUEST_CODE
             )
         } else {
@@ -352,14 +357,22 @@ class MainActivity : ComponentActivity() {
         }
     }
     private fun createSyncAccount(): Account {
-        val account = AuthenticatorService.getAccount(this.applicationContext, ACCOUNT_TYPE)
+        val settings = Settings(applicationContext)
+
+        val account = AuthenticatorService.getAccount(this.applicationContext, "de.domjos.cloudapp.account")
         val accountManager = getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
         accountManager.addAccountExplicitly(account, null, null)
-        ContentResolver.setIsSyncable(account, AUTHORITY, 1)
-        ContentResolver.setSyncAutomatically(account, AUTHORITY, true)
 
-        val settings = Settings(applicationContext)
-        ContentResolver.addPeriodicSync(account, AUTHORITY, Bundle(), (settings.contactRegularity * 60 * 1000).toLong())
+        // contact
+        ContentResolver.setIsSyncable(account, CONTACT_AUTHORITY, 1)
+        ContentResolver.setSyncAutomatically(account, CONTACT_AUTHORITY, true)
+        ContentResolver.addPeriodicSync(account, CONTACT_AUTHORITY, Bundle(), (settings.contactRegularity * 60 * 1000).toLong())
+
+        // calendar
+        ContentResolver.setIsSyncable(account, CALENDAR_AUTHORITY, 1)
+        ContentResolver.setSyncAutomatically(account, CALENDAR_AUTHORITY, true)
+        ContentResolver.addPeriodicSync(account, CALENDAR_AUTHORITY, Bundle(), (settings.contactRegularity * 60 * 1000).toLong())
+
          return account
     }
 }
