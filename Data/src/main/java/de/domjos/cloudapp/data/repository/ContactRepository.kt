@@ -5,6 +5,7 @@ import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.dao.ContactDAO
 import de.domjos.cloudapp.database.model.contacts.Contact
 import java.util.LinkedList
+import java.util.UUID
 import javax.inject.Inject
 
 interface ContactRepository {
@@ -117,10 +118,22 @@ class DefaultContactRepository @Inject constructor(
 
     override fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact) {
         contact.authId = authenticationDAO.getSelectedItem()!!.id
+        var update = true
+        if(contact.uid == "") {
+            update = false
+            contact.uid = UUID.randomUUID().toString()
+        }
         this.loader.insertContact(this.addressBook, contact)
+        contact.addressBook = this.addressBook
+        if(update) {
+            this.contactDAO.updateContact(contact)
+        } else {
+            this.contactDAO.insertContact(contact)
+        }
     }
 
     override fun deleteContact(hasInternet: Boolean, contact: Contact) {
         this.loader.deleteContact(this.addressBook, contact)
+        this.contactDAO.deleteContact(contact)
     }
 }

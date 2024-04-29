@@ -8,9 +8,11 @@ class AddressTypeConverter {
     @TypeConverter
     fun fromString(value: String): LinkedList<AddressType> {
         val lst = LinkedList<AddressType>()
-        value.split(",").forEach { type ->
-            lst.add(AddressType.valueOf(type))
-        }
+        try {
+            value.split(",").forEach { type ->
+                lst.add(AddressType.valueOf(type))
+            }
+        } catch (_:Exception) {}
 
         return lst
     }

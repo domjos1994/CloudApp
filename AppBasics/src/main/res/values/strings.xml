@@ -27,6 +27,8 @@
 
     <string name="contacts">Contacts</string>
     <string name="contacts_all">All Contacts</string>
+    <string name="contacts_system">System-Contacts</string>
+    <string name="contacts_app">App-Contacts</string>
     <string name="contact_import">Import Contacts</string>
     <string name="contact_delete">Delete all</string>
     <string name="contact_insert">Insert</string>

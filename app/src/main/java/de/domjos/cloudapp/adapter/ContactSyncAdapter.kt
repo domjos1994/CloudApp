@@ -21,13 +21,11 @@ import de.domjos.cloudapp.R
 import de.domjos.cloudapp.database.DB
 import de.domjos.cloudapp.database.model.contacts.Address
 import de.domjos.cloudapp.database.model.contacts.AddressType
+import de.domjos.cloudapp.database.model.contacts.Contact
 import de.domjos.cloudapp.database.model.contacts.PhoneType
 import java.util.Date
 import java.util.LinkedList
 import java.util.Objects
-
-
-
 
 
 class ContactSyncAdapter @JvmOverloads constructor(
@@ -64,43 +62,54 @@ class ContactSyncAdapter @JvmOverloads constructor(
 
                 try {
                     var insert = false
+                    var lastUpdated = -1L
                     val contactId = if(contact.contactId == "") {
                         val values = ContentValues()
                         values.put(RawContacts.ACCOUNT_TYPE, this.account?.type)
                         values.put(RawContacts.ACCOUNT_NAME, this.account?.name)
                         val uri = provider.insert(asSyncAdapter(RawContacts.CONTENT_URI), values)
                         insert = true
-                        ContentUris.parseId(uri!!)
+                        val cid = ContentUris.parseId(uri!!)
+                        lastUpdated = this.getLastUpdateTimestampForContact(contentResolver, cid)
+                        cid
                     } else {
                         contact.contactId.toLong()
                     }
 
-                    val values = ContentValues()
-                    values.put(StructuredName.RAW_CONTACT_ID, contactId)
-                    values.put(StructuredName.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
-                    values.put(RawContacts.ACCOUNT_TYPE, this.account?.type)
-                    values.put(RawContacts.ACCOUNT_NAME, this.account?.name)
-                    values.put(StructuredName.SUFFIX, contact.suffix ?: "")
-                    values.put(StructuredName.GIVEN_NAME, contact.givenName)
-                    values.put(StructuredName.FAMILY_NAME, contact.familyName ?: "")
-                    values.put(StructuredName.PREFIX, contact.prefix ?: "")
+                    // create content-values from the name
+                    val nameValues = this.nameToValues(contact, contactId)
                     if(insert) {
-                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
+                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), nameValues)
                     } else {
                         val selectionClause = "${StructuredName.GIVEN_NAME}=? and ${StructuredName.FAMILY_NAME}=?"
                         val selectionArgs = arrayOf(contact.givenName, contact.familyName ?: "")
-                        provider.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                        provider.update(ContactsContract.Data.CONTENT_URI, nameValues, selectionClause, selectionArgs)
                     }
 
-                    values.clear()
+                    val values = ContentValues()
                     values.put(ContactsContract.CommonDataKinds.GroupMembership.GROUP_ROW_ID, groupId)
                     values.put(ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID, contactId)
                     values.put(ContactsContract.CommonDataKinds.GroupMembership.MIMETYPE, ContactsContract.CommonDataKinds.GroupMembership.CONTENT_ITEM_TYPE)
                     if(insert) {
                         provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                     } else {
-                        provider.delete(ContactsContract.Data.CONTENT_URI, "${ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID}=?", arrayOf("$contactId"))
-                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
+                        if(lastUpdated>contact.lastUpdatedContactPhone) {
+                            // ToDo
+                        } else {
+                            val uri = Uri.withAppendedPath(
+                                ContactsContract.Data.CONTENT_URI,
+                                "$contactId"
+                            )
+                            provider.delete(
+                                uri,
+                                "${ContactsContract.CommonDataKinds.GroupMembership.RAW_CONTACT_ID}=?",
+                                arrayOf("$contactId")
+                            )
+                            provider.insert(
+                                asSyncAdapter(ContactsContract.Data.CONTENT_URI),
+                                values
+                            )
+                        }
                     }
 
                     if(contact.photo != null) {
@@ -109,8 +118,20 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         values.put(ContactsContract.CommonDataKinds.Photo.MIMETYPE, ContactsContract.CommonDataKinds.Photo.CONTENT_ITEM_TYPE)
                         values.put(ContactsContract.CommonDataKinds.Photo.IS_SUPER_PRIMARY, 1)
                         values.put(ContactsContract.CommonDataKinds.Photo.PHOTO, contact.photo)
-                        provider.delete(ContactsContract.Data.CONTENT_URI, "${ContactsContract.CommonDataKinds.Photo.RAW_CONTACT_ID}=?", arrayOf("$contactId"))
-                        provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
+                        val uri = Uri.withAppendedPath(ContactsContract.Data.CONTENT_URI, "$contactId")
+                        if(lastUpdated>contact.lastUpdatedContactPhone) {
+                            // ToDo
+                        } else {
+                            provider.delete(
+                                uri,
+                                "${ContactsContract.CommonDataKinds.Photo.RAW_CONTACT_ID}=?",
+                                arrayOf("$contactId")
+                            )
+                            provider.insert(
+                                asSyncAdapter(ContactsContract.Data.CONTENT_URI),
+                                values
+                            )
+                        }
                     }
 
                     phoneItems.forEach { phone ->
@@ -132,9 +153,13 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         if(insert) {
                             provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                         } else {
-                            val selectionClause = "${Phone.NUMBER}=?"
-                            val selectionArgs = arrayOf(phone.value)
-                            provider.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                            if(lastUpdated>contact.lastUpdatedContactPhone) {
+                                // todo
+                            } else {
+                                val selectionClause = "${Phone.NUMBER}=?"
+                                val selectionArgs = arrayOf(phone.value)
+                                provider.update(ContactsContract.Data.CONTENT_URI, values, selectionClause, selectionArgs)
+                            }
                         }
                     }
 
@@ -185,6 +210,37 @@ class ContactSyncAdapter @JvmOverloads constructor(
                 }
             }
         }
+    }
+
+    private fun nameToValues(contact: Contact, contactId: Long): ContentValues {
+        val values = ContentValues()
+        values.put(StructuredName.SUFFIX, contact.suffix ?: "")
+        values.put(StructuredName.GIVEN_NAME, contact.givenName)
+        values.put(StructuredName.FAMILY_NAME, contact.familyName ?: "")
+        values.put(StructuredName.PREFIX, contact.prefix ?: "")
+        values.put(StructuredName.RAW_CONTACT_ID, contactId)
+        values.put(StructuredName.MIMETYPE, StructuredName.CONTENT_ITEM_TYPE)
+        return values
+    }
+
+    private fun getLastUpdateTimestampForContact(contentResolver: ContentResolver, contactId: Long): Long {
+        var lastUpdateTimeStamp: Long = 0
+        try {
+            val contactUri = ContactsContract.Contacts.CONTENT_URI
+            val projection = arrayOf(ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP)
+            val selection = ContactsContract.Contacts._ID + "=?"
+            val selectionArgs = arrayOf(contactId.toString())
+            val cursor =
+                contentResolver.query(contactUri, projection, selection, selectionArgs, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                val index = cursor.getColumnIndex(ContactsContract.Contacts.CONTACT_LAST_UPDATED_TIMESTAMP)
+                if(index != -1) {
+                    lastUpdateTimeStamp = cursor.getLong(index)
+                }
+                cursor.close()
+            }
+        } catch (_: java.lang.Exception) {}
+        return lastUpdateTimeStamp
     }
 
     @Throws(java.lang.Exception::class)

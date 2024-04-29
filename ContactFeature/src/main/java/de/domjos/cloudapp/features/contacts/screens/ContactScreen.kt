@@ -104,13 +104,16 @@ import java.util.Locale
 fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressBooks by viewModel.addressBooks.collectAsStateWithLifecycle()
+    val canInsert by viewModel.canInsert.collectAsStateWithLifecycle()
     val connectivity by connectivityState()
     val available = connectivity === ConnectionState.Available
-    viewModel.getAddressBooks()
+    viewModel.getAddressBooks(LocalContext.current)
     viewModel.loadAddresses()
 
-    ContactScreen(contacts, colorBackground, colorForeground, addressBooks, viewModel.hasAuthentications(), toAuths, onSelectedAddressBook = { addressBook: String ->
-        viewModel.loadAddresses(addressBook)
+    ContactScreen(contacts, colorBackground, colorForeground, addressBooks, viewModel.hasAuthentications(), toAuths, canInsert, onSelectedAddressBook = { book: String ->
+        var key = ""
+        addressBooks.forEach {if(book==it.value) key = it.key}
+        viewModel.selectAddressBook(key)
     }, onSave = {contact: Contact ->
         viewModel.addOrUpdateAddress(available, contact)
         viewModel.loadAddresses()
@@ -132,8 +135,9 @@ fun ContactScreen(
     contacts: List<Contact>,
     colorBackground: Color,
     colorForeground: Color,
-    addressBooks: List<String>,
+    addressBooks: Map<String, String>,
     hasAuths: Boolean, toAuths: () -> Unit,
+    canInsert: Boolean,
     onSelectedAddressBook: (String) -> Unit,
     onSave: (Contact) -> Unit,
     onDelete: (Contact) -> Unit) {
@@ -155,7 +159,7 @@ fun ContactScreen(
             width = Dimension.fillToConstraints
         }) {
             Column {
-                DropDown(addressBooks, all, onSelectedAddressBook)
+                DropDown(addressBooks.values.toList(), all, onSelectedAddressBook)
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -166,7 +170,7 @@ fun ContactScreen(
                 if(showDialog) {
                     EditDialog(contact = contact, setShowDialog = {
                         showDialog=it
-                    }, onSave = onSave, onDelete = onDelete)
+                    }, onSave = onSave, onDelete = onDelete, canInsert = canInsert)
                 }
                 if(showBottomSheet) {
                     BottomSheet(contact = contact!!) {showBottomSheet=it}
@@ -175,7 +179,7 @@ fun ContactScreen(
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     if(hasAuths) {
                         contacts.forEach {
-                            ContactItem(contact = it, colorBackground, colorForeground, { c ->
+                            ContactItem(contact = it, addressBooks, colorBackground, colorForeground, { c ->
                                 contact = c
                                 showBottomSheet = true
                             }) { c->
@@ -194,7 +198,7 @@ fun ContactScreen(
             }
         }
 
-        if(hasAuths) {
+        if(hasAuths && canInsert) {
             FloatingActionButton(
                 onClick = {
                     contact = null
@@ -215,7 +219,7 @@ fun ContactScreen(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ContactItem(contact: Contact, colorBackground: Color, colorForeground: Color, onClick: (Contact) -> Unit, onLongClick: (Contact) -> Unit) {
+fun ContactItem(contact: Contact, addressBooks: Map<String, String>, colorBackground: Color, colorForeground: Color, onClick: (Contact) -> Unit, onLongClick: (Contact) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -235,12 +239,12 @@ fun ContactItem(contact: Contact, colorBackground: Color, colorForeground: Color
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             if(contact.photo != null) {
-                Image(
-                    ImageHelper.convertImageByteArrayToBitmap(contact.photo!!)
-                        .asImageBitmap(),
-                    contentDescription = contact.familyName,
-                    colorFilter = ColorFilter.tint(colorForeground)
-                )
+                val data = ImageHelper.convertImageByteArrayToBitmap(contact.photo!!)
+                if(data != null) {
+                    Image(data.asImageBitmap(), contentDescription = contact.familyName, colorFilter = ColorFilter.tint(colorForeground))
+                } else {
+                    Image(painterResource(id = R.drawable.baseline_person_24), contentDescription = contact.familyName, colorFilter = ColorFilter.tint(colorForeground))
+                }
             } else {
                 Image(
                     painterResource(id = R.drawable.baseline_person_24),
@@ -283,7 +287,7 @@ fun ContactItem(contact: Contact, colorBackground: Color, colorForeground: Color
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(contact.addressBook, color = colorForeground)
+            Text(addressBooks[contact.addressBook]!!, color = colorForeground)
         }
     }
     Row(
@@ -298,7 +302,8 @@ fun EditDialog(
     contact: Contact?,
     setShowDialog: (Boolean) -> Unit,
     onSave: (Contact) -> Unit,
-    onDelete: (Contact) -> Unit) {
+    onDelete: (Contact) -> Unit,
+    canInsert: Boolean) {
 
     val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
 
@@ -357,12 +362,12 @@ fun EditDialog(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally) {
                         if(img.value != null) {
-                            Image(
-                                ImageHelper
-                                    .convertImageByteArrayToBitmap(img.value!!)
-                                    .asImageBitmap(),
-                                contentDescription = firstName.text
-                            )
+                            val data = ImageHelper.convertImageByteArrayToBitmap(img.value!!)
+                            if(data != null) {
+                                Image(data.asImageBitmap(), contentDescription = firstName.text)
+                            } else {
+                                Image(painterResource(id = R.drawable.baseline_person_24), contentDescription = firstName.text)
+                            }
                         } else {
                             Image(
                                 painterResource(id = R.drawable.baseline_person_24),
@@ -520,48 +525,50 @@ fun EditDialog(
 
                 TabControl(phones, mails, addresses, uid)
 
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()) {
-                    if(contact != null) {
-                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                            IconButton(onClick = {
-                                onDelete(contact)
-                                setShowDialog(false)
-                            }) {
-                                Icon(Icons.Default.Delete, "")
+                if(canInsert) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()) {
+                        if(contact != null) {
+                            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                IconButton(onClick = {
+                                    onDelete(contact)
+                                    setShowDialog(false)
+                                }) {
+                                    Icon(Icons.Default.Delete, "")
+                                }
                             }
                         }
-                    }
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        IconButton(onClick = {
-                            val suf = suffix.text
-                            val pre = prefix.text
-                            val first = firstName.text
-                            val last = lastName.text
-                            val add = additional.text
-                            val bd = fullDay.parse(birthDate.text)
-                            val org = organization.text
-                            val ph = LinkedList<Phone>()
-                            phones.forEach { ph.add(it) }
-                            val em = LinkedList<Email>()
-                            mails.forEach { em.add(it) }
-                            val a = LinkedList<Address>()
-                            addresses.forEach { a.add(it) }
-                            val photo = img.value
-                            val addressBook = contact?.addressBook ?: ""
-                            val id = contact?.id ?: 0L
+                        Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                            IconButton(onClick = {
+                                val suf = suffix.text
+                                val pre = prefix.text
+                                val first = firstName.text
+                                val last = lastName.text
+                                val add = additional.text
+                                val bd = fullDay.parse(birthDate.text)
+                                val org = organization.text
+                                val ph = LinkedList<Phone>()
+                                phones.forEach { ph.add(it) }
+                                val em = LinkedList<Email>()
+                                mails.forEach { em.add(it) }
+                                val a = LinkedList<Address>()
+                                addresses.forEach { a.add(it) }
+                                val photo = img.value
+                                val addressBook = contact?.addressBook ?: ""
+                                val id = contact?.id ?: 0L
 
-                            val new = Contact(id, uid, suf, pre, last, first, add, bd, org, photo, addressBook, "", -1L, -1L, 0L)
-                            new.addresses = a
-                            new.emailAddresses = em
-                            new.phoneNumbers = ph
+                                val new = Contact(id, uid, suf, pre, last, first, add, bd, org, photo, addressBook, "", -1L, -1L, 0L)
+                                new.addresses = a
+                                new.emailAddresses = em
+                                new.phoneNumbers = ph
 
-                            onSave(new)
-                            setShowDialog(false)
-                        }, enabled = isFirstNameValid && isLastNameValid && isBirthDateValid) {
-                            Icon(Icons.Default.Check, "")
+                                onSave(new)
+                                setShowDialog(false)
+                            }, enabled = isFirstNameValid && isLastNameValid && isBirthDateValid) {
+                                Icon(Icons.Default.Check, "")
+                            }
                         }
                     }
                 }
@@ -712,16 +719,26 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically) {
             if(contact.photo != null) {
-                Image(
-                    ImageHelper
-                        .convertImageByteArrayToBitmap(contact.photo!!)
-                        .asImageBitmap(),
-                    contentDescription = name,
-                    Modifier
-                        .width(100.dp)
-                        .height(100.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                )
+                val data = ImageHelper.convertImageByteArrayToBitmap(contact.photo!!)
+                if(data != null) {
+                    Image(
+                        data.asImageBitmap(),
+                        contentDescription = name,
+                        Modifier
+                            .width(100.dp)
+                            .height(100.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+                } else {
+                    Image(
+                        painterResource(id = R.drawable.baseline_person_24),
+                        contentDescription = name,
+                        Modifier
+                            .width(100.dp)
+                            .height(100.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                    )
+                }
             } else {
                 Image(
                     painterResource(id = R.drawable.baseline_person_24),
@@ -1455,7 +1472,7 @@ fun BottomSheetPreview() {
 @Composable
 fun EditDialogPreview() {
     CloudAppTheme {
-        EditDialog(contact = fakeContact(1), {}, {}) {}
+        EditDialog(contact = fakeContact(1), {}, {}, {}, true)
     }
 }
 

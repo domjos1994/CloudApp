@@ -1,10 +1,12 @@
 package de.domjos.cloudapp.features.contacts.screens
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.ContactRepository
 import de.domjos.cloudapp.database.model.contacts.Contact
+import de.domjos.cloudapp.appbasics.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,17 +18,28 @@ import javax.inject.Inject
 class ContactViewModel @Inject constructor(
     private val contactRepository: ContactRepository
 ): ViewModel() {
-    private val _addressBooks = MutableStateFlow(listOf<String>())
-    val addressBooks: StateFlow<List<String>> get() = _addressBooks
+    private val _addressBooks = MutableStateFlow(mapOf<String, String>())
+    val addressBooks: StateFlow<Map<String, String>> get() = _addressBooks
     private val _contacts = MutableStateFlow(listOf<Contact>())
     val contacts: StateFlow<List<Contact>> get() = _contacts
+    private val _addressBook = MutableStateFlow("")
+    private val _canInsert = MutableStateFlow(false)
+    val canInsert: StateFlow<Boolean> get() = _canInsert
 
 
-    fun getAddressBooks() {
+    fun getAddressBooks(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val lst = LinkedList<String>()
-            contactRepository.loadAddressBooks().forEach { lst.add(it) }
-            lst.add("")
+            val lst = LinkedHashMap<String, String>()
+            contactRepository.loadAddressBooks().forEach {
+                if(it.startsWith("z-server")) {
+                    lst[it] = context.getString(R.string.contacts_system)
+                } else if(it.startsWith("z-app")) {
+                    lst[it] = context.getString(R.string.contacts_app)
+                } else {
+                    lst[it] = it.replaceFirstChar(Char::titlecase)
+                }
+            }
+            lst[""] = context.getString(R.string.contacts_all)
             _addressBooks.value = lst
 
         }
@@ -39,16 +52,30 @@ class ContactViewModel @Inject constructor(
         }
     }
 
-    fun loadAddresses(addressBook: String = "") {
+    fun selectAddressBook(addressBook: String = "") {
         viewModelScope.launch(Dispatchers.IO) {
-            if (addressBook.isEmpty()) {
+            _addressBook.value = addressBook
+            if(_addressBook.value.isEmpty()) {
+                _canInsert.value = false
+            } else if(_addressBook.value.trim().lowercase().startsWith("z-server")) {
+                _canInsert.value = false
+            } else {
+                _canInsert.value = true
+            }
+            loadAddresses()
+        }
+    }
+
+    fun loadAddresses() {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (_addressBook.value.isEmpty()) {
                 val list = LinkedList<Contact>()
                 contactRepository.loadAddressBooks().forEach { address ->
                     list.addAll(contactRepository.loadContacts(address))
                 }
                 _contacts.value = list
             } else {
-                contactRepository.loadContacts(addressBook)
+                contactRepository.loadContacts(_addressBook.value)
                 _contacts.value = contactRepository.contacts
             }
         }
@@ -57,6 +84,7 @@ class ContactViewModel @Inject constructor(
     fun addOrUpdateAddress(hasInternet: Boolean, contact: Contact) {
         viewModelScope.launch(Dispatchers.IO) {
             contactRepository.insertOrUpdateContact(hasInternet, contact)
+            contactRepository.loadContacts(_addressBook.value)
             _contacts.value = contactRepository.contacts
         }
     }
@@ -64,6 +92,7 @@ class ContactViewModel @Inject constructor(
     fun deleteAddress(hasInternet: Boolean, contact: Contact) {
         viewModelScope.launch(Dispatchers.IO) {
             contactRepository.deleteContact(hasInternet, contact)
+            contactRepository.loadContacts(_addressBook.value)
             _contacts.value = contactRepository.contacts
         }
     }

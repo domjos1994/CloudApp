@@ -120,18 +120,24 @@ class ContactLoader(private val authentication: Authentication?) {
 
     private fun vcardToContact(vCard: VCard, name: String): Contact {
         val addresses = LinkedList<Address>()
-        vCard.addresses.forEach { address ->
-            addresses.add(this.propertyToAddress(address, vCard.uid.value))
+        if(vCard.addresses != null) {
+            vCard.addresses.forEach { address ->
+                addresses.add(this.propertyToAddress(address, vCard.uid.value))
+            }
         }
 
         val mails = LinkedList<Email>()
-        vCard.emails.forEach { mail ->
-            mails.add(this.propertyToMail(mail, vCard.uid.value))
+        if(vCard.emails != null) {
+            vCard.emails.forEach { mail ->
+                mails.add(this.propertyToMail(mail, vCard.uid.value))
+            }
         }
 
         val phones = LinkedList<Phone>()
-        vCard.telephoneNumbers.forEach { phone ->
-            phones.add(this.propertyToPhone(phone, vCard.uid.value))
+        if(vCard.telephoneNumbers != null) {
+            vCard.telephoneNumbers.forEach { phone ->
+                phones.add(this.propertyToPhone(phone, vCard.uid.value))
+            }
         }
 
         val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
@@ -175,11 +181,14 @@ class ContactLoader(private val authentication: Authentication?) {
             if(vCard.structuredName.additionalNames!=null) vCard.structuredName.additionalNames.joinToString(",") else ""
         val organization =
             if(vCard.organization!=null) vCard.organization.values.joinToString(",") else ""
+        val given =
+            if(vCard.structuredName.given!=null) vCard.structuredName.given else ""
+        val family =
+            if(vCard.structuredName.family!=null) vCard.structuredName.family else ""
 
         val contact = Contact(0L,
             vCard.uid.value, suffix, prefix,
-            vCard.structuredName.family,
-            vCard.structuredName.given, additional,
+            family, given, additional,
             birthday, organization, photo, name, "", 0L, Date().time, authentication?.id!!)
         contact.categories = lst
         contact.addresses = addresses
@@ -265,10 +274,14 @@ class ContactLoader(private val authentication: Authentication?) {
         }
 
         return Address(
-            0L, id, lst, if(property.poBox!=null) property.poBox else "",
-            property.extendedAddress,
-            property.streetAddress,
-            property.locality, property.region, property.postalCode, property.country
+            0L, id, lst,
+            if(property.poBox!=null) property.poBox else "",
+            if(property.extendedAddress!=null) property.extendedAddress else "",
+            if(property.streetAddress!=null) property.streetAddress else "",
+            if(property.locality!=null) property.locality else "",
+            if(property.region!=null) property.region else "",
+            if(property.postalCode!=null) property.postalCode else "",
+            if(property.country!=null) property.country else ""
         )
     }
 
@@ -298,7 +311,7 @@ class ContactLoader(private val authentication: Authentication?) {
     }
 
     private fun propertyToMail(property: ezvcard.property.Email, id: String): Email {
-        return Email(0L, id, property.value)
+        return Email(0L, id, if(property.value!=null) property.value else "")
     }
 
     private fun mailToProperty(property: Email): ezvcard.property.Email {
@@ -319,7 +332,7 @@ class ContactLoader(private val authentication: Authentication?) {
             })
         }
 
-        return Phone(0L, id, property.text, lst)
+        return Phone(0L, id, if(property.text!=null) property.text else "", lst)
     }
 
     private fun phoneToProperty(phone: Phone): Telephone {
