@@ -287,7 +287,13 @@ fun ContactItem(contact: Contact, addressBooks: Map<String, String>, colorBackgr
                 .fillMaxHeight(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(addressBooks[contact.addressBook]!!, color = colorForeground)
+
+            var book = ""
+            if(addressBooks[contact.addressBook] != null) {
+                book = addressBooks[contact.addressBook]!!
+            }
+
+            Text(book, color = colorForeground)
         }
     }
     Row(

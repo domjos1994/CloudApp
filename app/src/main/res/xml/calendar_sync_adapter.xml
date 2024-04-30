@@ -4,6 +4,6 @@
     android:contentAuthority="com.android.calendar"
     android:accountType="com.android.cloudapp.datasync"
     android:userVisible="true"
-    android:supportsUploading="false"
-    android:allowParallelSyncs="true"
+    android:supportsUploading="true"
+    android:allowParallelSyncs="false"
     android:isAlwaysSyncable="true"/>
