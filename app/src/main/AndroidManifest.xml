@@ -23,7 +23,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CloudApp"
+        android:theme="@style/Theme.SplashScreen.Splaaash"
         tools:targetApi="31">
         <activity
             android:name=".activities.MainActivity"

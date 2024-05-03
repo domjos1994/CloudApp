@@ -99,6 +99,9 @@ dependencies {
     implementation(libs.material)
     implementation(project(":REST"))
 
+    // splash
+    implementation(libs.splash.screen)
+
     // hilt
     ksp(libs.hilt.android.compiler)
     implementation(libs.hilt.android)
