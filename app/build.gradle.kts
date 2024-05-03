@@ -13,7 +13,7 @@ android {
         applicationId = "de.domjos.cloudapp"
         minSdk = rootProject.extra["sdk_min"] as Int
         targetSdk = rootProject.extra["sdk_compile"] as Int
-        versionCode = 6
+        versionCode = 7
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
