@@ -116,7 +116,6 @@ class ContactLoader(private val authentication: Authentication?) {
     }
 
     private fun vcardToContact(vCard: VCard, name: String): Contact {
-        vCard.revision.value
         val addresses = LinkedList<Address>()
         if(vCard.addresses != null) {
             vCard.addresses.forEach { address ->

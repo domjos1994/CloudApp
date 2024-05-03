@@ -31,8 +31,11 @@ class Converter {
                         month = LocalDate.ofInstant(temporal, ZoneId.systemDefault())?.monthValue
                         day = LocalDate.ofInstant(temporal, ZoneId.systemDefault())?.dayOfMonth
                     } else {
-                        month = LocalDate.from(temporal).monthValue
-                        year = LocalDate.from(temporal).dayOfMonth
+                        val ld = temporal.atZone(ZoneId.systemDefault()).toLocalDate()
+
+                        year = ld.year
+                        month = ld.monthValue
+                        day = ld.dayOfMonth
                     }
                 }
                 return sdf.parse("$day.$month.$year")
