@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
             var authTitle by remember { mutableStateOf("") }
             val connection by connectivityState()
             val isConnected = connection === ConnectionState.Available
-            val hasAuthentications = viewModel.hasAuthentications()
+            var hasAuthentications by remember { mutableStateOf(viewModel.hasAuthentications()) }
             val toAuths = {navController.navigate(authentications)}
             val tabBarVisible = remember { mutableStateOf(true) }
             val back = {
@@ -266,6 +266,7 @@ class MainActivity : ComponentActivity() {
                                                 colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
                                                 icon = data.capabilities.theming.logo
                                                 authTitle = "(${data.capabilities.theming.url})"
+                                                hasAuthentications = viewModel.hasAuthentications()
                                             }
                                         }, auth)
                                     }
