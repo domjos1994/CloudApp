@@ -19,7 +19,9 @@ class Notifications {
             val notification= NotificationCompat.Builder(context,"cloud_app_notifications")
                 .setContentTitle(header)
                 .setContentText(content)
-                .setSmallIcon(R.drawable.icon)
+                .setSmallIcon(R.drawable.ic_notifications)
+                .setLargeIcon(context.bitmapFromResource(R.drawable.icon))
+                .setBadgeIconType(R.drawable.icon)
                 .setPriority(NotificationManager.IMPORTANCE_DEFAULT)
                 .setAutoCancel(true)
 
