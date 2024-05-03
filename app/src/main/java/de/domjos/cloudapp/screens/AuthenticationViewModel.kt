@@ -50,7 +50,11 @@ class AuthenticationViewModel @Inject constructor(
 
     fun checkConnection(authentication: Authentication, onSuccess: (user: User?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            onSuccess(authenticationRepository.checkConnection(authentication))
+            if(authentication.url.trim().startsWith("http")) {
+                onSuccess(authenticationRepository.checkConnection(authentication))
+            } else {
+                onSuccess(null)
+            }
         }
     }
 }
