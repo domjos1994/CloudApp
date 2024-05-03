@@ -695,7 +695,7 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
                                     0L, UUID.randomUUID().toString(),
                                     fromDate?.time ?: 0L, toDate?.time ?: 0L,
                                     title.text, location.text, description.text,
-                                    confirmation.text, categories.text, "", calendar, 0L)
+                                    confirmation.text, categories.text, "", calendar, "", -1L, -1L, 0L)
 
                                 onSave(nEvent)
                             }, enabled = isTitleValid && isFromValid && isToValid) {
@@ -759,6 +759,7 @@ private fun fakeEvent(id: Long):CalendarEvent {
         "tag 1, tags 2",
         "Green",
         "Calendar $id",
+        "$id", id, id,
         0L
     )
 }

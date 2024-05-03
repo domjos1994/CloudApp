@@ -20,14 +20,11 @@ import ezvcard.property.StructuredName
 import ezvcard.property.Telephone
 import ezvcard.property.Uid
 import okhttp3.Credentials
-import java.text.SimpleDateFormat
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
-import java.util.Locale
 
 class ContactLoader(private val authentication: Authentication?) {
     private var sardine: OkHttpSardine? = null
@@ -119,6 +116,7 @@ class ContactLoader(private val authentication: Authentication?) {
     }
 
     private fun vcardToContact(vCard: VCard, name: String): Contact {
+        vCard.revision.value
         val addresses = LinkedList<Address>()
         if(vCard.addresses != null) {
             vCard.addresses.forEach { address ->
@@ -140,28 +138,7 @@ class ContactLoader(private val authentication: Authentication?) {
             }
         }
 
-        val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        val birthday = if(vCard.birthday != null ) {
-            var year: Int? = null
-            var month: Int? = null
-            var day: Int? = null
-            if(vCard.birthday.date is LocalDate) {
-                year = (vCard.birthday.date as LocalDate).year
-                month = (vCard.birthday.date as LocalDate).monthValue
-                day = (vCard.birthday.date as LocalDate).dayOfMonth
-            }
-            if(vCard.birthday.date is Instant) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    year = LocalDate.ofInstant(vCard.birthday.date as Instant, ZoneId.systemDefault())?.year
-                    month = LocalDate.ofInstant(vCard.birthday.date as Instant, ZoneId.systemDefault())?.monthValue
-                    day = LocalDate.ofInstant(vCard.birthday.date as Instant, ZoneId.systemDefault())?.dayOfMonth
-                } else {
-                    month = LocalDate.from(vCard.birthday.date).monthValue
-                    year = LocalDate.from(vCard.birthday.date).dayOfMonth
-                }
-            }
-            sdf.parse("$day.$month.$year")
-        } else null
+        val birthday = if(vCard.birthday != null ) Converter.temporalToDate(vCard.birthday.date) else null
 
         val lst = LinkedList<String>()
         vCard.categoriesList.forEach { item ->
@@ -194,6 +171,14 @@ class ContactLoader(private val authentication: Authentication?) {
         contact.addresses = addresses
         contact.phoneNumbers = phones
         contact.emailAddresses = mails
+        var lastUpdated = -1L
+        if(vCard.revision != null) {
+            val rev = Converter.temporalToDate(vCard.revision.value)
+            if(rev != null) {
+                lastUpdated = rev.time
+            }
+        }
+        contact.lastUpdatedContactServer = lastUpdated
         return contact
     }
 

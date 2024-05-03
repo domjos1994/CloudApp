@@ -1,13 +1,6 @@
 package de.domjos.cloudapp.activities
 
-import android.Manifest
-import android.accounts.Account
-import android.accounts.AccountManager
 import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -50,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -69,9 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -101,11 +93,7 @@ import de.domjos.cloudapp.features.data.screens.DataScreen
 import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import de.domjos.cloudapp.services.AuthenticatorService
-import android.content.ContentResolver
-import android.provider.ContactsContract.AUTHORITY as CONTACT_AUTHORITY
-import android.provider.CalendarContract.AUTHORITY as CALENDAR_AUTHORITY
-import de.domjos.cloudapp.data.Settings
+import de.domjos.cloudapp.screens.PermissionScreen
 
 
 data class TabBarItem(
@@ -118,33 +106,11 @@ data class TabBarItem(
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var mAccount: Account
-    private val PERMISSIONS_REQUEST_CODE: Int = 1
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        if(
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS)!= PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    Manifest.permission.READ_CONTACTS,
-                    Manifest.permission.WRITE_CONTACTS,
-                    Manifest.permission.READ_CALENDAR,
-                    Manifest.permission.WRITE_CALENDAR),
-                PERMISSIONS_REQUEST_CODE
-            )
-        } else {
-            mAccount = createSyncAccount()
-        }
-
-        val channel = NotificationChannel("cloud_app_notifications", "CloudApp", NotificationManager.IMPORTANCE_DEFAULT)
-        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(channel)
 
         setContent {
             val notificationsTab = TabBarItem(title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
@@ -158,6 +124,7 @@ class MainActivity : ComponentActivity() {
             val tabBarItems = listOf(notificationsTab, dataTab, calendarsTab, contactsTab, roomTab)
             val authentications = stringResource(id = R.string.login_authentications)
             val settings = stringResource(id = R.string.settings)
+            val permissions = stringResource(R.string.permissions)
 
             // creating our navController
             val navController = rememberNavController()
@@ -180,6 +147,11 @@ class MainActivity : ComponentActivity() {
             val isConnected = connection === ConnectionState.Available
             val hasAuthentications = viewModel.hasAuthentications()
             val toAuths = {navController.navigate(authentications)}
+            val tabBarVisible = remember { mutableStateOf(true) }
+            val back = {
+                navController.navigate(notificationsTab.title)
+                tabBarVisible.value = true
+            }
 
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme
@@ -187,7 +159,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Scaffold(bottomBar = { TabView(tabBarItems, navController) }, topBar = {
+                    Scaffold(bottomBar = { TabView(tabBarItems, navController, tabBarVisible) }, topBar = {
                         if(isConnected) {
                             viewModel.getCapabilities({
                                 if(it != null) {
@@ -277,7 +249,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         if(menuExpanded) {
-                            Menu({menuExpanded = it}, true, {navController.navigate(settings)})
+                            Menu(
+                                {menuExpanded = it},
+                                true,
+                                {navController.navigate(settings)},
+                                {navController.navigate(permissions)})
                         }
                     })}) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
@@ -299,16 +275,29 @@ class MainActivity : ComponentActivity() {
                                 refreshVisible = false
                             }
                             composable(notificationsTab.title) {
-                                NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
-                                title = notificationsTab.title
-                                header = notificationsTab.title
-                                refreshVisible = false
+                                if(viewModel.getFirstStart()) {
+                                    PermissionScreen {
+                                        viewModel.saveFirstStart()
+                                        back()
+                                    }
+                                    title = permissions
+                                    header = permissions
+                                    refreshVisible = false
+                                    tabBarVisible.value = false
+                                } else {
+                                    NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
+                                    title = notificationsTab.title
+                                    header = notificationsTab.title
+                                    refreshVisible = false
+                                    tabBarVisible.value = true
+                                }
                             }
                             composable(dataTab.title) {
                                 DataScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = dataTab.title
                                 header = dataTab.title
                                 refreshVisible = false
+                                tabBarVisible.value = true
                             }
                             composable(calendarsTab.title) {
                                 CalendarScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
@@ -316,6 +305,7 @@ class MainActivity : ComponentActivity() {
                                 header = calendarsTab.title
                                 refreshVisible = true
                                 progress = importCalendarAction()
+                                tabBarVisible.value = true
                             }
                             composable(contactsTab.title) {
                                 ContactScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
@@ -323,6 +313,7 @@ class MainActivity : ComponentActivity() {
                                 header = contactsTab.title
                                 refreshVisible = true
                                 progress = importContactAction()
+                                tabBarVisible.value = true
                             }
                             composable(roomTab.title) {
                                 RoomScreen(onChatScreen = { x, y ->
@@ -331,6 +322,7 @@ class MainActivity : ComponentActivity() {
                                 title = chatsTab.title
                                 header = roomTab.title
                                 refreshVisible = false
+                                tabBarVisible.value = true
                             }
                             composable(
                                 "${chatsTab.title}/{lookIntoFuture}/{token}",
@@ -344,36 +336,25 @@ class MainActivity : ComponentActivity() {
                                 ChatScreen(lookIntoFuture = x, token = y, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = chatsTab.title
                                 header = chatsTab.title
+                                tabBarVisible.value = true
                             }
                             composable(settings) {
                                 title = settings
                                 header = settings
                                 SettingsScreen()
+                                tabBarVisible.value = true
+                            }
+                            composable(permissions) {
+                                title = permissions
+                                header = permissions
+                                tabBarVisible.value = false
+                                PermissionScreen { back() }
                             }
                         }
                     }
                 }
             }
         }
-    }
-    private fun createSyncAccount(): Account {
-        val settings = Settings(applicationContext)
-
-        val account = AuthenticatorService.getAccount(this.applicationContext, "de.domjos.cloudapp.account")
-        val accountManager = getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
-        accountManager.addAccountExplicitly(account, null, null)
-
-        // contact
-        ContentResolver.setIsSyncable(account, CONTACT_AUTHORITY, 1)
-        ContentResolver.setSyncAutomatically(account, CONTACT_AUTHORITY, true)
-        ContentResolver.addPeriodicSync(account, CONTACT_AUTHORITY, Bundle(), (settings.contactRegularity * 60 * 1000).toLong())
-
-        // calendar
-        ContentResolver.setIsSyncable(account, CALENDAR_AUTHORITY, 1)
-        ContentResolver.setSyncAutomatically(account, CALENDAR_AUTHORITY, true)
-        ContentResolver.addPeriodicSync(account, CALENDAR_AUTHORITY, Bundle(), (settings.contactRegularity * 60 * 1000).toLong())
-
-         return account
     }
 }
 
@@ -418,37 +399,40 @@ fun ProgressDialog(onShowDialog: (Boolean) -> Unit, currentText: String, current
 }
 
 @Composable
-fun Menu(onExpanded: (Boolean) -> Unit, expanded: Boolean, onSettings: () -> Unit) {
+fun Menu(onExpanded: (Boolean) -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
         DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = { onSettings() })
+        DropdownMenuItem(text = { Text(stringResource(R.string.permissions)) }, onClick = { onPermissions() })
     }
 }
 
 @Composable
-fun TabView(tabBarItems: List<TabBarItem>, navController: NavController) {
+fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>) {
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
 
-    NavigationBar {
-        // looping over each tab to generate the views and navigation for each item
-        tabBarItems.forEachIndexed { index, tabBarItem ->
-            NavigationBarItem(
-                selected = selectedTabIndex == index,
-                onClick = {
-                    selectedTabIndex = index
-                    navController.navigate(tabBarItem.title)
-                },
-                icon = {
-                    TabBarIconView(
-                        isSelected = selectedTabIndex == index,
-                        selectedIcon = tabBarItem.selectedIcon,
-                        unselectedIcon = tabBarItem.unselectedIcon,
-                        title = tabBarItem.title,
-                        badgeAmount = tabBarItem.badgeAmount
-                    )
-                },
-                label = {Text(tabBarItem.title)})
+    if(visible.value) {
+        NavigationBar {
+            // looping over each tab to generate the views and navigation for each item
+            tabBarItems.forEachIndexed { index, tabBarItem ->
+                NavigationBarItem(
+                    selected = selectedTabIndex == index,
+                    onClick = {
+                        selectedTabIndex = index
+                        navController.navigate(tabBarItem.title)
+                    },
+                    icon = {
+                        TabBarIconView(
+                            isSelected = selectedTabIndex == index,
+                            selectedIcon = tabBarItem.selectedIcon,
+                            unselectedIcon = tabBarItem.unselectedIcon,
+                            title = tabBarItem.title,
+                            badgeAmount = tabBarItem.badgeAmount
+                        )
+                    },
+                    label = {Text(tabBarItem.title)})
+            }
         }
     }
 }

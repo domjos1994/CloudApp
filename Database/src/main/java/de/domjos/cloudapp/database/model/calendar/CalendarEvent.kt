@@ -19,5 +19,8 @@ class CalendarEvent(
     var location: String, var description: String,
     var confirmation: String, var categories: String,
     var color: String, var calendar: String,
+    @ColumnInfo("eventId", defaultValue = "") var eventId: String,
+    @ColumnInfo("lastUpdatedEventPhone", defaultValue = "-1") var lastUpdatedEventPhone: Long,
+    @ColumnInfo("lastUpdatedEventServer", defaultValue = "-1") var lastUpdatedEventServer: Long,
     @ColumnInfo("authId", defaultValue = "0") var authId: Long) {
 }

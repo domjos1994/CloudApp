@@ -92,4 +92,18 @@
     <string name="sys_no_connection">No Authentication exists</string>
     <string name="sys_no_connection_description">Please go to the Authentications and add an Account or select it!</string>
     <string name="sys_no_connection_button">To the Accounts</string>
+
+    <string name="permissions">Permissions</string>
+    <string name="permissions_grant">Grant Permission</string>
+    <string name="permissions_back">Back</string>
+    <string name="permissions_write_files_title">Write Files</string>
+    <string name="permissions_write_files_summary">To sync your Cloud-Data to your Smartphone you need to grant File-Permissions!</string>
+    <string name="permissions_internet_title">Internet</string>
+    <string name="permissions_internet_summary">To access your Cloud-Data you need to grant Internet-Permissions!</string>
+    <string name="permissions_notifications_title">Optional: Notifications</string>
+    <string name="permissions_notifications_summary">To show Notifications you need to grant Notification-Permissions!</string>
+    <string name="permissions_contacts_title">Optional: Contacts</string>
+    <string name="permissions_contacts_summary">To sync your Cloud-Contacts with your smartphone you need to grant Contact-Permissions!</string>
+    <string name="permissions_calendar_title">Optional: Calendar</string>
+    <string name="permissions_calendar_summary">To sync your Cloud-Calendars with your smartphone you need to grant Calendar-Permissions!</string>
 </resources>

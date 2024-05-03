@@ -14,6 +14,7 @@ import net.fortuna.ical4j.model.property.Color
 import net.fortuna.ical4j.model.property.Description
 import net.fortuna.ical4j.model.property.DtEnd
 import net.fortuna.ical4j.model.property.DtStart
+import net.fortuna.ical4j.model.property.LastModified
 import net.fortuna.ical4j.model.property.Location
 import net.fortuna.ical4j.model.property.Status
 import net.fortuna.ical4j.model.property.Summary
@@ -201,6 +202,7 @@ class Calendar(private val authentication: Authentication?) {
             var confirmation = ""
             var categories = ""
             var color = ""
+            var lastModified = 0L
 
             val components = calendar.components
             if(components.size == 1) {
@@ -212,12 +214,13 @@ class Calendar(private val authentication: Authentication?) {
                 categories = readPropertyToString<Categories>(component)
                 confirmation = readPropertyToString<Status>(component)
                 color = readPropertyToString<Color>(component)
+                lastModified = component.getProperty<LastModified>("LastModified").dateTime.time
 
                 from = net.fortuna.ical4j.model.Date(readPropertyToString<DtStart>(component)).time
                 to = net.fortuna.ical4j.model.Date(readPropertyToString<DtEnd>(component)).time
             }
 
-            return CalendarEvent(0L, uid, from, to, title, location, description, confirmation, categories, color, name, authentication?.id!!)
+            return CalendarEvent(0L, uid, from, to, title, location, description, confirmation, categories, color, name, "", -1L, lastModified, authentication?.id!!)
         } catch (_: Exception) {}
         return null
     }
@@ -226,8 +229,7 @@ class Calendar(private val authentication: Authentication?) {
         try {
             val vEvent = VEvent(net.fortuna.ical4j.model.Date(event.from), net.fortuna.ical4j.model.Date(event.from), event.title)
             vEvent.description.value = event.description
-            vEvent.location.value = event.location
-            //vEvent.cevent.categories))
+            vEvent.location.value = event.location //vEvent.cevent.categories))
             vEvent.status.value = event.confirmation
             //vEvent.add<PropertyContainer>(Color(ParameterList(), event.color))
             vEvent.uid.value = event.uid

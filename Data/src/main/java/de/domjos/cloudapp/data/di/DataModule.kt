@@ -79,6 +79,6 @@ class SettingsProvider {
     @Provides
     @Singleton
     fun provideSettings(@ApplicationContext appContext: Context): Settings {
-        return de.domjos.cloudapp.data.Settings(appContext)
+        return Settings(appContext)
     }
 }

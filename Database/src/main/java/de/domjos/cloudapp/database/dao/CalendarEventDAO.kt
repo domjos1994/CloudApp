@@ -28,6 +28,9 @@ interface CalendarEventDAO {
     @Query("SELECT count(uid) FROM calendarEvents WHERE calendar=:calendar and `to`>:startTime and `from`<:endTime and authId=:authId order by `to`")
     fun count(calendar: String, startTime: Long, endTime: Long, authId: Long): Long
 
+    @Query("UPDATE calendarEvents SET eventId=:eventId, lastUpdatedEventPhone=:lastUpdated WHERE id=:id")
+    fun updateEventSync(eventId: String, lastUpdated: Long, id: Long)
+
     @Insert
     fun insertCalendarEvent(calendarEvent: CalendarEvent)
 
