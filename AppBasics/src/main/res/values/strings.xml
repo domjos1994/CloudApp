@@ -9,6 +9,8 @@
     <string name="settings_timeSpan_header">Time-Span to update Chats (in Seconds)!</string>
     <string name="settings_contact_regularity_title">Regularity of Contact-Synchronization</string>
     <string name="settings_contact_regularity_header">Regularity of Contact-Synchronization (in Minutes)!</string>
+    <string name="settings_calendar_regularity_title">Regularity of Calendar-Synchronization</string>
+    <string name="settings_calendar_regularity_header">Regularity of Calendar-Synchronization (in Minutes)!</string>
 
     <string name="calendars">Calendar</string>
     <string name="calendars_all">All Calendars</string>

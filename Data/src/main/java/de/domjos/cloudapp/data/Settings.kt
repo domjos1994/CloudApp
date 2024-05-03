@@ -16,12 +16,14 @@ class Settings(private val context: Context) {
     companion object {
         val timeSpanKey = floatPreferencesKey("user_time_span")
         val contactRegularityKey = floatPreferencesKey("user_contact_regularity")
+        val calendarRegularityKey = floatPreferencesKey("user_calendar_regularity")
 
         val firstStartKey = booleanPreferencesKey("first_start")
     }
 
     var timeSpan: Float = 20.0f
     var contactRegularity: Float = 20.0f
+    var calendarRegularity: Float = 20.0f
 
     suspend fun <T> getSetting(key: Preferences.Key<T>, default: T): T {
         val data = this.context.dataStore.data.first()
@@ -39,6 +41,7 @@ class Settings(private val context: Context) {
         this.context.dataStore.edit { preferences ->
             preferences[timeSpanKey] = timeSpan
             preferences[contactRegularityKey] = contactRegularity
+            preferences[calendarRegularityKey] = calendarRegularity
         }
     }
 
