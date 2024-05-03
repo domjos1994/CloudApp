@@ -354,7 +354,7 @@ private fun EditDialog(
                             )
 
                             onConnectionCheck(auth) {
-                                isConnectionValid = it!=null
+                                isConnectionValid = it!=null && isValidTitle && isValidUrl && isValidDescription && isConnectionValid
                                 color = if(isConnectionValid) Color.Green else Color.Red
                             }
                         }, colors = ButtonDefaults.buttonColors(containerColor = color)
