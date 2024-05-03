@@ -78,6 +78,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.DropDown
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
+import de.domjos.cloudapp.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.ImageHelper
 import de.domjos.cloudapp.appbasics.helper.Validator
@@ -178,13 +179,17 @@ fun ContactScreen(
 
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     if(hasAuths) {
-                        contacts.forEach {
-                            ContactItem(contact = it, addressBooks, colorBackground, colorForeground, { c ->
-                                contact = c
-                                showBottomSheet = true
-                            }) { c->
-                                contact = c
-                                showDialog = true
+                        if(contacts.isEmpty()) {
+                            NoEntryItem(colorForeground = colorBackground, colorBackground = colorForeground)
+                        } else {
+                            contacts.forEach {
+                                ContactItem(contact = it, addressBooks, colorBackground, colorForeground, { c ->
+                                    contact = c
+                                    showBottomSheet = true
+                                }) { c->
+                                    contact = c
+                                    showDialog = true
+                                }
                             }
                         }
                     } else {
