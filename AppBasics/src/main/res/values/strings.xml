@@ -78,6 +78,8 @@
     <string name="login.url">URL</string>
     <string name="login.user">Username</string>
     <string name="login.pwd">Password</string>
+    <string name="login.pwd.show">Show Password</string>
+    <string name="login.pwd.hide">Hide Password</string>
     <string name="login.description">Description</string>
     <string name="login.close">Close</string>
     <string name="login.add">Add</string>

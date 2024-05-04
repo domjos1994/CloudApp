@@ -30,6 +30,8 @@ prefs = "1.0.0-beta01"
 uiTooling = "1.6.4"
 accompanist = "0.31.1-alpha"
 splash = "1.0.1"
+icons = "1.6.7"
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -73,6 +75,7 @@ androidx-preference = { group = "androidx.datastore", name = "datastore-preferen
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 splash-screen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash" }
+icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "icons" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

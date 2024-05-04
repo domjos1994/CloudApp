@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -46,7 +48,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -333,7 +337,9 @@ private fun EditDialog(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                val context = LocalContext.current
                 Row(modifier = Modifier.fillMaxWidth()) {
+                    var passwordVisible by remember { mutableStateOf(false) }
                     OutlinedTextField(
                         value = pwd,
                         onValueChange = {
@@ -341,14 +347,29 @@ private fun EditDialog(
                             isConnectionValid = false
                             color = Color.Red
                         },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         label = {Text(stringResource(id = R.string.login_pwd))},
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = {
+                            val image = if (passwordVisible)
+                                Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+
+                            // Please provide localized description for accessibility services
+                            val pwdDescr = if (passwordVisible) context.getString(R.string.login_pwd_hide) else context.getString(R.string.login_pwd_show)
+
+                            IconButton(onClick = {passwordVisible = !passwordVisible}){
+                                Icon(imageVector  = image, pwdDescr)
+                            }
+                        }
                     )
                 }
-                val context = LocalContext.current
-                Row(modifier = Modifier.fillMaxWidth().padding(top = 5.dp)) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp)) {
                     var showProgress by remember { mutableStateOf(false) }
-                    Button(modifier = Modifier.weight(18f).height(40.dp),
+                    Button(modifier = Modifier
+                        .weight(18f)
+                        .height(40.dp),
                         onClick = {
                             showProgress = true
                             val auth = Authentication(
@@ -368,7 +389,11 @@ private fun EditDialog(
                     }
 
                     if(showProgress) {
-                        Column(Modifier.weight(2f).padding(5.dp).height(40.dp),
+                        Column(
+                            Modifier
+                                .weight(2f)
+                                .padding(5.dp)
+                                .height(40.dp),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally) {
                             CircularProgressIndicator()

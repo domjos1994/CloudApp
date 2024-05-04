@@ -87,6 +87,7 @@ dependencies {
     implementation(libs.androidx.preference)
     implementation(libs.coil)
     implementation(libs.coil.svg)
+    implementation(libs.icons.extended)
 
     // compose
     implementation(libs.androidx.activity.compose)
