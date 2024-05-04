@@ -50,21 +50,27 @@ class AuthenticationViewModel @Inject constructor(
 
     fun checkConnection(authentication: Authentication, onSuccess: (Int, Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
-            if(authentication.url.trim().startsWith("http")) {
-                val user = authenticationRepository.checkConnection(authentication)
+            try {
+                if(authentication.url.trim().startsWith("http")) {
+                    val user = authenticationRepository.checkConnection(authentication)
 
-                if(user != null) {
-                    viewModelScope.launch(Dispatchers.Main) {
-                        onSuccess(R.string.login_check_success, true)
+                    if(user != null) {
+                        viewModelScope.launch(Dispatchers.Main) {
+                            onSuccess(R.string.login_check_success, true)
+                        }
+                    } else {
+                        viewModelScope.launch(Dispatchers.Main) {
+                            onSuccess(R.string.login_check_user, false)
+                        }
                     }
                 } else {
                     viewModelScope.launch(Dispatchers.Main) {
-                        onSuccess(R.string.login_check_user, false)
+                        onSuccess(R.string.login_check_url, false)
                     }
                 }
-            } else {
+            } catch (ex: Exception) {
                 viewModelScope.launch(Dispatchers.Main) {
-                    onSuccess(R.string.login_check_url, false)
+                    onSuccess(R.string.login_check_not_success, false)
                 }
             }
         }

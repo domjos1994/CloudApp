@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -345,9 +346,11 @@ private fun EditDialog(
                     )
                 }
                 val context = LocalContext.current
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Button(
+                Row(modifier = Modifier.fillMaxWidth().padding(top = 5.dp)) {
+                    var showProgress by remember { mutableStateOf(false) }
+                    Button(modifier = Modifier.weight(18f).height(40.dp),
                         onClick = {
+                            showProgress = true
                             val auth = Authentication(
                                 0L, title.text, url.text, user.text,
                                 pwd.text, false, "", null
@@ -357,10 +360,19 @@ private fun EditDialog(
                                 isConnectionValid = state && isValidTitle && isValidUrl && isValidDescription
                                 color = if(state) Color.Green else Color.Red
                                 Toast.makeText(context, context.getString(msg), Toast.LENGTH_LONG).show()
+                                showProgress = false
                             }
                         }, colors = ButtonDefaults.buttonColors(containerColor = color)
                     ) {
                         Text(stringResource(R.string.auth_test))
+                    }
+
+                    if(showProgress) {
+                        Column(Modifier.weight(2f).padding(5.dp).height(40.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
