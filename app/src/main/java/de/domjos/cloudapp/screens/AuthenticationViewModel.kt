@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
 import de.domjos.cloudapp.database.model.Authentication
-import de.domjos.cloudapp.webrtc.model.user.User
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import de.domjos.cloudapp.appbasics.R
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,12 +48,24 @@ class AuthenticationViewModel @Inject constructor(
         }
     }
 
-    fun checkConnection(authentication: Authentication, onSuccess: (user: User?) -> Unit) {
+    fun checkConnection(authentication: Authentication, onSuccess: (Int, Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             if(authentication.url.trim().startsWith("http")) {
-                onSuccess(authenticationRepository.checkConnection(authentication))
+                val user = authenticationRepository.checkConnection(authentication)
+
+                if(user != null) {
+                    viewModelScope.launch(Dispatchers.Main) {
+                        onSuccess(R.string.login_check_success, true)
+                    }
+                } else {
+                    viewModelScope.launch(Dispatchers.Main) {
+                        onSuccess(R.string.login_check_user, false)
+                    }
+                }
             } else {
-                onSuccess(null)
+                viewModelScope.launch(Dispatchers.Main) {
+                    onSuccess(R.string.login_check_url, false)
+                }
             }
         }
     }

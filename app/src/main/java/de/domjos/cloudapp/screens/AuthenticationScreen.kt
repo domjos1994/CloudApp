@@ -62,7 +62,6 @@ import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
-import de.domjos.cloudapp.webrtc.model.user.User
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @Composable
@@ -126,7 +125,7 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
 fun AuthenticationScreen(
     onSaveClick: (Authentication) -> Unit,
     onDeleteClick: (Authentication) -> Unit,
-    onConnectionCheck: (Authentication, onSuccess: (User?) -> Unit) -> Unit,
+    onConnectionCheck: (Authentication, onSuccess: (Int, Boolean) -> Unit) -> Unit,
     select: (Authentication) -> Unit,
     authentications: List<Authentication>, colorBackground: Color, colorForeground: Color) {
 
@@ -266,7 +265,7 @@ private fun EditDialog(
     setShowDialog: (Boolean) -> Unit,
     onSaveClick: (Authentication) -> Unit,
     onDeleteClick: (Authentication) -> Unit,
-    onConnectionCheck: (Authentication, onSuccess: (User?) -> Unit) -> Unit) {
+    onConnectionCheck: (Authentication, onSuccess: (Int, Boolean) -> Unit) -> Unit) {
 
     var id by remember { mutableLongStateOf(0L) }
     var title by remember { mutableStateOf(TextFieldValue("")) }
@@ -345,6 +344,7 @@ private fun EditDialog(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                val context = LocalContext.current
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Button(
                         onClick = {
@@ -353,9 +353,10 @@ private fun EditDialog(
                                 pwd.text, false, "", null
                             )
 
-                            onConnectionCheck(auth) {
-                                isConnectionValid = it!=null && isValidTitle && isValidUrl && isValidDescription
-                                color = if(isConnectionValid) Color.Green else Color.Red
+                            onConnectionCheck(auth) { msg:Int, state:Boolean ->
+                                isConnectionValid = state && isValidTitle && isValidUrl && isValidDescription
+                                color = if(state) Color.Green else Color.Red
+                                Toast.makeText(context, context.getString(msg), Toast.LENGTH_LONG).show()
                             }
                         }, colors = ButtonDefaults.buttonColors(containerColor = color)
                     ) {
