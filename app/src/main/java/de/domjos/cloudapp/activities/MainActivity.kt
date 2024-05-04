@@ -116,6 +116,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
 
         setContent {
+            var hasSpreed by remember { mutableStateOf(false) }
             val notificationsTab = TabBarItem(title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
             val dataTab = TabBarItem(title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
             val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
@@ -124,7 +125,7 @@ class MainActivity : ComponentActivity() {
             val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
 
             // creating a list of all the tabs
-            val tabBarItems = listOf(notificationsTab, dataTab, calendarsTab, contactsTab, roomTab)
+            val tabBarItems = mutableListOf(notificationsTab, dataTab, calendarsTab, contactsTab, roomTab)
             val authentications = stringResource(id = R.string.login_authentications)
             val settings = stringResource(id = R.string.settings)
             val permissions = stringResource(R.string.permissions)
@@ -162,7 +163,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Scaffold(bottomBar = { TabView(tabBarItems, navController, tabBarVisible) }, topBar = {
+
+                    Scaffold(bottomBar = { TabView(tabBarItems, navController, tabBarVisible, hasSpreed) }, topBar = {
                         if(isConnected) {
                             viewModel.getCapabilities({
                                 if(it != null) {
@@ -270,6 +272,7 @@ class MainActivity : ComponentActivity() {
                                                 icon = data.capabilities.theming.logo
                                                 authTitle = "(${data.capabilities.theming.url})"
                                                 hasAuthentications = viewModel.hasAuthentications()
+                                                hasSpreed = data.capabilities.spreed != null
                                             }
                                         }, auth)
                                     }
@@ -411,7 +414,7 @@ fun Menu(onExpanded: (Boolean) -> Unit, expanded: Boolean, onSettings: () -> Uni
 }
 
 @Composable
-fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>) {
+fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>, hasSpreed: Boolean) {
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -420,22 +423,24 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible
         NavigationBar {
             // looping over each tab to generate the views and navigation for each item
             tabBarItems.forEachIndexed { index, tabBarItem ->
-                NavigationBarItem(
-                    selected = selectedTabIndex == index,
-                    onClick = {
-                        selectedTabIndex = index
-                        navController.navigate(tabBarItem.title)
-                    },
-                    icon = {
-                        TabBarIconView(
-                            isSelected = selectedTabIndex == index,
-                            selectedIcon = tabBarItem.selectedIcon,
-                            unselectedIcon = tabBarItem.unselectedIcon,
-                            title = tabBarItem.title,
-                            badgeAmount = tabBarItem.badgeAmount
-                        )
-                    },
-                    label = {Text(tabBarItem.title)})
+                if((index == 4 && hasSpreed) || index != 4) {
+                    NavigationBarItem(
+                        selected = selectedTabIndex == index,
+                        onClick = {
+                            selectedTabIndex = index
+                            navController.navigate(tabBarItem.title)
+                        },
+                        icon = {
+                            TabBarIconView(
+                                isSelected = selectedTabIndex == index,
+                                selectedIcon = tabBarItem.selectedIcon,
+                                unselectedIcon = tabBarItem.unselectedIcon,
+                                title = tabBarItem.title,
+                                badgeAmount = tabBarItem.badgeAmount
+                            )
+                        },
+                        label = {Text(tabBarItem.title)})
+                }
             }
         }
     }
