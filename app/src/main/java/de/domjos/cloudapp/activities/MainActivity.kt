@@ -168,12 +168,13 @@ class MainActivity : ComponentActivity() {
                 val contactFlexPeriod: Long = (2 * viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
                 val calendarPeriod: Long = (viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
                 val calendarFlexPeriod: Long = (2 * viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
+                val ms = TimeUnit.MILLISECONDS
 
                 if(contactPeriod != 0L) {
                     val contactBuilder = PeriodicWorkRequest.Builder(
                         ContactWorker::class.java,
-                        contactPeriod, TimeUnit.MILLISECONDS,
-                        contactFlexPeriod, TimeUnit.MILLISECONDS
+                        contactPeriod, ms,
+                        contactFlexPeriod, ms
                     )
                     contactBuilder.build()
                 }
