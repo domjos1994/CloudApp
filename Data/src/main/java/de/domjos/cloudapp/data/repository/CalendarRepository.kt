@@ -80,7 +80,6 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String) {
-        this.calendarEventDAO.clearAll(authenticationDAO.getSelectedItem()!!.id)
         this.calendar.reloadCalendarEvents(updateProgress, progressLabel)
         val data = this.calendar.calendars
 
@@ -88,6 +87,19 @@ class DefaultCalendarRepository @Inject constructor(
             var progress = 0L
             val max = data[key]?.size!! / 100.0f
             data[key]?.forEach { event ->
+                val uid = event.uid
+                try {
+                    if(this.authenticationDAO.getSelectedItem() != null) {
+                        val id = this.authenticationDAO.getSelectedItem()!!.id
+                        val tmp = this.calendarEventDAO.getAll(id, uid)
+                        if(tmp != null) {
+                            event.eventId = tmp.eventId
+                            event.lastUpdatedEventPhone = tmp.lastUpdatedEventPhone
+                        }
+                        this.calendarEventDAO.clear(id, uid)
+                    }
+                } catch (_: Exception) {}
+
                 event.authId = authenticationDAO.getSelectedItem()!!.id
                 calendarEventDAO.insertCalendarEvent(event)
                 progress += 1L

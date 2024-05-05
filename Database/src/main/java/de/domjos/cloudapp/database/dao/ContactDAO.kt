@@ -20,6 +20,9 @@ interface ContactDAO {
     @Query("SELECT * FROM contacts WHERE authId=:authId")
     fun getAll(authId: Long): List<Contact>
 
+    @Query("SELECT * FROM contacts WHERE authId=:authId and uid=:uid")
+    fun getAll(authId: Long, uid: String): Contact?
+
     @Query("SELECT * FROM contacts WHERE authId=:authId")
     @Transaction
     fun getAllWithAddresses(authId: Long): List<ContactWithAddresses>
@@ -62,8 +65,8 @@ interface ContactDAO {
     @Delete
     fun deleteContact(contact: Contact)
 
-    @Query("DELETE FROM contacts")
-    fun deleteAllContacts()
+    @Query("DELETE FROM contacts WHERE uid=:uid")
+    fun deleteContact(uid: String)
 
     @Insert
     fun insertAddress(address: Address): Long
@@ -74,8 +77,8 @@ interface ContactDAO {
     @Delete
     fun deleteAddress(address: Address)
 
-    @Query("DELETE FROM addresses")
-    fun deleteAllAddresses()
+    @Query("DELETE FROM addresses where contactId=:uid")
+    fun deleteAddresses(uid: String)
 
     @Insert
     fun insertEmail(email: Email): Long
@@ -86,8 +89,8 @@ interface ContactDAO {
     @Delete
     fun deleteEmail(email: Email)
 
-    @Query("DELETE FROM emails")
-    fun deleteAllEmails()
+    @Query("DELETE FROM emails where contactId=:uid")
+    fun deleteEmails(uid: String)
 
     @Insert
     fun insertPhone(phone: Phone): Long
@@ -98,6 +101,6 @@ interface ContactDAO {
     @Delete
     fun deletePhone(phone: Phone)
 
-    @Query("DELETE FROM phones")
-    fun deleteAllPhones()
+    @Query("DELETE FROM phones where contactId=:uid")
+    fun deletePhones(uid: String)
 }

@@ -46,10 +46,6 @@ class DefaultContactRepository @Inject constructor(
     override fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit) {
         // delete all
         updateProgress(0.0f, "Delete")
-        contactDAO.deleteAllEmails()
-        contactDAO.deleteAllPhones()
-        contactDAO.deleteAllAddresses()
-        contactDAO.deleteAllContacts()
 
         val lst = this.loader.getAddressBooks()
         updateProgress(0.0f, "Insert")
@@ -61,6 +57,20 @@ class DefaultContactRepository @Inject constructor(
 
             contacts.forEach { contact ->
                 val uid = contact.uid
+                try {
+                    if(this.authenticationDAO.getSelectedItem() != null) {
+                        val tmp = this.contactDAO.getAll(this.authenticationDAO.getSelectedItem()!!.id, uid)
+                        if(tmp != null) {
+                            contact.contactId = tmp.contactId
+                            contact.lastUpdatedContactPhone = tmp.lastUpdatedContactPhone
+                        }
+                    }
+                    contactDAO.deleteAddresses(uid)
+                    contactDAO.deleteEmails(uid)
+                    contactDAO.deletePhones(uid)
+                    contactDAO.deleteContact(uid)
+                } catch (_: Exception) {}
+
                 contactDAO.insertContact(contact)
                 for(i in 0..<contact.addresses?.size!!) {
                     contact.addresses!![i].contactId = uid

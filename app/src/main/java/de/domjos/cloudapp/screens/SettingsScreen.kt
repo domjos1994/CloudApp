@@ -44,8 +44,22 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         false,
         {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
         true,
-        steps = 1, valueRepresentation = {"$it"},
-        valueRange = 1.0f.rangeTo(3600.0f)
+        steps = 1, valueRepresentation = {"$it min"},
+        valueRange = 1.0f.rangeTo(60.0f)
+    )
+    val cardavRegularityRequest = PreferenceRequest(
+        key = de.domjos.cloudapp.data.Settings.cardavRegularityKey,
+        defaultValue = 0.0f
+    )
+    val cardavRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
+        cardavRegularityRequest,
+        stringResource(id = R.string.settings_cardav_regularity_title),
+        stringResource(id = R.string.settings_cardav_regularity_header),
+        false,
+        {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
+        true,
+        steps = 1, valueRepresentation = {"$it min"},
+        valueRange = 1.0f.rangeTo(10.0f)
     )
 
     val calendarRegularityRequest = PreferenceRequest(
@@ -59,12 +73,26 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         false,
         {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
         true,
-        steps = 1, valueRepresentation = {"$it"},
-        valueRange = 1.0f.rangeTo(3600.0f)
+        steps = 1, valueRepresentation = {"$it min"},
+        valueRange = 1.0f.rangeTo(60.0f)
+    )
+    val caldavRegularityRequest = PreferenceRequest(
+        key = de.domjos.cloudapp.data.Settings.caldavRegularityKey,
+        defaultValue = 0.0f
+    )
+    val caldavRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
+        caldavRegularityRequest,
+        stringResource(id = R.string.settings_caldav_regularity_title),
+        stringResource(id = R.string.settings_caldav_regularity_header),
+        false,
+        {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
+        true,
+        steps = 1, valueRepresentation = {"$it min"},
+        valueRange = 0.0f.rangeTo(10.0f)
     )
 
-    val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference))
-    val calendarGroup = Preference.PreferenceGroup(stringResource(R.string.calendars), true, listOf(calendarRegularityPreference))
+    val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference, cardavRegularityPreference))
+    val calendarGroup = Preference.PreferenceGroup(stringResource(R.string.calendars), true, listOf(calendarRegularityPreference, caldavRegularityPreference))
 
     PreferenceScreen(
         items = listOf(timeSpanPreference, contactGroup, calendarGroup),

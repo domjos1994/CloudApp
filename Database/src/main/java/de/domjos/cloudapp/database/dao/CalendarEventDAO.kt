@@ -17,6 +17,9 @@ interface CalendarEventDAO {
     @Query("SELECT * FROM calendarEvents WHERE authId=:authId")
     fun getAll(authId: Long): Flow<List<CalendarEvent>>
 
+    @Query("SELECT * FROM calendarEvents WHERE authId=:authId and uid=:uid")
+    fun getAll(authId: Long, uid: String): CalendarEvent?
+
     @Query("SELECT count(uid) FROM calendarEvents WHERE `to`>:startTime and `from`<:endTime and authId=:authId order by `to`")
     fun count(startTime: Long, endTime: Long, authId: Long): Long
     @Query("SELECT * FROM calendarEvents WHERE `to`>:startTime and `from`<:endTime and authId=:authId order by `to`")
@@ -43,8 +46,8 @@ interface CalendarEventDAO {
     @Query("SELECT distinct calendar FROM calendarEvents")
     fun getCalendars(): Flow<List<String>>
 
-    @Query("DELETE FROM calendarEvents WHERE authId=:authId")
-    fun clearAll(authId: Long)
+    @Query("DELETE FROM calendarEvents WHERE authId=:authId and uid=:uid")
+    fun clear(authId: Long, uid: String)
 
     @Query("DELETE FROM calendarEvents WHERE calendar=:calendar")
     fun clearCalendar(calendar: String)

@@ -17,13 +17,17 @@ class Settings(private val context: Context) {
         val timeSpanKey = floatPreferencesKey("user_time_span")
         val contactRegularityKey = floatPreferencesKey("user_contact_regularity")
         val calendarRegularityKey = floatPreferencesKey("user_calendar_regularity")
+        val cardavRegularityKey = floatPreferencesKey("user_cardav_regularity")
+        val caldavRegularityKey = floatPreferencesKey("user_caldav_regularity")
 
         val firstStartKey = booleanPreferencesKey("first_start")
     }
 
     var timeSpan: Float = 20.0f
-    var contactRegularity: Float = 20.0f
-    var calendarRegularity: Float = 20.0f
+    var contactRegularity: Float = 1.0f
+    var calendarRegularity: Float = 1.0f
+    var caldavRegularity: Float = 0.0f
+    var cardavRegularity: Float = 0.0f
 
     suspend fun <T> getSetting(key: Preferences.Key<T>, default: T): T {
         val data = this.context.dataStore.data.first()
@@ -42,6 +46,8 @@ class Settings(private val context: Context) {
             preferences[timeSpanKey] = timeSpan
             preferences[contactRegularityKey] = contactRegularity
             preferences[calendarRegularityKey] = calendarRegularity
+            preferences[cardavRegularityKey] = cardavRegularity
+            preferences[caldavRegularityKey] = caldavRegularity
         }
     }
 

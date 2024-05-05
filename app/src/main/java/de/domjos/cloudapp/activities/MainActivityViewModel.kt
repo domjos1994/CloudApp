@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.activities
 
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,5 +42,22 @@ class MainActivityViewModel @Inject constructor(
             state.value = settings.getSetting(Settings.firstStartKey, true)
         }
         return state.value
+    }
+
+    fun getContactWorkerPeriod(): Float {
+        val state = mutableFloatStateOf(0.0f)
+        viewModelScope.launch {
+            state.floatValue = settings.getSetting(Settings.cardavRegularityKey, 0.0f)
+        }
+        return state.floatValue
+    }
+
+
+    fun getCalendarWorkerPeriod(): Float {
+        val state = mutableFloatStateOf(0.0f)
+        viewModelScope.launch {
+            state.floatValue = settings.getSetting(Settings.caldavRegularityKey, 0.0f)
+        }
+        return state.floatValue
     }
 }

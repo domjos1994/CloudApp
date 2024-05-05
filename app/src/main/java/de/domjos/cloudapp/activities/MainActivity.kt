@@ -75,6 +75,9 @@ import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.work.PeriodicWorkRequest
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
@@ -95,6 +98,9 @@ import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp.screens.PermissionScreen
+import de.domjos.cloudapp.worker.CalendarWorker
+import de.domjos.cloudapp.worker.ContactWorker
+import java.util.concurrent.TimeUnit
 
 
 data class TabBarItem(
@@ -156,6 +162,31 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(notificationsTab.title)
                 tabBarVisible.value = true
             }
+
+            try {
+                val contactPeriod: Long = (viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
+                val contactFlexPeriod: Long = (2 * viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
+                val calendarPeriod: Long = (viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
+                val calendarFlexPeriod: Long = (2 * viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
+
+                if(contactPeriod != 0L) {
+                    val contactBuilder = PeriodicWorkRequest.Builder(
+                        ContactWorker::class.java,
+                        contactPeriod, TimeUnit.MILLISECONDS,
+                        contactFlexPeriod, TimeUnit.MILLISECONDS
+                    )
+                    contactBuilder.build()
+                }
+
+                if(calendarPeriod != 0L) {
+                    val calendarBuilder = PeriodicWorkRequest.Builder(
+                        CalendarWorker::class.java,
+                        calendarPeriod, TimeUnit.MILLISECONDS,
+                        calendarFlexPeriod, TimeUnit.MILLISECONDS
+                    )
+                    calendarBuilder.build()
+                }
+            } catch (_: Exception) {}
 
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme

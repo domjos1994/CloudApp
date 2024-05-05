@@ -73,6 +73,7 @@ dependencies {
     implementation(project(":ContactFeature"))
     implementation(project(":DataFeature"))
     implementation(project(":NotificationFeature"))
+    implementation(libs.androidx.work.runtime.ktx)
 
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)
