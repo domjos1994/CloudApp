@@ -12,6 +12,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 
 open class BasicRequest(authentication: Authentication?, urlPart: String) {
@@ -28,6 +29,10 @@ open class BasicRequest(authentication: Authentication?, urlPart: String) {
         if(authentication!=null) {
             this.client = OkHttpClient.Builder()
                 .addInterceptor(BasicAuthInterceptor(authentication.userName, authentication.password))
+                .callTimeout(120L, TimeUnit.SECONDS)
+                .readTimeout(120L, TimeUnit.SECONDS)
+                .writeTimeout(300L, TimeUnit.SECONDS)
+                .connectTimeout(120L, TimeUnit.SECONDS)
                 .build()
             this.url = "${authentication.url}$urlPart"
         } else {

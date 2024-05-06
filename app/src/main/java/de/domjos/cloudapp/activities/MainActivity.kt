@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
@@ -260,6 +261,8 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
+                        } else if(refreshVisible && hasAuthentications) {
+                            Icon(Icons.Filled.CloudOff, import, tint = colorForeground)
                         }
                         IconButton(onClick = {
                             navController.navigate(authentications)
