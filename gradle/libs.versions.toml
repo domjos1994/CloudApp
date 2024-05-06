@@ -32,7 +32,7 @@ accompanist = "0.31.1-alpha"
 splash = "1.0.1"
 icons = "1.6.7"
 workRuntimeKtx = "2.9.0"
-
+glance = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -78,6 +78,8 @@ accompanist-permissions = { group = "com.google.accompanist", name = "accompanis
 splash-screen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splash" }
 icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "icons" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
+glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
+glance-material = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -2,4 +2,6 @@
     <string name="app_name">CloudApp</string>
 
     <string name="sys_account_type">com.android.cloudapp.datasync</string>
+
+    <string name="widget_news">News-Widget</string>
 </resources>
