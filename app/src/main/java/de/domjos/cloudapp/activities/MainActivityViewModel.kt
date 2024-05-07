@@ -1,7 +1,9 @@
 package de.domjos.cloudapp.activities
 
+import android.content.Context
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,6 +11,8 @@ import de.domjos.cloudapp.data.Settings
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.webrtc.model.capabilities.Data
+import de.domjos.cloudapp.widgets.AbstractWidget
+import de.domjos.cloudapp.widgets.NewsWidget
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,6 +26,16 @@ class MainActivityViewModel @Inject constructor(
     fun getCapabilities(onResult: (Data?) -> Unit, authentication: Authentication?) {
         viewModelScope.launch(Dispatchers.IO) {
             onResult(authenticationRepository.getCapabilities(authentication))
+        }
+    }
+
+    fun updateWidget(widget: AbstractWidget, context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(widget.javaClass)
+            glanceIds.forEach { glanceId ->
+                widget.update(context, glanceId)
+            }
         }
     }
 

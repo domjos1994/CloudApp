@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.hiltLibrary)
     alias(libs.plugins.kaptLibrary)
+    alias(libs.plugins.serializationLibrary)
 }
 
 android {
@@ -74,6 +75,7 @@ dependencies {
     implementation(project(":DataFeature"))
     implementation(project(":NotificationFeature"))
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)
@@ -103,6 +105,12 @@ dependencies {
 
     // splash
     implementation(libs.splash.screen)
+
+    // glance
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material)
+    implementation(libs.kotlin.serialization)
+    implementation(libs.kotlin.serialization.json)
 
     // hilt
     ksp(libs.hilt.android.compiler)

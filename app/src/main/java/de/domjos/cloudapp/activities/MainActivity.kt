@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
@@ -76,8 +77,6 @@ import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.work.PeriodicWorkRequest
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
@@ -98,6 +97,7 @@ import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp.screens.PermissionScreen
+import de.domjos.cloudapp.widgets.NewsWidget
 import de.domjos.cloudapp.worker.CalendarWorker
 import de.domjos.cloudapp.worker.ContactWorker
 import java.util.concurrent.TimeUnit
@@ -189,6 +189,10 @@ class MainActivity : ComponentActivity() {
                 }
             } catch (_: Exception) {}
 
+            try {
+                viewModel.updateWidget(NewsWidget(), context)
+            } catch (_: Exception) {}
+
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -258,6 +262,8 @@ class MainActivity : ComponentActivity() {
                                 )
                             }
 
+                        } else if(refreshVisible && hasAuthentications) {
+                            Icon(Icons.Filled.CloudOff, import, tint = colorForeground)
                         }
                         IconButton(onClick = {
                             navController.navigate(authentications)
