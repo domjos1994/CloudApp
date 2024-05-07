@@ -76,6 +76,7 @@ dependencies {
     implementation(project(":NotificationFeature"))
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.datastore.preferences.core.jvm)
 
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)

@@ -1,22 +1,27 @@
 package de.domjos.cloudapp.widgets
 
+import android.content.Intent
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
+import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -26,13 +31,14 @@ import androidx.glance.layout.wrapContentWidth
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import de.domjos.cloudapp.webrtc.model.notifications.Notification
 import de.domjos.cloudapp.R
+import de.domjos.cloudapp.database.model.contacts.Contact
 import de.domjos.cloudapp.receiver.AbstractWidgetReceiver
+import de.domjos.cloudapp.receiver.WidgetContact
 import kotlinx.serialization.json.Json
 
-class NewsWidget : AbstractWidget<Notification>() {
 
+class ContactsWidget : AbstractWidget<Contact>() {
     @Composable
     override fun Content() {
         val context = LocalContext.current
@@ -41,13 +47,13 @@ class NewsWidget : AbstractWidget<Notification>() {
         val itemList = if(deserializedList == "")
             emptyList()
         else
-            Json.decodeFromString<List<Notification>>(deserializedList)
+            Json.decodeFromString<List<WidgetContact>>(deserializedList)
 
         Column(
             modifier =
-                GlanceModifier
-                    .fillMaxSize()
-                    .background(GlanceTheme.colors.background),
+            GlanceModifier
+                .fillMaxSize()
+                .background(GlanceTheme.colors.background),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -56,39 +62,39 @@ class NewsWidget : AbstractWidget<Notification>() {
                 horizontalAlignment = Alignment.CenterHorizontally) {
 
                 Text(
-                    context.getString(R.string.widget_news),
+                    context.getString(R.string.widget_contacts),
                     style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 )
             }
 
             LazyColumn(GlanceModifier.fillMaxWidth().wrapContentHeight()) {
-                items(itemList) {
+                this.items(itemList) {
                     Row(
                         GlanceModifier.padding(5.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
-                    ) {
+                            .clickable {
+                                try {
+                                    val callIntent = Intent(Intent.ACTION_CALL)
+                                    callIntent.setData(Uri.parse("tel:${it.phone}"))
+                                    callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    context.startActivity(callIntent)
+                                } catch (ex: Exception) {
+                                    ex.printStackTrace()
+                                }
+                            }) {
                         Column(GlanceModifier.width(40.dp).height(40.dp).padding(5.dp)) {
-                            Image(getImageProvider(), it.icon)
+                            Image(getImageProvider(it), it.name)
                         }
                         Column(GlanceModifier.wrapContentWidth().wrapContentHeight()) {
                             Row(GlanceModifier.padding(1.dp)) {
-                                Text(
-                                    it.subject,
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                )
+                                Text(it.name, style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold))
                             }
                             Row(GlanceModifier.padding(1.dp)) {
-                                Text(
-                                    it.message,
-                                    style = TextStyle(
-                                        fontSize = 10.sp,
-                                        fontWeight = FontWeight.Normal
-                                    )
-                                )
+                                Text(it.phone, style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Normal))
+                            }
+                            Row(GlanceModifier.padding(1.dp)) {
+                                Text(it.addressBook, style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Normal))
                             }
                         }
                     }
@@ -97,8 +103,16 @@ class NewsWidget : AbstractWidget<Notification>() {
         }
     }
 
-
-    private fun getImageProvider(): ImageProvider {
-        return ImageProvider(R.drawable.icon)
+    private fun getImageProvider(contact: WidgetContact): ImageProvider {
+        return if(contact.photo != null) {
+            val bmp = BitmapFactory.decodeByteArray(contact.photo, 0, contact.photo.size)
+            if(bmp != null) {
+                ImageProvider(bmp)
+            } else {
+                ImageProvider(R.drawable.icon)
+            }
+        } else {
+            ImageProvider(R.drawable.icon)
+        }
     }
 }
