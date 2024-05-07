@@ -3,5 +3,6 @@
 
     <string name="sys_account_type">com.android.cloudapp.datasync</string>
 
-    <string name="widget_news">News-Widget</string>
+    <string name="widget_news">Top 3 News</string>
+    <string name="widget_contacts">Contacts-Widget</string>
 </resources>

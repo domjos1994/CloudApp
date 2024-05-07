@@ -118,4 +118,6 @@
     <string name="permissions_contacts_summary">To sync your Cloud-Contacts with your smartphone you need to grant Contact-Permissions!</string>
     <string name="permissions_calendar_title">Optional: Calendar</string>
     <string name="permissions_calendar_summary">To sync your Cloud-Calendars with your smartphone you need to grant Calendar-Permissions!</string>
+    <string name="permissions_phone_title">Optional: Phone</string>
+    <string name="permissions_phone_summary">To call contact from the widget you need to grant Phone-Permissions!</string>
 </resources>

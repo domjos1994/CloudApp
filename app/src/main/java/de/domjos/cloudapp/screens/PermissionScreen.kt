@@ -110,6 +110,11 @@ fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: (
                 stringResource(R.string.permissions_calendar_summary),
                 arrayOf(android.Manifest.permission.WRITE_CALENDAR, android.Manifest.permission.READ_CALENDAR)
             ) { addCalendarSync(account, viewModel.getCalendarRegularitySetting()) }
+            PermissionItem(
+                stringResource(R.string.permissions_phone_title),
+                stringResource(R.string.permissions_phone_summary),
+                arrayOf(android.Manifest.permission.CALL_PHONE)
+            ) { }
         }
         Row(
             Modifier
