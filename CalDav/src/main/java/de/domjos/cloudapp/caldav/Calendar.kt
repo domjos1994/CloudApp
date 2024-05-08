@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.caldav
 
+import android.util.Log
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
@@ -205,23 +206,31 @@ class Calendar(private val authentication: Authentication?) {
             var lastModified = 0L
 
             val components = calendar.components
-            if(components.size == 1) {
-                val component = components[0]
-                uid = readPropertyToString<Uid>(component)
-                title = readPropertyToString<Summary>(component)
-                description = readPropertyToString<Description>(component)
-                location = readPropertyToString<Location>(component)
-                categories = readPropertyToString<Categories>(component)
-                confirmation = readPropertyToString<Status>(component)
-                color = readPropertyToString<Color>(component)
-                lastModified = component.getProperty<LastModified>("LastModified").dateTime.time
+            components.forEach { component ->
+                if(component is VEvent) {
+                    uid = readPropertyToString<Uid>(component)
+                    title = readPropertyToString<Summary>(component)
+                    description = readPropertyToString<Description>(component)
+                    location = readPropertyToString<Location>(component)
+                    categories = readPropertyToString<Categories>(component)
+                    confirmation = readPropertyToString<Status>(component)
+                    color = readPropertyToString<Color>(component)
+                    lastModified = component.getProperty<LastModified>("LAST-MODIFIED").dateTime.time
 
-                from = net.fortuna.ical4j.model.Date(readPropertyToString<DtStart>(component)).time
-                to = net.fortuna.ical4j.model.Date(readPropertyToString<DtEnd>(component)).time
+                    try {
+                        from = net.fortuna.ical4j.model.Date(readPropertyToString<DtStart>(component)).time
+                        to = net.fortuna.ical4j.model.Date(readPropertyToString<DtEnd>(component)).time
+                    } catch (_: Exception) {
+                        from = net.fortuna.ical4j.model.DateTime(readPropertyToString<DtStart>(component)).time
+                        to = net.fortuna.ical4j.model.DateTime(readPropertyToString<DtEnd>(component)).time
+                    }
+                }
             }
 
             return CalendarEvent(0L, uid, from, to, title, location, description, confirmation, categories, color, name, "", -1L, lastModified, authentication?.id!!)
-        } catch (_: Exception) {}
+        } catch (ex: Exception) {
+            Log.e("error importing", ex.message, ex)
+        }
         return null
     }
 
