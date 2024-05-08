@@ -10,6 +10,8 @@
     <string name="settings_cloud_title">Cloud</string>
     <string name="settings_theme_cloud_title">Cloud-Theme</string>
     <string name="settings_theme_cloud_header">Show Theme from Cloud</string>
+    <string name="settings_theme_cloud_mobile_title">Cloud-Theme by mobile Data</string>
+    <string name="settings_theme_cloud_mobile_header">Show Theme from Cloud when no wlan is connected</string>
     <string name="settings_contact_regularity_title">Regularity of Contact-Synchronization</string>
     <string name="settings_contact_regularity_header">Regularity of Contact-Synchronization (in Minutes)!</string>
     <string name="settings_caldav_regularity_title">Regularity of Server-Synchronization</string>

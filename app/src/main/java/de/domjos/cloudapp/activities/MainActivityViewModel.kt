@@ -80,4 +80,10 @@ class MainActivityViewModel @Inject constructor(
             onGet(settings.getSetting(Settings.themeFromCloudKey, true))
         }
     }
+
+    fun getCloudThemeMobile(onGet: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            onGet(settings.getSetting(Settings.themeFromCloudMobileKey, true))
+        }
+    }
 }

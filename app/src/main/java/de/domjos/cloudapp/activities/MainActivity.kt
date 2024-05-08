@@ -83,8 +83,10 @@ import coil.request.ImageRequest
 import coil.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
+import de.domjos.cloudapp.appbasics.helper.ConnectionType
 import de.domjos.cloudapp.appbasics.helper.Notifications
 import de.domjos.cloudapp.appbasics.helper.connectivityState
+import de.domjos.cloudapp.appbasics.helper.connectivityType
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.screens.SettingsScreen
 import de.domjos.cloudapp.features.calendars.screens.CalendarScreen
@@ -155,7 +157,9 @@ class MainActivity : ComponentActivity() {
             var icon by remember { mutableStateOf("") }
             var authTitle by remember { mutableStateOf("") }
             val connection by connectivityState()
+            val connectionType by connectivityType()
             val isConnected = connection === ConnectionState.Available
+            val isWifi = connectionType === ConnectionType.Wifi
             var hasAuthentications by remember { mutableStateOf(viewModel.hasAuthentications()) }
             val toAuths = {navController.navigate(authentications)}
             val tabBarVisible = remember { mutableStateOf(true) }
@@ -165,22 +169,26 @@ class MainActivity : ComponentActivity() {
             }
             val updateTheme = {auth: Authentication? ->
                 viewModel.getCloudTheme {
-                    if(isConnected && it) {
-                        viewModel.getCapabilities({ data ->
-                            if(data != null) {
-                                colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
-                                colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
-                                icon = data.capabilities.theming.logo
-                                authTitle = "(${data.capabilities.theming.url})"
-                                hasAuthentications = viewModel.hasAuthentications()
-                                hasSpreed = data.capabilities.spreed != null
-                            }
-                        }, auth)
-                    } else if(isConnected) {
-                        colorBackground = tmpBackground
-                        colorForeground = tmpForeground
-                        icon = ""
-                        authTitle = ""
+                    viewModel.getCloudThemeMobile { mobile ->
+                        val isMobile = mobile || isWifi
+
+                        if(isConnected && it && isMobile) {
+                            viewModel.getCapabilities({ data ->
+                                if(data != null) {
+                                    colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
+                                    colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
+                                    icon = data.capabilities.theming.logo
+                                    authTitle = "(${data.capabilities.theming.url})"
+                                    hasAuthentications = viewModel.hasAuthentications()
+                                    hasSpreed = data.capabilities.spreed != null
+                                }
+                            }, auth)
+                        } else {
+                            colorBackground = tmpBackground
+                            colorForeground = tmpForeground
+                            icon = ""
+                            authTitle = ""
+                        }
                     }
                 }
             }

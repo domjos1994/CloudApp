@@ -36,6 +36,14 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         { Image(painterResource(R.drawable.baseline_design_services_24), stringResource(id = R.string.settings_theme_cloud_title))},
         true
     )
+    val cloudThemeMobilePreference = Preference.PreferenceItem.SwitchPreference(
+        createPreferenceRequest(de.domjos.cloudapp.data.Settings.themeFromCloudMobileKey, true),
+        stringResource(id = R.string.settings_theme_cloud_mobile_title),
+        stringResource(id = R.string.settings_theme_cloud_mobile_header),
+        false,
+        { Image(painterResource(R.drawable.baseline_signal_wifi_connected_no_internet_4_24), stringResource(id = R.string.settings_theme_cloud_mobile_title))},
+        true
+    )
 
 
     val contactRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
@@ -80,7 +88,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         valueRange = 0.0f.rangeTo(10.0f)
     )
 
-    val cloudGroup = Preference.PreferenceGroup(stringResource(id = R.string.settings_cloud_title), true, listOf(cloudThemePreference))
+    val cloudGroup = Preference.PreferenceGroup(stringResource(id = R.string.settings_cloud_title), true, listOf(cloudThemePreference, cloudThemeMobilePreference))
     val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference, cardavRegularityPreference))
     val calendarGroup = Preference.PreferenceGroup(stringResource(R.string.calendars), true, listOf(calendarRegularityPreference, caldavRegularityPreference))
 

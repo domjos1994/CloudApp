@@ -23,6 +23,7 @@ class Settings(private val context: Context) {
         val caldavRegularityKey = floatPreferencesKey("user_caldav_regularity")
 
         val themeFromCloudKey = booleanPreferencesKey("user_theme_from_cloud")
+        val themeFromCloudMobileKey = booleanPreferencesKey("user_theme_from_cloud_mobile")
 
         val firstStartKey = booleanPreferencesKey("first_start")
     }
@@ -33,6 +34,7 @@ class Settings(private val context: Context) {
     var caldavRegularity: Float = 0.0f
     var cardavRegularity: Float = 0.0f
     var themeFromCloud: Boolean = true
+    var themeFromCloudMobile: Boolean = true
 
     @Suppress("UNCHECKED_CAST")
     suspend fun <T> getSetting(key: Preferences.Key<T>, default: T): T {
@@ -55,6 +57,7 @@ class Settings(private val context: Context) {
             preferences[cardavRegularityKey] = cardavRegularity
             preferences[caldavRegularityKey] = caldavRegularity
             preferences[themeFromCloudKey] = themeFromCloud
+            preferences[themeFromCloudMobileKey] = themeFromCloudMobile
         }
     }
 
