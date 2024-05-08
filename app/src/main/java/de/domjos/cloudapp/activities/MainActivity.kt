@@ -85,6 +85,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.Notifications
 import de.domjos.cloudapp.appbasics.helper.connectivityState
+import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.screens.SettingsScreen
 import de.domjos.cloudapp.features.calendars.screens.CalendarScreen
 import de.domjos.cloudapp.features.calendars.screens.importCalendarAction
@@ -162,12 +163,34 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(notificationsTab.title)
                 tabBarVisible.value = true
             }
+            val updateTheme = {auth: Authentication? ->
+                viewModel.getCloudTheme {
+                    if(isConnected && it) {
+                        viewModel.getCapabilities({ data ->
+                            if(data != null) {
+                                colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
+                                colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
+                                icon = data.capabilities.theming.logo
+                                authTitle = "(${data.capabilities.theming.url})"
+                                hasAuthentications = viewModel.hasAuthentications()
+                                hasSpreed = data.capabilities.spreed != null
+                            }
+                        }, auth)
+                    } else if(isConnected) {
+                        colorBackground = tmpBackground
+                        colorForeground = tmpForeground
+                        icon = ""
+                        authTitle = ""
+                    }
+                }
+            }
+            updateTheme(null)
 
             try {
                 val contactPeriod: Long = (viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
                 val contactFlexPeriod: Long = (2 * viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
-                val calendarPeriod: Long = (viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
-                val calendarFlexPeriod: Long = (2 * viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
+                val calendarPeriod: Long = (viewModel.getCalendarWorkerPeriod() * 60 * 1000).toLong()
+                val calendarFlexPeriod: Long = (2 * viewModel.getCalendarWorkerPeriod() * 60 * 1000).toLong()
                 val ms = TimeUnit.MILLISECONDS
 
                 if(contactPeriod != 0L) {
@@ -200,19 +223,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    Scaffold(bottomBar = { TabView(tabBarItems, navController, tabBarVisible, hasSpreed) }, topBar = {
-                        if(isConnected) {
-                            viewModel.getCapabilities({
-                                if(it != null) {
-                                    colorBackground = Color(android.graphics.Color.parseColor(it.capabilities.theming.background))
-                                    colorForeground = Color(android.graphics.Color.parseColor(it.capabilities.theming.`color-text`))
-
-                                    icon = it.capabilities.theming.logo
-                                    authTitle = "(${it.capabilities.theming.url})"
-                                }
-                            }, null)
-                        }
-
+                    Scaffold(bottomBar = { TabView(tabBarItems, updateTheme, navController, tabBarVisible, hasSpreed) }, topBar = {
 
                         TopAppBar(
                             colors = TopAppBarDefaults.topAppBarColors(
@@ -294,6 +305,7 @@ class MainActivity : ComponentActivity() {
                         if(menuExpanded) {
                             Menu(
                                 {menuExpanded = it},
+                                updateTheme,
                                 true,
                                 {navController.navigate(settings)},
                                 {navController.navigate(permissions)})
@@ -301,20 +313,7 @@ class MainActivity : ComponentActivity() {
                     })}) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
-                                AuthenticationScreen(colorForeground = colorForeground, colorBackground = colorBackground) {auth ->
-                                    if(isConnected) {
-                                        viewModel.getCapabilities({ data ->
-                                            if(data != null) {
-                                                colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
-                                                colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
-                                                icon = data.capabilities.theming.logo
-                                                authTitle = "(${data.capabilities.theming.url})"
-                                                hasAuthentications = viewModel.hasAuthentications()
-                                                hasSpreed = data.capabilities.spreed != null
-                                            }
-                                        }, auth)
-                                    }
-                                }
+                                AuthenticationScreen(colorForeground = colorForeground, colorBackground = colorBackground, onSelectedChange = updateTheme)
                                 title = authentications
                                 header = authentications
                                 refreshVisible = false
@@ -444,15 +443,20 @@ fun ProgressDialog(onShowDialog: (Boolean) -> Unit, currentText: String, current
 }
 
 @Composable
-fun Menu(onExpanded: (Boolean) -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit) {
+fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
-        DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = { onSettings() })
-        DropdownMenuItem(text = { Text(stringResource(R.string.permissions)) }, onClick = { onPermissions() })
+        DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = {
+            updateTheme(null)
+            onSettings() })
+        DropdownMenuItem(text = { Text(stringResource(R.string.permissions)) }, onClick = {
+            updateTheme(null)
+            onPermissions()
+        })
     }
 }
 
 @Composable
-fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>, hasSpreed: Boolean) {
+fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Unit, navController: NavController, visible: MutableState<Boolean>, hasSpreed: Boolean) {
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -465,6 +469,7 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible
                     NavigationBarItem(
                         selected = selectedTabIndex == index,
                         onClick = {
+                            updateTheme(null)
                             selectedTabIndex = index
                             navController.navigate(tabBarItem.title)
                         },

@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.datastore.preferences.core.Preferences
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.domjos.cloudapp.appbasics.R
 import de.schnettler.datastore.compose.material3.PreferenceScreen
@@ -16,12 +17,8 @@ import de.schnettler.datastore.manager.PreferenceRequest
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
-    val timeSpanRequest = PreferenceRequest(
-        key = de.domjos.cloudapp.data.Settings.timeSpanKey,
-        defaultValue = 20.0f
-    )
     val timeSpanPreference = Preference.PreferenceItem.SeekBarPreference(
-        timeSpanRequest,
+        createPreferenceRequest(de.domjos.cloudapp.data.Settings.timeSpanKey, 20.0f),
         stringResource(id = R.string.settings_timeSpan_title),
         stringResource(id = R.string.settings_timeSpan_header),
         false,
@@ -31,14 +28,18 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         valueRange = 1.0f.rangeTo(200.0f)
     )
 
-
-
-    val contactRegularityRequest = PreferenceRequest(
-        key = de.domjos.cloudapp.data.Settings.contactRegularityKey,
-        defaultValue = 1.0f
+    val cloudThemePreference = Preference.PreferenceItem.SwitchPreference(
+        createPreferenceRequest(de.domjos.cloudapp.data.Settings.themeFromCloudKey, true),
+        stringResource(id = R.string.settings_theme_cloud_title),
+        stringResource(id = R.string.settings_theme_cloud_header),
+        false,
+        { Image(painterResource(R.drawable.baseline_design_services_24), stringResource(id = R.string.settings_theme_cloud_title))},
+        true
     )
+
+
     val contactRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
-        contactRegularityRequest,
+        createPreferenceRequest(de.domjos.cloudapp.data.Settings.contactRegularityKey, 1.0f),
         stringResource(id = R.string.settings_contact_regularity_title),
         stringResource(id = R.string.settings_contact_regularity_header),
         false,
@@ -47,12 +48,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         steps = 1, valueRepresentation = {"$it min"},
         valueRange = 1.0f.rangeTo(60.0f)
     )
-    val cardavRegularityRequest = PreferenceRequest(
-        key = de.domjos.cloudapp.data.Settings.cardavRegularityKey,
-        defaultValue = 0.0f
-    )
     val cardavRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
-        cardavRegularityRequest,
+        createPreferenceRequest(de.domjos.cloudapp.data.Settings.cardavRegularityKey, 0.0f),
         stringResource(id = R.string.settings_cardav_regularity_title),
         stringResource(id = R.string.settings_cardav_regularity_header),
         false,
@@ -62,12 +59,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         valueRange = 1.0f.rangeTo(10.0f)
     )
 
-    val calendarRegularityRequest = PreferenceRequest(
-        key = de.domjos.cloudapp.data.Settings.calendarRegularityKey,
-        defaultValue = 1.0f
-    )
     val calendarRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
-        calendarRegularityRequest,
+        createPreferenceRequest(de.domjos.cloudapp.data.Settings.calendarRegularityKey, 1.0f),
         stringResource(id = R.string.settings_calendar_regularity_title),
         stringResource(id = R.string.settings_calendar_regularity_header),
         false,
@@ -76,12 +69,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         steps = 1, valueRepresentation = {"$it min"},
         valueRange = 1.0f.rangeTo(60.0f)
     )
-    val caldavRegularityRequest = PreferenceRequest(
-        key = de.domjos.cloudapp.data.Settings.caldavRegularityKey,
-        defaultValue = 0.0f
-    )
     val caldavRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
-        caldavRegularityRequest,
+        createPreferenceRequest(de.domjos.cloudapp.data.Settings.caldavRegularityKey, 0.0f),
         stringResource(id = R.string.settings_caldav_regularity_title),
         stringResource(id = R.string.settings_caldav_regularity_header),
         false,
@@ -91,12 +80,17 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         valueRange = 0.0f.rangeTo(10.0f)
     )
 
+    val cloudGroup = Preference.PreferenceGroup(stringResource(id = R.string.settings_cloud_title), true, listOf(cloudThemePreference))
     val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference, cardavRegularityPreference))
     val calendarGroup = Preference.PreferenceGroup(stringResource(R.string.calendars), true, listOf(calendarRegularityPreference, caldavRegularityPreference))
 
     PreferenceScreen(
-        items = listOf(timeSpanPreference, contactGroup, calendarGroup),
+        items = listOf(timeSpanPreference, cloudGroup, contactGroup, calendarGroup),
         dataStore = viewModel.init(),
         statusBarPadding = true
     )
+}
+
+fun <T> createPreferenceRequest(key: Preferences.Key<T>, default: T): PreferenceRequest<T> {
+    return PreferenceRequest(key, default)
 }

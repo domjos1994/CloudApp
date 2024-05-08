@@ -2,6 +2,7 @@ package de.domjos.cloudapp.activities
 
 import android.content.Context
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -72,5 +73,11 @@ class MainActivityViewModel @Inject constructor(
             state.floatValue = settings.getSetting(Settings.caldavRegularityKey, 0.0f)
         }
         return state.floatValue
+    }
+
+    fun getCloudTheme(onGet: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            onGet(settings.getSetting(Settings.themeFromCloudKey, true))
+        }
     }
 }

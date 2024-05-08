@@ -15,10 +15,14 @@ class Settings(private val context: Context) {
 
     companion object {
         val timeSpanKey = floatPreferencesKey("user_time_span")
+
         val contactRegularityKey = floatPreferencesKey("user_contact_regularity")
         val calendarRegularityKey = floatPreferencesKey("user_calendar_regularity")
+
         val cardavRegularityKey = floatPreferencesKey("user_cardav_regularity")
         val caldavRegularityKey = floatPreferencesKey("user_caldav_regularity")
+
+        val themeFromCloudKey = booleanPreferencesKey("user_theme_from_cloud")
 
         val firstStartKey = booleanPreferencesKey("first_start")
     }
@@ -28,7 +32,9 @@ class Settings(private val context: Context) {
     var calendarRegularity: Float = 1.0f
     var caldavRegularity: Float = 0.0f
     var cardavRegularity: Float = 0.0f
+    var themeFromCloud: Boolean = true
 
+    @Suppress("UNCHECKED_CAST")
     suspend fun <T> getSetting(key: Preferences.Key<T>, default: T): T {
         val data = this.context.dataStore.data.first()
         val res = data[key] as T
@@ -48,6 +54,7 @@ class Settings(private val context: Context) {
             preferences[calendarRegularityKey] = calendarRegularity
             preferences[cardavRegularityKey] = cardavRegularity
             preferences[caldavRegularityKey] = caldavRegularity
+            preferences[themeFromCloudKey] = themeFromCloud
         }
     }
 
