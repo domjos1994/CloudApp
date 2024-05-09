@@ -9,6 +9,7 @@ import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.background
@@ -28,6 +29,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.domjos.cloudapp.webrtc.model.notifications.Notification
 import de.domjos.cloudapp.R
+import de.domjos.cloudapp.appbasics.helper.execCatch
+import de.domjos.cloudapp.appbasics.helper.openUrl
 import de.domjos.cloudapp.receiver.AbstractWidgetReceiver
 import kotlinx.serialization.json.Json
 
@@ -67,6 +70,9 @@ class NewsWidget : AbstractWidget<Notification>() {
                         GlanceModifier.padding(5.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
+                            .clickable {
+                                execCatch({ openUrl(context, it.link) }, context)
+                            }
                     ) {
                         Column(GlanceModifier.width(40.dp).height(40.dp).padding(5.dp)) {
                             Image(getImageProvider(), it.icon)

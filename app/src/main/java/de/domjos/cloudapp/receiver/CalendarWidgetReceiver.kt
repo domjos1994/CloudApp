@@ -36,7 +36,7 @@ class CalendarWidgetReceiver : AbstractWidgetReceiver(CalendarWidget()) {
             val events = mutableListOf<Event>()
             calendarRepository.getCalendars().forEach { calendar ->
                 calendarRepository.loadData(calendar, tsStart, tsEnd).forEach { event ->
-                    events.add(Event(event.title, event.description, event.location, event.calendar, event.from, event.to))
+                    events.add(Event(event.title, event.description, event.location, event.calendar, event.from, event.to, event.eventId))
                 }
             }
 
@@ -56,4 +56,4 @@ class CalendarWidgetReceiver : AbstractWidgetReceiver(CalendarWidget()) {
 }
 
 @Serializable
-data class Event(val title: String, val description: String, val location: String, val calendar: String, val start: Long, val end: Long)
+data class Event(val title: String, val description: String, val location: String, val calendar: String, val start: Long, val end: Long, val uid: String)

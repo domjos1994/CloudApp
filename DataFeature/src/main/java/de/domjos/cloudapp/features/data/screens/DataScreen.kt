@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -55,6 +56,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
@@ -78,12 +80,24 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
 
     val connection by connectivityState()
     val isConnected = connection === ConnectionState.Available
+    val context = LocalContext.current
 
     if(isConnected) {
         viewModel.init()
     }
 
-    val context = LocalContext.current
+    viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
+        msg?.let {
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            viewModel.message.value = null
+        }
+    }
+    viewModel.resId.observe(LocalLifecycleOwner.current) { res ->
+        res?.let {
+            Toast.makeText(context, res, Toast.LENGTH_LONG).show()
+            viewModel.resId.value = null
+        }
+    }
 
     DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
         {item: Item -> execCatchItem<Item?>({

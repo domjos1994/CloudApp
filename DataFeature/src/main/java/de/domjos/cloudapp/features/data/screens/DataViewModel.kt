@@ -1,7 +1,8 @@
 package de.domjos.cloudapp.features.data.screens
 
 import android.content.Context
-import android.widget.Toast
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import javax.inject.Inject
+import de.domjos.cloudapp.appbasics.R
 
 @HiltViewModel
 class DataViewModel @Inject constructor(
@@ -22,28 +24,45 @@ class DataViewModel @Inject constructor(
     private val _items = MutableStateFlow(listOf<Item>())
     val items: StateFlow<List<Item>> get() = _items
     val path: StateFlow<String> get() = _path
+    var message = MutableLiveData<String?>()
+    var resId = MutableLiveData<Int>()
 
     fun init() {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.init()
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.init()
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 
     fun openFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.openFolder(item)
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.openFolder(item)
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 
     fun back() {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.back()
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.back()
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 
@@ -56,63 +75,100 @@ class DataViewModel @Inject constructor(
                 }
                 dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
             } catch (ex: Exception) {
-                launch(Dispatchers.Main) {
-                    Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-                }
+                message.postValue(ex.message)
+                Log.e("Data-Feature-Error", ex.message, ex)
             }
         }
     }
 
     fun exists(item: Item): Boolean {
-        return dataRepository.exists(item)
+        return try {
+            dataRepository.exists(item)
+        } catch (ex: Exception) {
+            message.postValue(ex.message)
+            Log.e("Data-Feature-Error", ex.message, ex)
+            false
+        }
     }
 
     fun hasFolderToMove(): Boolean {
-        return dataRepository.hasFolderToMove()
+        return try {
+            dataRepository.hasFolderToMove()
+        } catch (ex: Exception) {
+            message.postValue(ex.message)
+            Log.e("Data-Feature-Error", ex.message, ex)
+            false
+        }
     }
 
     fun setFolderToMove(item: Item) {
-        this.dataRepository.setToMove(item)
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.reload()
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.setToMove(item)
+                dataRepository.reload()
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                resId.postValue(R.string.data_element_cut_error)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 
     fun moveFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.move(item)
-            dataRepository.reload()
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.move(item)
+                dataRepository.reload()
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                resId.postValue(R.string.data_element_cut_error)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 
     fun createFolder(name: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.createFolder(name)
-            dataRepository.reload()
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.createFolder(name)
+                dataRepository.reload()
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                resId.postValue(R.string.data_element_add_error)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 
+
     fun deleteFolder(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.delete(item)
-            dataRepository.reload()
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.delete(item)
+                dataRepository.reload()
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                resId.postValue(R.string.data_element_delete_error)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 
     fun createFile(name: String, stream: InputStream) {
         viewModelScope.launch(Dispatchers.IO) {
-            dataRepository.createFile(name, stream)
-            dataRepository.reload()
-            _items.value = dataRepository.getList()
-            _path.value = dataRepository.path
+            try {
+                dataRepository.createFile(name, stream)
+                dataRepository.reload()
+                _items.value = dataRepository.getList()
+                _path.value = dataRepository.path
+            } catch (ex: Exception) {
+                resId.postValue(R.string.data_element_add_error)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 

@@ -32,6 +32,9 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.domjos.cloudapp.R
+import de.domjos.cloudapp.appbasics.helper.execCatch
+import de.domjos.cloudapp.appbasics.helper.openPhone
+import de.domjos.cloudapp.appbasics.helper.openUrl
 import de.domjos.cloudapp.database.model.contacts.Contact
 import de.domjos.cloudapp.receiver.AbstractWidgetReceiver
 import de.domjos.cloudapp.receiver.WidgetContact
@@ -74,14 +77,7 @@ class ContactsWidget : AbstractWidget<Contact>() {
                             .fillMaxWidth()
                             .wrapContentHeight()
                             .clickable {
-                                try {
-                                    val callIntent = Intent(Intent.ACTION_CALL)
-                                    callIntent.setData(Uri.parse("tel:${it.phone}"))
-                                    callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    context.startActivity(callIntent)
-                                } catch (ex: Exception) {
-                                    ex.printStackTrace()
-                                }
+                                execCatch({ openPhone(context, it.phone) }, context)
                             }) {
                         Column(GlanceModifier.width(40.dp).height(40.dp).padding(5.dp)) {
                             Image(getImageProvider(it), it.name)
