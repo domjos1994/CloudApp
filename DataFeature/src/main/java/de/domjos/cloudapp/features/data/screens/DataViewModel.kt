@@ -101,6 +101,10 @@ class DataViewModel @Inject constructor(
         }
     }
 
+    fun getFolderToMove(): String {
+        return dataRepository.getFolderToMove()
+    }
+
     fun setFolderToMove(item: Item) {
         viewModelScope.launch(Dispatchers.IO) {
             try {

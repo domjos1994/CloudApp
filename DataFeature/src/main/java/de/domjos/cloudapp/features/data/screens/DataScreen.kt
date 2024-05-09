@@ -56,7 +56,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
@@ -121,13 +120,13 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
                 Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
             }
         }, item, context)},
-        { execCatch<String?>({viewModel.path.value}, context)!!},
-        { item: Item -> execCatchItem<Item?, Boolean?>({viewModel.exists(it!!)}, item, context)!! },
-        { item: Item -> execCatchItem<Item?>({viewModel.deleteFolder(it!!)}, item, context)},
-        { data: String -> execCatchItem<String?>({viewModel.createFolder(it!!)}, data, context)},
-        { item: Item -> execCatchItem({viewModel.setFolderToMove(it)}, item, context)},
-        { item: Item -> execCatchItem<Item?>({viewModel.moveFolder(it!!)}, item, context)},
-        { execCatch<Boolean>({viewModel.hasFolderToMove()}, context)!! })
+        { viewModel.path.value},
+        { item: Item -> viewModel.exists(item) },
+        { item: Item -> viewModel.deleteFolder(item)},
+        { data: String -> viewModel.createFolder(data)},
+        { item: Item -> viewModel.setFolderToMove(item)},
+        { item: Item -> viewModel.moveFolder(item)},
+        {viewModel.hasFolderToMove()}, {viewModel.getFolderToMove()})
     {name, stream ->
         showDialog = true
         viewModel.createFile(name, stream) { showDialog = false }
@@ -135,7 +134,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
 }
 
 @Composable
-fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, uploadFile: (String, InputStream) -> Unit) {
+fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String, uploadFile: (String, InputStream) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -160,7 +159,7 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
                 .verticalScroll(rememberScrollState())) {
                 if(hasAuths) {
                     if(isConnected) {
-                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, onExists, onDelete, onSetCutElement, onMoveFolder, hasCutElement) }
+                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, onExists, onDelete, onSetCutElement, onMoveFolder, hasCutElement, getCutElement) }
                     } else {
                         NoInternetItem(colorForeground, colorBackground)
                     }
@@ -277,7 +276,7 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
 }
 
 @Composable
-fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean) {
+fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -329,11 +328,13 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
             if(item.name != "..") {
                 IconButton(onClick = { onSetCutElement(item) },
                     colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
-                    Icon(
-                        painterResource(R.drawable.baseline_content_cut_24),
-                        stringResource(R.string.data_folder_cut),
-                        tint = colorForeground
-                    )
+                    if(getCutElement() != item.path) {
+                        Icon(
+                            painterResource(R.drawable.baseline_content_cut_24),
+                            stringResource(R.string.data_folder_cut),
+                            tint = colorForeground
+                        )
+                    }
                 }
             }
         }
@@ -343,7 +344,7 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            if(item.name != "..") {
+            if(item.name != ".." && hasCutElement()) {
                 IconButton(onClick = { onMoveFolder(item) }, enabled = hasCutElement(),
                     colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
                     Icon(
@@ -463,7 +464,8 @@ fun DataScreenPreview() {
             onCreateFolder = {},
             onSetCutElement = {},
             onMoveFolder = {},
-            hasCutElement = {true}) { _, _->}
+            hasCutElement = {true},
+            getCutElement = {""}) { _, _->}
     }
 }
 
@@ -472,7 +474,7 @@ fun DataScreenPreview() {
 fun DataItemPreview() {
     DataItem(fake(1L),
         Color.Blue,
-        Color.White, {}, {true}, {}, {}, {}) {true}
+        Color.White, {}, {true}, {}, {}, {}, {true}) {""}
 }
 
 @Preview(showBackground = true)

@@ -24,6 +24,7 @@ interface DataRepository {
     fun openFolder(item: Item)
     fun reload()
     fun hasFolderToMove(): Boolean
+    fun getFolderToMove(): String
     fun setToMove(item: Item)
     fun move(item: Item)
     fun createFolder(name: String)
@@ -78,6 +79,10 @@ class DefaultDataRepository @Inject constructor(
 
     override fun hasFolderToMove(): Boolean {
         return source != null
+    }
+
+    override fun getFolderToMove(): String {
+        return source?.path ?: ""
     }
 
     override fun setToMove(item: Item) {
