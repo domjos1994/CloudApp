@@ -61,7 +61,7 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                             cursor.close()
                         }
                     } catch (ex: Exception) {
-                        ex.printStackTrace()
+                        Log.e("Sync-Adapter", ex.message, ex)
                     }
 
                     try {
@@ -69,10 +69,16 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                             put(CalendarContract.Events.DTSTART, event.from)
                             put(CalendarContract.Events.DTEND, event.to)
                             put(CalendarContract.Events.TITLE, event.title)
-                            put(CalendarContract.Events.DESCRIPTION, event.description)
+                            if(event.description != "") {
+                                put(CalendarContract.Events.DESCRIPTION, event.description)
+                            }
                             put(CalendarContract.Events.CALENDAR_ID, cid)
-                            put(CalendarContract.Events.EVENT_LOCATION, event.location)
-                            put(CalendarContract.Events.EVENT_COLOR, event.color)
+                            if(event.location != "") {
+                                put(CalendarContract.Events.EVENT_LOCATION, event.location)
+                            }
+                            if(event.color != "") {
+                                put(CalendarContract.Events.EVENT_COLOR, event.color)
+                            }
                         }
                         if(eventId == -1L) {
                             val uri = this.contentResolver.insert(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values)
@@ -83,7 +89,9 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                             this.contentResolver.update(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values, selection, selectionArgs)
                         }
                         db.calendarEventDao().updateEventSync("$eventId", Date().time, event.id)
-                    } catch (_: Exception) {}
+                    } catch (ex: Exception) {
+                        Log.e("Sync-Adapter", ex.message, ex)
+                    }
                 }
             }
         }
