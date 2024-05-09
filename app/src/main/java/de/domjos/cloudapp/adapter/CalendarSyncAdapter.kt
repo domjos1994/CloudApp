@@ -65,30 +65,34 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                     }
 
                     try {
-                        val values = ContentValues().apply {
-                            put(CalendarContract.Events.DTSTART, event.from)
-                            put(CalendarContract.Events.DTEND, event.to)
-                            put(CalendarContract.Events.TITLE, event.title)
-                            if(event.description != "") {
-                                put(CalendarContract.Events.DESCRIPTION, event.description)
+                        if(event.from > 0L && event.to > 0L && event.title != "") {
+                            val values = ContentValues().apply {
+                                put(CalendarContract.Events.DTSTART, event.from)
+                                put(CalendarContract.Events.DTEND, event.to)
+                                put(CalendarContract.Events.TITLE, event.title)
+
+                                if(event.description != "") {
+                                    put(CalendarContract.Events.DESCRIPTION, event.description)
+                                }
+                                put(CalendarContract.Events.CALENDAR_ID, cid)
+                                if(event.location != "") {
+                                    put(CalendarContract.Events.EVENT_LOCATION, event.location)
+                                }
+                                if(event.color != "") {
+                                    put(CalendarContract.Events.EVENT_COLOR, event.color)
+                                }
                             }
-                            put(CalendarContract.Events.CALENDAR_ID, cid)
-                            if(event.location != "") {
-                                put(CalendarContract.Events.EVENT_LOCATION, event.location)
+
+                            if(eventId == -1L) {
+                                val uri = this.contentResolver.insert(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values)
+                                eventId = ContentUris.parseId(uri!!)
+                            } else {
+                                val selection = "${CalendarContract.Events.CALENDAR_ID}=? AND ${CalendarContract.Events._ID}=?"
+                                val selectionArgs = arrayOf("$cid", event.eventId)
+                                this.contentResolver.update(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values, selection, selectionArgs)
                             }
-                            if(event.color != "") {
-                                put(CalendarContract.Events.EVENT_COLOR, event.color)
-                            }
+                            db.calendarEventDao().updateEventSync("$eventId", Date().time, event.id)
                         }
-                        if(eventId == -1L) {
-                            val uri = this.contentResolver.insert(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values)
-                            eventId = ContentUris.parseId(uri!!)
-                        } else {
-                            val selection = "${CalendarContract.Events.CALENDAR_ID}=? AND ${CalendarContract.Events._ID}=?"
-                            val selectionArgs = arrayOf("$cid", event.eventId)
-                            this.contentResolver.update(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values, selection, selectionArgs)
-                        }
-                        db.calendarEventDao().updateEventSync("$eventId", Date().time, event.id)
                     } catch (ex: Exception) {
                         Log.e("Sync-Adapter", ex.message, ex)
                     }
