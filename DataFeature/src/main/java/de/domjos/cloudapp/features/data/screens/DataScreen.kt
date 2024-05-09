@@ -62,6 +62,7 @@ import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
+import de.domjos.cloudapp.appbasics.helper.LoadingDialog
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
@@ -81,6 +82,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     val connection by connectivityState()
     val isConnected = connection === ConnectionState.Available
     val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
 
     if(isConnected) {
         viewModel.init()
@@ -97,6 +99,10 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
             Toast.makeText(context, res, Toast.LENGTH_LONG).show()
             viewModel.resId.value = null
         }
+    }
+
+    if(showDialog) {
+        LoadingDialog { showDialog = it }
     }
 
     DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
@@ -122,7 +128,10 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
         { item: Item -> execCatchItem({viewModel.setFolderToMove(it)}, item, context)},
         { item: Item -> execCatchItem<Item?>({viewModel.moveFolder(it!!)}, item, context)},
         { execCatch<Boolean>({viewModel.hasFolderToMove()}, context)!! })
-    {name, stream -> viewModel.createFile(name, stream)}
+    {name, stream ->
+        showDialog = true
+        viewModel.createFile(name, stream) { showDialog = false }
+    }
 }
 
 @Composable

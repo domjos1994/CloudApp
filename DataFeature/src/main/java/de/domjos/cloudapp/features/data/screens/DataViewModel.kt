@@ -158,13 +158,14 @@ class DataViewModel @Inject constructor(
         }
     }
 
-    fun createFile(name: String, stream: InputStream) {
+    fun createFile(name: String, stream: InputStream, onFinish: () -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataRepository.createFile(name, stream)
                 dataRepository.reload()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
+                onFinish()
             } catch (ex: Exception) {
                 resId.postValue(R.string.data_element_add_error)
                 Log.e("Data-Feature-Error", ex.message, ex)
