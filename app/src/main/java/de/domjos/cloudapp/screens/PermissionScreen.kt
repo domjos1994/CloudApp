@@ -45,6 +45,7 @@ import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import de.domjos.cloudapp.appbasics.helper.hasPermission
 import de.domjos.cloudapp.services.AuthenticatorService
 
 @Composable
@@ -96,20 +97,20 @@ fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: (
                     stringResource(R.string.permissions_notifications_title),
                     stringResource(R.string.permissions_notifications_summary),
                     arrayOf(android.Manifest.permission.POST_NOTIFICATIONS)
-                ) { createNotificationChannel(context) }
+                ) { viewModel.createNotificationChannel(context) }
             } else {
-                createNotificationChannel(context)
+                viewModel.createNotificationChannel(context)
             }
             PermissionItem(
                 stringResource(R.string.permissions_contacts_title),
                 stringResource(R.string.permissions_contacts_summary),
                 arrayOf(android.Manifest.permission.WRITE_CONTACTS)
-            ) { addContactSync(account, viewModel.getContactRegularitySetting()) }
+            ) { viewModel.addContactSync(account, viewModel.getContactRegularitySetting()) }
             PermissionItem(
                 stringResource(R.string.permissions_calendar_title),
                 stringResource(R.string.permissions_calendar_summary),
                 arrayOf(android.Manifest.permission.WRITE_CALENDAR, android.Manifest.permission.READ_CALENDAR)
-            ) { addCalendarSync(account, viewModel.getCalendarRegularitySetting()) }
+            ) { viewModel.addCalendarSync(account, viewModel.getCalendarRegularitySetting()) }
             PermissionItem(
                 stringResource(R.string.permissions_phone_title),
                 stringResource(R.string.permissions_phone_summary),
@@ -151,7 +152,7 @@ fun PermissionItem(title: String, description: String, permissions: Array<String
     }
 
     permissions.forEach {
-        if(ContextCompat.checkSelfPermission(context, it) != PackageManager.PERMISSION_GRANTED) {
+        if(!hasPermission(it, context)) {
             enabled = true
         }
     }
@@ -201,24 +202,4 @@ private fun createSyncAccount(): Account {
     accountManager.addAccountExplicitly(account, null, null)
 
     return account
-}
-
-private fun addContactSync(account: Account, contactRegularity: Float) {
-    // contact
-    ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1)
-    ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
-    ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle(), (contactRegularity * 60 * 1000).toLong())
-}
-
-private fun addCalendarSync(account: Account, calendarRegularity: Float) {
-    // calendar
-    ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 1)
-    ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
-    ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle(), (calendarRegularity * 60 * 1000).toLong())
-}
-
-private fun createNotificationChannel(context: Context) {
-    val channel = NotificationChannel("cloud_app_notifications", "CloudApp", NotificationManager.IMPORTANCE_DEFAULT)
-    val manager = context.getSystemService(ComponentActivity.NOTIFICATION_SERVICE) as NotificationManager
-    manager.createNotificationChannel(channel)
 }

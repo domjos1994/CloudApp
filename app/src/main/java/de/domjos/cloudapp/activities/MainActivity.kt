@@ -262,7 +262,7 @@ class MainActivity : ComponentActivity() {
                                         currentProgress = progress
                                         currentText = text
                                         if(notification != null) {
-                                            Notifications.updateNotification(context, progress, text, notification!!)
+                                            Notifications.updateNotification(context, progress, notification!!)
                                         }
                                     }, {
                                         showDialog = false
