@@ -40,47 +40,6 @@ class DataViewModel @Inject constructor(
         }
     }
 
-    fun openFolder(item: Item) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                dataRepository.openFolder(item)
-                _items.value = dataRepository.getList()
-                _path.value = dataRepository.path
-            } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e("Data-Feature-Error", ex.message, ex)
-            }
-        }
-    }
-
-    fun back() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                dataRepository.back()
-                _items.value = dataRepository.getList()
-                _path.value = dataRepository.path
-            } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e("Data-Feature-Error", ex.message, ex)
-            }
-        }
-    }
-
-    fun loadFile(item: Item, context: Context) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val dir = dataRepository.createDirs()
-                if(!exists(item)) {
-                    dataRepository.openResource(item, dir)
-                }
-                dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
-            } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e("Data-Feature-Error", ex.message, ex)
-            }
-        }
-    }
-
     fun exists(item: Item): Boolean {
         return try {
             dataRepository.exists(item)
@@ -88,6 +47,34 @@ class DataViewModel @Inject constructor(
             message.postValue(ex.message)
             Log.e("Data-Feature-Error", ex.message, ex)
             false
+        }
+    }
+
+    fun openElement(item: Item, context: Context, onFinish: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if(item.directory) {
+                    if(item.name == "..") {
+                        dataRepository.back()
+                        _items.value = dataRepository.getList()
+                        _path.value = dataRepository.path
+                    } else {
+                        dataRepository.openFolder(item)
+                        _items.value = dataRepository.getList()
+                        _path.value = dataRepository.path
+                    }
+                } else {
+                    val dir = dataRepository.createDirs()
+                    if(!exists(item)) {
+                        dataRepository.openResource(item, dir)
+                    }
+                    dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
+                }
+                onFinish()
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e("Data-Feature-Error", ex.message, ex)
+            }
         }
     }
 

@@ -14,6 +14,7 @@ import de.domjos.cloudapp.webdav.WebDav
 import de.domjos.cloudapp.webdav.model.Item
 import java.io.File
 import java.io.InputStream
+import java.util.LinkedList
 import javax.inject.Inject
 
 
@@ -66,7 +67,12 @@ class DefaultDataRepository @Inject constructor(
 
     override fun getList(): List<Item> {
         path = webDav!!.getPath()
-        return webDav?.getList()!!
+        val items = LinkedList<Item>()
+        webDav?.getList()!!.forEach {
+            it.exists = exists(it)
+            items.add(it)
+        }
+        return items
     }
 
     override fun openFolder(item: Item) {

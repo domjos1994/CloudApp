@@ -104,21 +104,13 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     }
 
     DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
-        {item: Item -> execCatchItem<Item?>({
-            try {
-                if(it!!.directory) {
-                    if(it.name == "..") {
-                        viewModel.back()
-                    } else {
-                        viewModel.openFolder(it)
-                    }
-                } else {
-                    viewModel.loadFile(it, context)
-                }
-            } catch (ex: Exception) {
-                Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
+        {item: Item, o: () -> Unit ->
+            showDialog = true
+            viewModel.openElement(item, context) {
+                o()
+                showDialog = false
             }
-        }, item, context)},
+        },
         { viewModel.path.value},
         { item: Item -> viewModel.exists(item) },
         { item: Item -> viewModel.deleteFolder(item)},
@@ -133,7 +125,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
 }
 
 @Composable
-fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String, uploadFile: (String, InputStream) -> Unit) {
+fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String, uploadFile: (String, InputStream) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -158,10 +150,15 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
                 .verticalScroll(rememberScrollState())) {
                 var hasCut by remember { mutableStateOf(hasCutElement()) }
                 var getCut by remember { mutableStateOf(getCutElement()) }
+                var download by remember { mutableStateOf(false) }
 
                 if(hasAuths) {
                     if(isConnected) {
-                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, onExists, onDelete, {
+
+                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, {
+                            download = onExists(it)
+                            download
+                        }, onDelete, {
                             onSetCutElement(it)
                             hasCut = true
                             getCut = it.path
@@ -286,13 +283,20 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
 }
 
 @Composable
-fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: Boolean, cutPath: String) {
+fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: Boolean, cutPath: String) {
+    var downloaded by remember { mutableStateOf(item.exists) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .background(colorBackground)
-            .clickable { onClick(item) }) {
+            .clickable {
+                onClick(item) {
+                    if (!item.directory && onExists(item)) {
+                        downloaded = true
+                    }
+                }
+            }) {
 
         var id = R.drawable.baseline_folder_24
         if(!item.directory) {
@@ -382,7 +386,7 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
         Column(modifier = Modifier
             .padding(5.dp)
             .weight(1f)) {
-            if(onExists(item)) {
+            if(downloaded) {
                 Image(
                     painterResource(R.drawable.baseline_sync_24),
                     item.name,
@@ -471,7 +475,7 @@ fun DataScreenPreview() {
             colorForeground = Color.White,
             colorBackground = Color.Blue,
             toAuths = {},
-            onClick = {},
+            onClick = {_,_->},
             onPath = {"cxgygf"},
             onExists = {true},
             onDelete = {},
@@ -488,7 +492,7 @@ fun DataScreenPreview() {
 fun DataItemPreview() {
     DataItem(fake(1L),
         Color.Blue,
-        Color.White, {}, {true}, {}, {}, {}, true, "")
+        Color.White, {_,_->}, {true}, {}, {}, {}, true, "")
 }
 
 @Preview(showBackground = true)
