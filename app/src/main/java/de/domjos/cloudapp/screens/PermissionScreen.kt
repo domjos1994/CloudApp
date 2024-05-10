@@ -2,16 +2,8 @@ package de.domjos.cloudapp.screens
 
 import android.accounts.Account
 import android.accounts.AccountManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.ContentResolver
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
-import android.provider.CalendarContract
-import android.provider.ContactsContract
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -34,12 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -179,7 +172,8 @@ fun PermissionComponent(title: String, description: String, enabled: Boolean, on
             }
             Row(Modifier.wrapContentHeight()) {
                 Button(onClick = { onRequest() }, enabled=enabled) {
-                    Text(stringResource(id = R.string.permissions_grant))
+                    val text = stringResource(id = R.string.permissions_grant)
+                    Text(text, Modifier.semantics {contentDescription= "$text $title"})
                 }
             }
         }

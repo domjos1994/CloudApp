@@ -65,13 +65,15 @@ class DefaultCalendarRepository @Inject constructor(
             start.set(java.util.Calendar.DAY_OF_MONTH, day)
             end.set(java.util.Calendar.DAY_OF_MONTH, day)
 
-            if(calendar == "") {
-                if(calendarEventDAO.count(start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
-                    lst.add(day)
-                }
-            } else {
-                if(calendarEventDAO.count(calendar, start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
-                    lst.add(day)
+            if(authenticationDAO.getSelectedItem() != null) {
+                if(calendar == "") {
+                    if(calendarEventDAO.count(start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
+                        lst.add(day)
+                    }
+                } else {
+                    if(calendarEventDAO.count(calendar, start.time.time, end.time.time, authenticationDAO.getSelectedItem()!!.id)!=0L) {
+                        lst.add(day)
+                    }
                 }
             }
         }

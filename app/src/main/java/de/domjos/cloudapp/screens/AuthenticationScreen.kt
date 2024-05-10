@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
@@ -369,7 +370,7 @@ private fun EditDialog(
                     var showProgress by remember { mutableStateOf(false) }
                     Button(modifier = Modifier
                         .weight(18f)
-                        .height(40.dp),
+                        .height(55.dp),
                         onClick = {
                             showProgress = true
                             val auth = Authentication(
@@ -414,25 +415,40 @@ private fun EditDialog(
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                     if(authentication?.id != 0L) {
-                        Column(modifier = Modifier.weight(1F)) {
+                        Column(modifier = Modifier.width(50.dp).height(55.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center) {
                             IconButton(onClick = {
                                 onDeleteClick(authentication!!)
                                 setShowDialog(false)
                             }) {
-                                Icon(Icons.Default.Delete, stringResource(R.string.login_delete))
+                                Icon(
+                                    Icons.Default.Delete,
+                                    stringResource(R.string.login_delete),
+                                    Modifier.height(50.dp).width(50.dp)
+                                )
                             }
                         }
                     }
-                    Column(modifier = Modifier.weight(9F)) {
+                    Column(modifier = Modifier.weight(9F).height(55.dp)) {
 
                     }
-                    Column(modifier = Modifier.weight(1F)) {
-                        IconButton(onClick = { setShowDialog(false) }) {
-                            Icon(Icons.Default.Close, stringResource(R.string.login_close))
+                    Column(
+                        modifier = Modifier.width(50.dp).height(55.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
+                        IconButton(onClick = { setShowDialog(false) }, Modifier.height(50.dp)) {
+                            Icon(
+                                Icons.Default.Close,
+                                stringResource(R.string.login_close),
+                                Modifier.height(50.dp).width(50.dp)
+                            )
                         }
                     }
                     Column(
-                        modifier = Modifier.weight(1F)) {
+                        modifier = Modifier.width(55.dp).height(55.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             val auth = Authentication(
                                 id, title.text, url.text, user.text, pwd.text, false, description.text, null
@@ -440,8 +456,14 @@ private fun EditDialog(
 
                             onSaveClick(auth)
                             setShowDialog(false)
-                        }, enabled = isValidTitle && isValidUrl && isValidDescription && isConnectionValid) {
-                            Icon(Icons.Default.CheckCircle, stringResource(R.string.login_close))
+                        },
+                            enabled = isValidTitle && isValidUrl && isValidDescription && isConnectionValid,
+                            modifier = Modifier.height(50.dp)) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                stringResource(R.string.login_close),
+                                Modifier.height(50.dp).width(50.dp)
+                            )
                         }
                     }
                 }

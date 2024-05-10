@@ -48,6 +48,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -401,7 +403,7 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
                     onClick(tmp.time)
                 }
             )) {
-        Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier.padding(5.dp))
+        Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier.padding(5.dp).semantics { contentDescription = cal.time.toString() })
     }
 }
 

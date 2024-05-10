@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -35,13 +36,13 @@ fun DropDown(items: List<String>, initial: String, onSelected: (String) -> Unit)
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentSize(Alignment.TopEnd)
-            .height(30.dp)
+            .height(50.dp)
     ) {
         Row {
             Column(
                 Modifier
                     .weight(9f)
-                    .height(30.dp),
+                    .height(50.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(selectedItem, fontWeight = FontWeight.Bold)
@@ -49,11 +50,13 @@ fun DropDown(items: List<String>, initial: String, onSelected: (String) -> Unit)
             Column(
                 Modifier
                     .weight(1f)
-                    .height(30.dp)) {
-                IconButton(onClick = { expanded = !expanded }) {
+                    .height(50.dp)
+                    ) {
+                IconButton(onClick = { expanded = !expanded }, Modifier.height(50.dp).width(50.dp)) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More"
+                        contentDescription = "More",
+                        Modifier.height(50.dp).width(50.dp)
                     )
                 }
             }
