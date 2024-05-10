@@ -1,6 +1,5 @@
 package de.domjos.cloudapp.screens
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,15 +29,15 @@ class AuthenticationViewModel @Inject constructor(
         }
     }
 
-    fun insertAuthentication(authentication: Authentication, context: Context, onSuccess: (msg: String) -> Unit) {
+    fun insertAuthentication(authentication: Authentication, msg: String, onSuccess: (msg: String) -> Unit) {
         viewModelScope.launch {
-            onSuccess(authenticationRepository.insert(authentication, context))
+            onSuccess(authenticationRepository.insert(authentication, msg))
         }
     }
 
-    fun updateAuthentication(authentication: Authentication, context: Context, onSuccess: (msg: String) -> Unit) {
+    fun updateAuthentication(authentication: Authentication, msg: String, onSuccess: (msg: String) -> Unit) {
         viewModelScope.launch {
-            onSuccess(authenticationRepository.update(authentication, context))
+            onSuccess(authenticationRepository.update(authentication, msg))
         }
     }
 

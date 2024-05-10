@@ -45,8 +45,8 @@
     <string name="contact_insert">Insert</string>
     <string name="contact_family">Family-Name</string>
     <string name="contact_given">Given-Name</string>
-    <string name="contact_suffix">Suffix</string>
-    <string name="contact_prefix">Prefix</string>
+    <string name="contact_suffix" translatable="false">Suffix</string>
+    <string name="contact_prefix" translatable="false">Prefix</string>
     <string name="contact_additional">Additional</string>
     <string name="contact_birthDate">BirthDate (day.Month.Year)</string>
     <string name="contact_org">Organization</string>
@@ -58,14 +58,14 @@
     <string name="contact_addresses_street">Street</string>
     <string name="contact_addresses_postal">Postal-Code</string>
     <string name="contact_addresses_locality">Locality</string>
-    <string name="contact_addresses_region">Region</string>
+    <string name="contact_addresses_region" translatable="false">Region</string>
     <string name="contact_addresses_country">Country</string>
     <string name="contact_addresses_extended">Extended Address</string>
     <string name="contact_mails">Emails</string>
     <string name="contact_mail">Mail-Address</string>
 
     <string name="data">Data</string>
-    <string name="data_breadcrumb">Breadcrumb</string>
+    <string name="data_breadcrumb" translatable="false">Breadcrumb</string>
     <string name="data_file_add">Add file</string>
     <string name="data_folder_add">Add Folder</string>
     <string name="data_folder_cut">Cut Folder</string>
@@ -128,4 +128,6 @@
     <string name="permissions_calendar_summary">To sync your Cloud-Calendars with your smartphone you need to grant Calendar-Permissions!</string>
     <string name="permissions_phone_title">Optional: Phone</string>
     <string name="permissions_phone_summary">To call contact from the widget you need to grant Phone-Permissions!</string>
+
+    <string name="validate_auth">Title already exists!</string>
 </resources>

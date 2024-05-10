@@ -98,15 +98,16 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
         authentications is AuthenticationUiState.Success) {
 
         val context = LocalContext.current
+        val msg = stringResource(id = R.string.validate_auth)
 
         AuthenticationScreen(
             onSaveClick = {auth ->
                 if(auth.id == 0L) {
-                    viewModel.insertAuthentication(auth, context) {
+                    viewModel.insertAuthentication(auth, msg) {
                         Toast.makeText(context, it, Toast.LENGTH_LONG).show()
                     }
                 } else {
-                    viewModel.updateAuthentication(auth, context) {
+                    viewModel.updateAuthentication(auth, msg) {
                         Toast.makeText(context, it, Toast.LENGTH_LONG).show()
                     }
                 }
@@ -415,7 +416,9 @@ private fun EditDialog(
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
                     if(authentication?.id != 0L) {
-                        Column(modifier = Modifier.width(50.dp).height(55.dp),
+                        Column(modifier = Modifier
+                            .width(50.dp)
+                            .height(55.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center) {
                             IconButton(onClick = {
@@ -425,28 +428,38 @@ private fun EditDialog(
                                 Icon(
                                     Icons.Default.Delete,
                                     stringResource(R.string.login_delete),
-                                    Modifier.height(50.dp).width(50.dp)
+                                    Modifier
+                                        .height(50.dp)
+                                        .width(50.dp)
                                 )
                             }
                         }
                     }
-                    Column(modifier = Modifier.weight(9F).height(55.dp)) {
+                    Column(modifier = Modifier
+                        .weight(9F)
+                        .height(55.dp)) {
 
                     }
                     Column(
-                        modifier = Modifier.width(50.dp).height(55.dp),
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(55.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = { setShowDialog(false) }, Modifier.height(50.dp)) {
                             Icon(
                                 Icons.Default.Close,
                                 stringResource(R.string.login_close),
-                                Modifier.height(50.dp).width(50.dp)
+                                Modifier
+                                    .height(50.dp)
+                                    .width(50.dp)
                             )
                         }
                     }
                     Column(
-                        modifier = Modifier.width(55.dp).height(55.dp),
+                        modifier = Modifier
+                            .width(55.dp)
+                            .height(55.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
@@ -462,7 +475,9 @@ private fun EditDialog(
                             Icon(
                                 Icons.Default.CheckCircle,
                                 stringResource(R.string.login_close),
-                                Modifier.height(50.dp).width(50.dp)
+                                Modifier
+                                    .height(50.dp)
+                                    .width(50.dp)
                             )
                         }
                     }
