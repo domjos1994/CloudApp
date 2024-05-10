@@ -65,7 +65,6 @@ import de.domjos.cloudapp.appbasics.helper.LoadingDialog
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
-import de.domjos.cloudapp.appbasics.helper.execCatch
 import de.domjos.cloudapp.appbasics.helper.execCatchItem
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.webdav.model.Item
@@ -157,9 +156,20 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
             Column(modifier = Modifier
                 .padding(5.dp)
                 .verticalScroll(rememberScrollState())) {
+                var hasCut by remember { mutableStateOf(hasCutElement()) }
+                var getCut by remember { mutableStateOf(getCutElement()) }
+
                 if(hasAuths) {
                     if(isConnected) {
-                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, onExists, onDelete, onSetCutElement, onMoveFolder, hasCutElement, getCutElement) }
+                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, onExists, onDelete, {
+                            onSetCutElement(it)
+                            hasCut = true
+                            getCut = it.path
+                        }, {
+                            onMoveFolder(it)
+                            hasCut = false
+                            getCut = ""
+                        }, hasCut, getCut)}
                     } else {
                         NoInternetItem(colorForeground, colorBackground)
                     }
@@ -276,7 +286,7 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
 }
 
 @Composable
-fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String) {
+fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: Boolean, cutPath: String) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -326,9 +336,11 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             if(item.name != "..") {
-                IconButton(onClick = { onSetCutElement(item) },
+                IconButton(onClick = {
+                    onSetCutElement(item)
+                },
                     colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
-                    if(getCutElement() != item.path) {
+                    if(cutPath != item.path) {
                         Icon(
                             painterResource(R.drawable.baseline_content_cut_24),
                             stringResource(R.string.data_folder_cut),
@@ -344,8 +356,10 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            if(item.name != ".." && hasCutElement()) {
-                IconButton(onClick = { onMoveFolder(item) }, enabled = hasCutElement(),
+            if(item.name != ".." && hasCutElement) {
+                IconButton(onClick = {
+                    onMoveFolder(item)
+                },
                     colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
                     Icon(
                         painterResource(R.drawable.baseline_content_paste_24),
@@ -474,7 +488,7 @@ fun DataScreenPreview() {
 fun DataItemPreview() {
     DataItem(fake(1L),
         Color.Blue,
-        Color.White, {}, {true}, {}, {}, {}, {true}) {""}
+        Color.White, {}, {true}, {}, {}, {}, true, "")
 }
 
 @Preview(showBackground = true)
