@@ -246,7 +246,7 @@ fun ContactItem(contact: Contact, addressBooks: Map<String, String>, colorBackgr
             if(contact.photo != null) {
                 val data = ImageHelper.convertImageByteArrayToBitmap(contact.photo!!)
                 if(data != null) {
-                    Image(data.asImageBitmap(), contentDescription = contact.familyName, colorFilter = ColorFilter.tint(colorForeground))
+                    Image(data.asImageBitmap(), contentDescription = contact.familyName)
                 } else {
                     Image(painterResource(id = R.drawable.baseline_person_24), contentDescription = contact.familyName, colorFilter = ColorFilter.tint(colorForeground))
                 }
