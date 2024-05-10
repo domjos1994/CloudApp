@@ -56,6 +56,8 @@
     <string name="contact_addresses_extended">erweiterte Adresse</string>
     <string name="contact_mails">Email-Adressen</string>
     <string name="contact_mail">Email-Adresse</string>
+    <string name="contact_open">Öffne Element in Kontakte</string>
+
     <string name="data">Daten</string>
     <string name="data_file_add">Datei hinzufügen</string>
     <string name="data_folder_add">Ordner hinzufügen</string>

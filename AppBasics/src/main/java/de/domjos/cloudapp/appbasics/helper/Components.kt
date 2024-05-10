@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract.Events
+import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -110,6 +111,15 @@ fun openPhone(context: Context, phone: String) {
 fun openEvent(context: Context, uid: String) {
     val intent = Intent(Intent.ACTION_VIEW)
     val uri = Events.CONTENT_URI.buildUpon()
+    uri.appendPath(uid)
+    intent.setData(uri.build())
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
+}
+
+fun openContact(context: Context, uid: String) {
+    val intent = Intent(Intent.ACTION_VIEW)
+    val uri = ContactsContract.Contacts.CONTENT_URI.buildUpon()
     uri.appendPath(uid)
     intent.setData(uri.build())
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -63,6 +63,7 @@
     <string name="contact_addresses_extended">Extended Address</string>
     <string name="contact_mails">Emails</string>
     <string name="contact_mail">Mail-Address</string>
+    <string name="contact_open">Open Item in Contacts</string>
 
     <string name="data">Data</string>
     <string name="data_breadcrumb" translatable="false">Breadcrumb</string>

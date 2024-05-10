@@ -97,7 +97,7 @@ fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: (
             PermissionItem(
                 stringResource(R.string.permissions_contacts_title),
                 stringResource(R.string.permissions_contacts_summary),
-                arrayOf(android.Manifest.permission.WRITE_CONTACTS)
+                arrayOf(android.Manifest.permission.WRITE_CONTACTS, android.Manifest.permission.READ_CONTACTS)
             ) { viewModel.addContactSync(account, viewModel.getContactRegularitySetting()) }
             PermissionItem(
                 stringResource(R.string.permissions_calendar_title),

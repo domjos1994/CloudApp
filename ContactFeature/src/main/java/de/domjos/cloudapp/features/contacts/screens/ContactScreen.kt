@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -82,8 +83,10 @@ import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.ImageHelper
+import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
+import de.domjos.cloudapp.appbasics.helper.openContact
 import de.domjos.cloudapp.appbasics.helper.openPhone
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.contacts.Address
@@ -723,6 +726,8 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
     val name =
         "${contact.suffix} ${contact.givenName} ${contact.familyName} ${contact.prefix}".trim()
 
+    val context = LocalContext.current
+
     ModalBottomSheet(onDismissRequest = { setShowBottomSheet(false) }) {
         Row(
             Modifier
@@ -776,11 +781,7 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 fontSize = 18.sp
             )
         }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color.Black)) {}
+        Separator(Color.Black)
         if(contact.birthDay != null) {
             Row(
                 Modifier
@@ -876,11 +877,7 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 }
             }
         }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(Color.Black)) {}
+        Separator(Color.Black)
         if(contact.phoneNumbers != null) {
             contact.phoneNumbers!!.forEach { number ->
                 var types = ""
@@ -917,7 +914,6 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                             fontSize = 18.sp
                         )
                     }
-                    val context = LocalContext.current
                     Column(
                         Modifier
                             .weight(1f)
@@ -929,11 +925,7 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 }
             }
 
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(Color.Black)) {}
+            Separator(Color.Black)
         }
         if(contact.emailAddresses != null) {
             contact.emailAddresses!!.forEach { email ->
@@ -959,11 +951,7 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 }
             }
 
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .background(Color.Black)) {}
+            Separator(Color.Black)
         }
         if(contact.addresses != null) {
             contact.addresses!!.forEach { address ->
@@ -1157,11 +1145,19 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                 }
             }
 
+            Separator(Color.Black)
+        }
+        if(contact.contactId != "") {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(1.dp)
-                    .background(Color.Black)) {}
+                    .wrapContentHeight()
+                    .padding(5.dp),
+                horizontalArrangement = Arrangement.Center) {
+                Button(onClick = { openContact(context, contact.contactId) }, Modifier.height(50.dp)) {
+                    Text(stringResource(R.string.contact_open))
+                }
+            }
         }
         Spacer(
             Modifier.windowInsetsBottomHeight(
