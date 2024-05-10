@@ -1,8 +1,6 @@
 package de.domjos.cloudapp.activities
 
 import android.content.Context
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -58,21 +56,17 @@ class MainActivityViewModel @Inject constructor(
         return state.value
     }
 
-    fun getContactWorkerPeriod(): Float {
-        val state = mutableFloatStateOf(0.0f)
+    fun getContactWorkerPeriod(onGet: (Float) -> Unit) {
         viewModelScope.launch {
-            state.floatValue = settings.getSetting(Settings.cardavRegularityKey, 0.0f)
+            onGet(settings.getSetting(Settings.cardavRegularityKey, 0.0f))
         }
-        return state.floatValue
     }
 
 
-    fun getCalendarWorkerPeriod(): Float {
-        val state = mutableFloatStateOf(0.0f)
+    fun getCalendarWorkerPeriod(onGet: (Float) -> Unit) {
         viewModelScope.launch {
-            state.floatValue = settings.getSetting(Settings.caldavRegularityKey, 0.0f)
+            onGet(settings.getSetting(Settings.caldavRegularityKey, 0.0f))
         }
-        return state.floatValue
     }
 
     fun getCloudTheme(onGet: (Boolean) -> Unit) {

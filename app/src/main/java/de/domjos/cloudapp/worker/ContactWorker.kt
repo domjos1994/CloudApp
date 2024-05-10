@@ -11,8 +11,7 @@ class ContactWorker(private val context: Context, workerParams: WorkerParameters
 
 
     override fun doWork(): Result {
-       var state = Result.success()
-       try {
+       return try {
 
            val db =
                Room
@@ -22,10 +21,10 @@ class ContactWorker(private val context: Context, workerParams: WorkerParameters
 
            val repo = DefaultContactRepository(db.authenticationDao(), db.contactDao())
            repo.importContacts({_,_->}, {})
+           Result.success()
        } catch (_: Exception) {
-           state = Result.failure()
+           Result.failure()
        }
-        return state
     }
 
 

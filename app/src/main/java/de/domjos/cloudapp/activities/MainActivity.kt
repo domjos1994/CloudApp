@@ -77,6 +77,7 @@ import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
@@ -100,6 +101,8 @@ import de.domjos.cloudapp.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp.screens.PermissionScreen
+import de.domjos.cloudapp.widgets.CalendarWidget
+import de.domjos.cloudapp.widgets.ContactsWidget
 import de.domjos.cloudapp.widgets.NewsWidget
 import de.domjos.cloudapp.worker.CalendarWorker
 import de.domjos.cloudapp.worker.ContactWorker
@@ -194,34 +197,46 @@ class MainActivity : ComponentActivity() {
             }
             updateTheme(null)
 
-            try {
-                val contactPeriod: Long = (viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
-                val contactFlexPeriod: Long = (2 * viewModel.getContactWorkerPeriod() * 60 * 1000).toLong()
-                val calendarPeriod: Long = (viewModel.getCalendarWorkerPeriod() * 60 * 1000).toLong()
-                val calendarFlexPeriod: Long = (2 * viewModel.getCalendarWorkerPeriod() * 60 * 1000).toLong()
-                val ms = TimeUnit.MILLISECONDS
+            var contactPeriod by remember { mutableStateOf(0.0F) }
+            var contactFlexPeriod by remember { mutableStateOf(0.0F) }
+            var calendarPeriod by remember { mutableStateOf(0.0F) }
+            var calendarFlexPeriod by remember { mutableStateOf(0.0F) }
+            val ms = TimeUnit.MILLISECONDS
 
-                if(contactPeriod != 0L) {
-                    val contactBuilder = PeriodicWorkRequest.Builder(
-                        ContactWorker::class.java,
-                        contactPeriod, ms,
-                        contactFlexPeriod, ms
-                    )
-                    contactBuilder.build()
+            try {
+                viewModel.getContactWorkerPeriod {
+                    contactPeriod = it * 60F * 1000F
+                    contactFlexPeriod = it * 120F * 1000F
+                }
+                viewModel.getCalendarWorkerPeriod {
+                    calendarPeriod = it * 60F * 1000F
+                    calendarFlexPeriod = it * 120F * 1000F
                 }
 
-                if(calendarPeriod != 0L) {
+                val manager = WorkManager.getInstance(context)
+                if(contactPeriod != 0.0F) {
+                    val contactBuilder = PeriodicWorkRequest.Builder(
+                        ContactWorker::class.java,
+                        contactPeriod.toLong(), ms,
+                        contactFlexPeriod.toLong(), ms
+                    )
+                    manager.enqueue(contactBuilder.build())
+                }
+
+                if(calendarPeriod != 0.0F) {
                     val calendarBuilder = PeriodicWorkRequest.Builder(
                         CalendarWorker::class.java,
-                        calendarPeriod, TimeUnit.MILLISECONDS,
-                        calendarFlexPeriod, TimeUnit.MILLISECONDS
+                        calendarPeriod.toLong(), TimeUnit.MILLISECONDS,
+                        calendarFlexPeriod.toLong(), TimeUnit.MILLISECONDS
                     )
-                    calendarBuilder.build()
+                    manager.enqueue(calendarBuilder.build())
                 }
             } catch (_: Exception) {}
 
             try {
                 viewModel.updateWidget(NewsWidget(), context)
+                viewModel.updateWidget(CalendarWidget(), context)
+                viewModel.updateWidget(ContactsWidget(), context)
             } catch (_: Exception) {}
 
             CloudAppTheme {

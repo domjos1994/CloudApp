@@ -9,8 +9,7 @@ import de.domjos.cloudapp.database.DB
 
 class CalendarWorker(private val context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
     override fun doWork(): Result {
-        var state = Result.success()
-        try {
+        return try {
 
             val db =
                 Room
@@ -20,9 +19,9 @@ class CalendarWorker(private val context: Context, workerParams: WorkerParameter
 
             val repo = DefaultCalendarRepository(db.authenticationDao(), db.calendarEventDao())
             repo.reload({_,_->}, "", "")
+            Result.success()
         } catch (_: Exception) {
-            state = Result.failure()
+            Result.failure()
         }
-        return state
     }
 }
