@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -83,6 +84,7 @@ import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.ImageHelper
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
+import de.domjos.cloudapp.appbasics.helper.openPhone
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.contacts.Address
 import de.domjos.cloudapp.database.model.contacts.AddressType
@@ -906,7 +908,7 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     }
                     Column(
                         Modifier
-                            .weight(1f)
+                            .weight(8f)
                             .padding(5.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
@@ -914,6 +916,15 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                             fontWeight = FontWeight.Normal,
                             fontSize = 18.sp
                         )
+                    }
+                    val context = LocalContext.current
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp)) {
+                        IconButton(onClick = { openPhone(context, number.value) }) {
+                            Icon(Icons.Filled.Phone, number.value)
+                        }
                     }
                 }
             }
