@@ -2,7 +2,6 @@ package de.domjos.cloudapp.features.calendars.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -69,6 +68,7 @@ import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.execCatch
 import de.domjos.cloudapp.appbasics.helper.execCatchItem
+import de.domjos.cloudapp.appbasics.helper.openEvent
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
@@ -407,15 +407,21 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CalendarEventItem(calendarEvent: CalendarEvent, colorBackground: Color, colorForeground: Color, onClick: (CalendarEvent)->Unit) {
+    val context = LocalContext.current
     Row(
         Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(5.dp)
             .background(colorBackground)
-            .clickable { onClick(calendarEvent) }) {
+            .combinedClickable(onClick = {
+                 if(calendarEvent.eventId != "") {
+                     openEvent(context, calendarEvent.eventId)
+                 }
+            }, onLongClick =  { onClick(calendarEvent) })) {
         Column(Modifier.weight(1f)) {
             Icon(Icons.Default.DateRange, calendarEvent.title, tint = colorForeground)
         }
