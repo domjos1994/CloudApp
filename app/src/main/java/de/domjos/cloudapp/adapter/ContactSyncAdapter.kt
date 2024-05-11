@@ -205,13 +205,13 @@ class ContactSyncAdapter @JvmOverloads constructor(
                     }
                     db.contactDao().updateContactSync("$contactId", Date().time, contact.id)
                 } catch (e: Exception) {
-                    Log.e("XYZ", "Something went wrong during creation! $e")
-                    e.printStackTrace()
+                    Log.e(this.javaClass.name, e.message, e)
                 }
             }
         }
     }
 
+    @Throws(java.lang.Exception::class)
     private fun nameToValues(contact: Contact, contactId: Long): ContentValues {
         val values = ContentValues()
         values.put(StructuredName.SUFFIX, contact.suffix ?: "")
@@ -223,6 +223,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
         return values
     }
 
+    @Throws(java.lang.Exception::class)
     private fun getLastUpdateTimestampForContact(contentResolver: ContentResolver, contactId: Long): Long {
         var lastUpdateTimeStamp: Long = 0
         try {
@@ -278,6 +279,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
         }
     }
 
+    @Throws(java.lang.Exception::class)
     private fun asSyncAdapter(uri: Uri): Uri {
         return if(this.account != null) {
             uri.buildUpon()

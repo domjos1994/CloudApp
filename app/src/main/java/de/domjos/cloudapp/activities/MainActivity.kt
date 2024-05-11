@@ -3,6 +3,7 @@ package de.domjos.cloudapp.activities
 import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,7 +78,6 @@ import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.appbasics.R
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
@@ -106,7 +107,6 @@ import de.domjos.cloudapp.widgets.ContactsWidget
 import de.domjos.cloudapp.widgets.NewsWidget
 import de.domjos.cloudapp.worker.CalendarWorker
 import de.domjos.cloudapp.worker.ContactWorker
-import java.util.concurrent.TimeUnit
 
 
 data class TabBarItem(
@@ -125,10 +125,15 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // create splash-Screen
         installSplashScreen()
 
         setContent {
+
+            // state for spreed
             var hasSpreed by remember { mutableStateOf(false) }
+
+            // create tabs
             val notificationsTab = TabBarItem(title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
             val dataTab = TabBarItem(title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
             val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
@@ -145,6 +150,7 @@ class MainActivity : ComponentActivity() {
             // creating our navController
             val navController = rememberNavController()
 
+            // create params
             var title by rememberSaveable { mutableStateOf("") }
             var header by rememberSaveable { mutableStateOf("") }
             var refreshVisible by rememberSaveable { mutableStateOf(false) }
@@ -170,6 +176,15 @@ class MainActivity : ComponentActivity() {
                 navController.navigate(notificationsTab.title)
                 tabBarVisible.value = true
             }
+
+            viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
+                msg?.let {
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    viewModel.message.value = null
+                }
+            }
+
+            // updates the theme if connection and so on
             val updateTheme = {auth: Authentication? ->
                 viewModel.getCloudTheme {
                     viewModel.getCloudThemeMobile { mobile ->
@@ -197,11 +212,11 @@ class MainActivity : ComponentActivity() {
             }
             updateTheme(null)
 
-            var contactPeriod by remember { mutableStateOf(0.0F) }
-            var contactFlexPeriod by remember { mutableStateOf(0.0F) }
-            var calendarPeriod by remember { mutableStateOf(0.0F) }
-            var calendarFlexPeriod by remember { mutableStateOf(0.0F) }
-            val ms = TimeUnit.MILLISECONDS
+            // initiates the worker to sync data from dav-server
+            var contactPeriod by remember { mutableFloatStateOf(0.0F) }
+            var contactFlexPeriod by remember { mutableFloatStateOf(0.0F) }
+            var calendarPeriod by remember { mutableFloatStateOf(0.0F) }
+            var calendarFlexPeriod by remember { mutableFloatStateOf(0.0F) }
 
             try {
                 viewModel.getContactWorkerPeriod {
@@ -214,30 +229,27 @@ class MainActivity : ComponentActivity() {
                 }
 
                 val manager = WorkManager.getInstance(context)
-                if(contactPeriod != 0.0F) {
-                    val contactBuilder = PeriodicWorkRequest.Builder(
-                        ContactWorker::class.java,
-                        contactPeriod.toLong(), ms,
-                        contactFlexPeriod.toLong(), ms
-                    )
-                    manager.enqueue(contactBuilder.build())
+                val conWorker = viewModel.createWorkRequest(calendarPeriod, calendarFlexPeriod, ContactWorker::class.java)
+                if(conWorker != null) {
+                    manager.enqueue(conWorker)
                 }
 
-                if(calendarPeriod != 0.0F) {
-                    val calendarBuilder = PeriodicWorkRequest.Builder(
-                        CalendarWorker::class.java,
-                        calendarPeriod.toLong(), TimeUnit.MILLISECONDS,
-                        calendarFlexPeriod.toLong(), TimeUnit.MILLISECONDS
-                    )
-                    manager.enqueue(calendarBuilder.build())
+                val calWorker = viewModel.createWorkRequest(calendarPeriod, calendarFlexPeriod, CalendarWorker::class.java)
+                if(calWorker != null) {
+                    manager.enqueue(calWorker)
                 }
-            } catch (_: Exception) {}
+            } catch (ex: Exception) {
+                viewModel.message.postValue(ex.message)
+            }
 
             try {
+                // updates the widgets
                 viewModel.updateWidget(NewsWidget(), context)
                 viewModel.updateWidget(CalendarWidget(), context)
                 viewModel.updateWidget(ContactsWidget(), context)
-            } catch (_: Exception) {}
+            } catch (ex: Exception) {
+                viewModel.message.postValue(ex.message)
+            }
 
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme

@@ -94,28 +94,36 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
         }
     }
 
+    val context = LocalContext.current
+
+    viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
+        msg?.let {
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            viewModel.message.value = null
+        }
+    }
+    viewModel.resId.observe(LocalLifecycleOwner.current) { msg ->
+        msg?.let {
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            viewModel.resId.value = null
+        }
+    }
+
+
     if (
         authentications is AuthenticationUiState.Success) {
-
-        val context = LocalContext.current
         val msg = stringResource(id = R.string.validate_auth)
 
         AuthenticationScreen(
             onSaveClick = {auth ->
                 if(auth.id == 0L) {
-                    viewModel.insertAuthentication(auth, msg) {
-                        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                    }
+                    viewModel.insertAuthentication(auth, msg)
                 } else {
-                    viewModel.updateAuthentication(auth, msg) {
-                        Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                    }
+                    viewModel.updateAuthentication(auth, msg)
                 }
             },
             onDeleteClick = { auth ->
-                viewModel.deleteAuthentication(auth) {
-                    Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-                }
+                viewModel.deleteAuthentication(auth)
             },
             onConnectionCheck = {auth, onSuccess ->
                 viewModel.checkConnection(auth, onSuccess) },
@@ -132,7 +140,7 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
 fun AuthenticationScreen(
     onSaveClick: (Authentication) -> Unit,
     onDeleteClick: (Authentication) -> Unit,
-    onConnectionCheck: (Authentication, onSuccess: (Int, Boolean) -> Unit) -> Unit,
+    onConnectionCheck: (Authentication, onSuccess: (Boolean) -> Unit) -> Unit,
     select: (Authentication) -> Unit,
     authentications: List<Authentication>, colorBackground: Color, colorForeground: Color) {
 
@@ -272,7 +280,7 @@ private fun EditDialog(
     setShowDialog: (Boolean) -> Unit,
     onSaveClick: (Authentication) -> Unit,
     onDeleteClick: (Authentication) -> Unit,
-    onConnectionCheck: (Authentication, onSuccess: (Int, Boolean) -> Unit) -> Unit) {
+    onConnectionCheck: (Authentication, onSuccess: (Boolean) -> Unit) -> Unit) {
 
     var id by remember { mutableLongStateOf(0L) }
     var title by remember { mutableStateOf(TextFieldValue("")) }
@@ -379,10 +387,9 @@ private fun EditDialog(
                                 pwd.text, false, "", null
                             )
 
-                            onConnectionCheck(auth) { msg:Int, state:Boolean ->
+                            onConnectionCheck(auth) { state:Boolean ->
                                 isConnectionValid = state && isValidTitle && isValidUrl && isValidDescription
                                 color = if(state) Color.Green else Color.Red
-                                Toast.makeText(context, context.getString(msg), Toast.LENGTH_LONG).show()
                                 showProgress = false
                             }
                         }, colors = ButtonDefaults.buttonColors(containerColor = color)

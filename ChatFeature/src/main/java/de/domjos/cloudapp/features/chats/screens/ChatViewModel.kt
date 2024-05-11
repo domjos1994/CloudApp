@@ -1,7 +1,8 @@
 package de.domjos.cloudapp.features.chats.screens
 
 import android.content.Context
-import androidx.compose.ui.res.stringResource
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,30 +17,44 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.data.Settings
 import java.util.Locale
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val chatRepository: ChatRepository
+    private val chatRepository: ChatRepository,
+    private val settings: Settings
     ) : ViewModel() {
     private val _messages = MutableStateFlow(listOf<Message>())
     val messages: StateFlow<List<Message>> get() = _messages
+    val message = MutableLiveData<String?>()
 
     fun initChats(lookIntoFuture: Int, token: String) {
         chatRepository.lookIntoFuture = lookIntoFuture
         chatRepository.token = token
 
         viewModelScope.launch(Dispatchers.IO) {
-            while (true) {
-                _messages.value = chatRepository.initChats()
-                delay(20000L)
+            try {
+                while (true) {
+                    _messages.value = chatRepository.initChats()
+                    val timeSpan = (settings.getTimeSpanSetting() * 1000L).toLong()
+                    delay(timeSpan)
+                }
+            } catch (ex: Exception) {
+                Log.e(this.javaClass.name, ex.message, ex)
+                message.postValue(ex.message)
             }
         }
     }
 
     fun sendMessage(msg: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            _messages.value = chatRepository.postChat(msg)
+            try {
+                _messages.value = chatRepository.postChat(msg)
+            } catch (ex: Exception) {
+                Log.e(this.javaClass.name, ex.message, ex)
+                message.postValue(ex.message)
+            }
         }
     }
 

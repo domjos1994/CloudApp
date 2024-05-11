@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.features.calendars.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -66,8 +68,6 @@ import de.domjos.cloudapp.appbasics.custom.DropDown
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
-import de.domjos.cloudapp.appbasics.helper.execCatch
-import de.domjos.cloudapp.appbasics.helper.execCatchItem
 import de.domjos.cloudapp.appbasics.helper.openEvent
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
@@ -107,6 +107,13 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     viewModel.load(selectedCalendar, start, end)
     val context = LocalContext.current
 
+    viewModel.message.observe(LocalLifecycleOwner.current) {
+        if(it != null) {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.message.value = null
+        }
+    }
+
     CalendarScreen(events, colorBackground, colorForeground, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
         val calStart = updateTime(0, 0, 0, calendar.clone() as Calendar)
         val calEnd = updateTime(23, 59, 59, calendar.clone() as Calendar)
@@ -118,8 +125,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
         end = calEnd.time.time
         viewModel.load(selectedCalendar, start, end)
         viewModel.count(selectedCalendar, calStart)
-    }, { item: CalendarEvent -> execCatchItem({t -> viewModel.insertCalendar(t)}, item, context) },
-        { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> execCatch({selectedCalendar = selected}, context)})
+    }, { item: CalendarEvent -> viewModel.insertCalendar(item) },
+        { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> selectedCalendar = selected})
 }
 
 @Composable

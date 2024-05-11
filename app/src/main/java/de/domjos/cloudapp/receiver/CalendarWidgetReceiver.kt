@@ -7,7 +7,6 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp.data.repository.CalendarRepository
-import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp.widgets.CalendarWidget
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -50,7 +49,7 @@ class CalendarWidgetReceiver : AbstractWidgetReceiver(CalendarWidget()) {
                 glanceAppWidget.update(context, it)
             }
         } catch (ex: Exception) {
-            Log.e("Error loading widget", ex.message, ex)
+            Log.e(this.javaClass.name, ex.message, ex)
         }
     }
 }

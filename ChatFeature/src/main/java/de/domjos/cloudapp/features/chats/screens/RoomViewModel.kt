@@ -1,5 +1,7 @@
 package de.domjos.cloudapp.features.chats.screens
 
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,43 +20,56 @@ class RoomViewModel @Inject constructor(
 ) : ViewModel() {
     private val _rooms = MutableStateFlow(listOf<Room>())
     val rooms: StateFlow<List<Room>> get() = _rooms
+    val message = MutableLiveData<String?>()
 
     fun reload() {
-        try {
-            viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
                 roomRepository.reload().collect {
                     _rooms.value = it
                 }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
-        } catch (ex: Exception) {
-            println(ex.message)
         }
     }
 
-    @Throws(Exception::class)
     fun insertRoom(room: Room) {
         viewModelScope.launch {
-            val roomInput = RoomInput("", room.type, room.displayName, room.description)
-
-            roomRepository.insertRoom(roomInput)
+            try {
+                val roomInput = RoomInput("", room.type, room.displayName, room.description)
+                roomRepository.insertRoom(roomInput)
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 
-    @Throws(Exception::class)
     fun updateRoom(room: Room) {
         viewModelScope.launch {
-            roomRepository.updateRoom(
-                room.token,
-                room.displayName,
-                room.description
-            )
+            try {
+                roomRepository.updateRoom(
+                    room.token,
+                    room.displayName,
+                    room.description
+                )
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 
-    @Throws(Exception::class)
     fun deleteRoom(room: Room) {
         viewModelScope.launch(Dispatchers.IO) {
-            roomRepository.deleteRoom(room.token)
+            try {
+                roomRepository.deleteRoom(room.token)
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 

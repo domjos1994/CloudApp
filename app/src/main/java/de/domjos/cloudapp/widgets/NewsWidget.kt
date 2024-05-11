@@ -29,7 +29,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.domjos.cloudapp.webrtc.model.notifications.Notification
 import de.domjos.cloudapp.R
-import de.domjos.cloudapp.appbasics.helper.execCatch
 import de.domjos.cloudapp.appbasics.helper.openUrl
 import de.domjos.cloudapp.receiver.AbstractWidgetReceiver
 import kotlinx.serialization.json.Json
@@ -71,7 +70,7 @@ class NewsWidget : AbstractWidget<Notification>() {
                             .fillMaxWidth()
                             .wrapContentHeight()
                             .clickable {
-                                execCatch({ openUrl(context, it.link) }, context)
+                                openUrl(context, it.link)
                             }
                     ) {
                         Column(GlanceModifier.width(40.dp).height(40.dp).padding(5.dp)) {

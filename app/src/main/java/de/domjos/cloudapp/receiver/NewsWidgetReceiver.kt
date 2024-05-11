@@ -1,6 +1,7 @@
 package de.domjos.cloudapp.receiver
 
 import android.content.Context
+import android.util.Log
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
@@ -37,6 +38,8 @@ class NewsWidgetReceiver : AbstractWidgetReceiver(NewsWidget()) {
                 }
                 glanceAppWidget.update(context, it)
             }
-        } catch (_: Exception) {}
+        } catch (ex: Exception) {
+            Log.e(this.javaClass.name, ex.message, ex)
+        }
     }
 }

@@ -1,6 +1,7 @@
 package de.domjos.cloudapp.features.chats.screens
 
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +56,13 @@ fun ChatScreen(
     viewModel.initChats(lookIntoFuture, token)
 
     val context = LocalContext.current
+
+    viewModel.message.observe(LocalLifecycleOwner.current) {
+        if(it != null) {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.message.value = null
+        }
+    }
 
     ChatScreen(messages, colorBackground, colorForeground, token, {viewModel.getDate(it, context)}) {
         viewModel.sendMessage(it)

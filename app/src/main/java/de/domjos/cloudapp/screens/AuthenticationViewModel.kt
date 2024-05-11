@@ -1,5 +1,7 @@
 package de.domjos.cloudapp.screens
 
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,31 +25,62 @@ class AuthenticationViewModel @Inject constructor(
         .authentications.map<List<Authentication>, AuthenticationUiState> {AuthenticationUiState.Success(data = it)}
         .catch { emit(AuthenticationUiState.Error(it)) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AuthenticationUiState.Loading)
+    var message = MutableLiveData<String?>()
+    var resId = MutableLiveData<Int?>()
     fun checkAuthentications(authentication: Authentication) {
         viewModelScope.launch {
-            authenticationRepository.check(authentication)
+            try {
+                authenticationRepository.check(authentication)
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 
-    fun insertAuthentication(authentication: Authentication, msg: String, onSuccess: (msg: String) -> Unit) {
+    fun insertAuthentication(authentication: Authentication, msg: String) {
         viewModelScope.launch {
-            onSuccess(authenticationRepository.insert(authentication, msg))
+            try {
+                val result = authenticationRepository.insert(authentication, msg)
+                if(result != "") {
+                    message.postValue(result)
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 
-    fun updateAuthentication(authentication: Authentication, msg: String, onSuccess: (msg: String) -> Unit) {
+    fun updateAuthentication(authentication: Authentication, msg: String) {
         viewModelScope.launch {
-            onSuccess(authenticationRepository.update(authentication, msg))
+            try {
+                val result = authenticationRepository.update(authentication, msg)
+                if(result != "") {
+                    message.postValue(result)
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 
-    fun deleteAuthentication(authentication: Authentication, onSuccess: (msg: String) -> Unit) {
+    fun deleteAuthentication(authentication: Authentication) {
         viewModelScope.launch {
-            onSuccess(authenticationRepository.delete(authentication))
+            try {
+                val result = authenticationRepository.delete(authentication)
+                if(result != "") {
+                    message.postValue(result)
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 
-    fun checkConnection(authentication: Authentication, onSuccess: (Int, Boolean) -> Unit) {
+    fun checkConnection(authentication: Authentication, onSuccess: (Boolean) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if(authentication.url.trim().startsWith("http")) {
@@ -55,22 +88,24 @@ class AuthenticationViewModel @Inject constructor(
 
                     if(user != null) {
                         viewModelScope.launch(Dispatchers.Main) {
-                            onSuccess(R.string.login_check_success, true)
+                            resId.postValue(R.string.login_check_success)
+                            onSuccess(true)
                         }
                     } else {
                         viewModelScope.launch(Dispatchers.Main) {
-                            onSuccess(R.string.login_check_user, false)
+                            resId.postValue(R.string.login_check_user)
+                            onSuccess(false)
                         }
                     }
                 } else {
                     viewModelScope.launch(Dispatchers.Main) {
-                        onSuccess(R.string.login_check_url, false)
+                        resId.postValue(R.string.login_check_url)
+                        onSuccess(false)
                     }
                 }
             } catch (ex: Exception) {
-                viewModelScope.launch(Dispatchers.Main) {
-                    onSuccess(R.string.login_check_not_success, false)
-                }
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }

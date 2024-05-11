@@ -1,11 +1,16 @@
 package de.domjos.cloudapp.activities
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ListenableWorker
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp.data.Settings
 import de.domjos.cloudapp.data.repository.AuthenticationRepository
@@ -13,6 +18,7 @@ import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.webrtc.model.capabilities.Data
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -20,19 +26,30 @@ class MainActivityViewModel @Inject constructor(
     private val authenticationRepository: AuthenticationRepository,
     private val settings: Settings
 ) : ViewModel() {
+    var message = MutableLiveData<String?>()
 
     fun getCapabilities(onResult: (Data?) -> Unit, authentication: Authentication?) {
         viewModelScope.launch(Dispatchers.IO) {
-            onResult(authenticationRepository.getCapabilities(authentication))
+            try {
+                onResult(authenticationRepository.getCapabilities(authentication))
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
         }
     }
 
     fun updateWidget(widget: GlanceAppWidget, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(widget.javaClass)
-            glanceIds.forEach { glanceId ->
-                widget.update(context, glanceId)
+            try {
+                val manager = GlanceAppWidgetManager(context)
+                val glanceIds = manager.getGlanceIds(widget.javaClass)
+                glanceIds.forEach { glanceId ->
+                    widget.update(context, glanceId)
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }
@@ -43,8 +60,31 @@ class MainActivityViewModel @Inject constructor(
 
     fun saveFirstStart() {
         viewModelScope.launch(Dispatchers.IO) {
-            settings.setSetting(Settings.firstStartKey, false)
-            settings.save()
+            try {
+                settings.setSetting(Settings.firstStartKey, false)
+                settings.save()
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
+        }
+    }
+
+    fun createWorkRequest(period: Float, flexPeriod: Float, worker: Class<out ListenableWorker>): WorkRequest? {
+        return try {
+            if(flexPeriod != 0.0f) {
+                val workerBuilder = PeriodicWorkRequest.Builder(
+                    worker,
+                    period.toLong(), TimeUnit.MILLISECONDS,
+                    flexPeriod.toLong(), TimeUnit.MILLISECONDS
+                )
+                workerBuilder.build()
+            }
+            null
+        } catch (ex: Exception) {
+            message.postValue(ex.message)
+            Log.e(this.javaClass.name, ex.message, ex)
+            null
         }
     }
 

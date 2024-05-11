@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.features.notifications.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,12 +53,18 @@ fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), color
 
     val connection by connectivityState()
     val isConnected = connection === ConnectionState.Available
+    val context = LocalContext.current
 
-    try {
-        if(isConnected) {
-            viewModel.reload()
+    viewModel.message.observe(LocalLifecycleOwner.current) {
+        if(it != null) {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.message.value = null
         }
-    } catch (_: Exception) {}
+    }
+
+    if(isConnected) {
+        viewModel.reload()
+    }
 
     NotificationScreen(notifications, {
         viewModel.getFullIconLink(it)

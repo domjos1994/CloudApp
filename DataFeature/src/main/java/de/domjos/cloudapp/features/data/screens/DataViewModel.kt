@@ -35,7 +35,7 @@ class DataViewModel @Inject constructor(
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
                 message.postValue(ex.message)
-                Log.e("Data-Feature-Error", ex.message, ex)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }
@@ -45,7 +45,7 @@ class DataViewModel @Inject constructor(
             dataRepository.exists(item)
         } catch (ex: Exception) {
             message.postValue(ex.message)
-            Log.e("Data-Feature-Error", ex.message, ex)
+            Log.e(this.javaClass.name, ex.message, ex)
             false
         }
     }
@@ -73,7 +73,7 @@ class DataViewModel @Inject constructor(
                 onFinish()
             } catch (ex: Exception) {
                 message.postValue(ex.message)
-                Log.e("Data-Feature-Error", ex.message, ex)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }
@@ -83,7 +83,7 @@ class DataViewModel @Inject constructor(
             dataRepository.hasFolderToMove()
         } catch (ex: Exception) {
             message.postValue(ex.message)
-            Log.e("Data-Feature-Error", ex.message, ex)
+            Log.e(this.javaClass.name, ex.message, ex)
             false
         }
     }
@@ -101,7 +101,7 @@ class DataViewModel @Inject constructor(
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
                 resId.postValue(R.string.data_element_cut_error)
-                Log.e("Data-Feature-Error", ex.message, ex)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }
@@ -115,7 +115,7 @@ class DataViewModel @Inject constructor(
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
                 resId.postValue(R.string.data_element_cut_error)
-                Log.e("Data-Feature-Error", ex.message, ex)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }
@@ -129,7 +129,7 @@ class DataViewModel @Inject constructor(
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
                 resId.postValue(R.string.data_element_add_error)
-                Log.e("Data-Feature-Error", ex.message, ex)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }
@@ -144,7 +144,7 @@ class DataViewModel @Inject constructor(
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
                 resId.postValue(R.string.data_element_delete_error)
-                Log.e("Data-Feature-Error", ex.message, ex)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }
@@ -159,7 +159,7 @@ class DataViewModel @Inject constructor(
                 onFinish()
             } catch (ex: Exception) {
                 resId.postValue(R.string.data_element_add_error)
-                Log.e("Data-Feature-Error", ex.message, ex)
+                Log.e(this.javaClass.name, ex.message, ex)
             }
         }
     }

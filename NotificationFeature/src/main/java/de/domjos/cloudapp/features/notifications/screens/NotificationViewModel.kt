@@ -1,5 +1,7 @@
 package de.domjos.cloudapp.features.notifications.screens
 
+import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,11 +19,17 @@ class NotificationViewModel @Inject constructor(
 ): ViewModel() {
     private val _notifications = MutableStateFlow(listOf<Notification>())
     val notifications: StateFlow<List<Notification>> get() = _notifications
+    val message = MutableLiveData<String>()
 
     fun reload() {
         viewModelScope.launch(Dispatchers.IO) {
-            notificationsRepository.reload().collect {
-                _notifications.value = it
+            try {
+                notificationsRepository.reload().collect {
+                    _notifications.value = it
+                }
+            } catch (ex: Exception) {
+                Log.e(this.javaClass.name, ex.message, ex)
+                message.postValue(ex.message)
             }
         }
     }

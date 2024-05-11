@@ -27,7 +27,6 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.domjos.cloudapp.R
-import de.domjos.cloudapp.appbasics.helper.execCatch
 import de.domjos.cloudapp.appbasics.helper.openEvent
 import de.domjos.cloudapp.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp.receiver.AbstractWidgetReceiver
@@ -74,12 +73,10 @@ class CalendarWidget : AbstractWidget<CalendarEvent>() {
                             .fillMaxWidth()
                             .wrapContentHeight()
                             .clickable {
-                                execCatch({
-                                    val uid = event.uid
-                                    if(uid.isNotEmpty()) {
-                                        openEvent(context, uid)
-                                    }
-                                }, context)
+                                val uid = event.uid
+                                if(uid.isNotEmpty()) {
+                                    openEvent(context, uid)
+                                }
                             }) {
 
                         Column(

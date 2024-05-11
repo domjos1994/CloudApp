@@ -1,12 +1,9 @@
 package de.domjos.cloudapp.widgets
 
-import android.content.Intent
 import android.graphics.BitmapFactory
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.startActivity
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -32,9 +29,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.domjos.cloudapp.R
-import de.domjos.cloudapp.appbasics.helper.execCatch
 import de.domjos.cloudapp.appbasics.helper.openPhone
-import de.domjos.cloudapp.appbasics.helper.openUrl
 import de.domjos.cloudapp.database.model.contacts.Contact
 import de.domjos.cloudapp.receiver.AbstractWidgetReceiver
 import de.domjos.cloudapp.receiver.WidgetContact
@@ -77,7 +72,7 @@ class ContactsWidget : AbstractWidget<Contact>() {
                             .fillMaxWidth()
                             .wrapContentHeight()
                             .clickable {
-                                execCatch({ openPhone(context, it.phone) }, context)
+                                openPhone(context, it.phone)
                             }) {
                         Column(GlanceModifier.width(40.dp).height(40.dp).padding(5.dp)) {
                             Image(getImageProvider(it), it.name)

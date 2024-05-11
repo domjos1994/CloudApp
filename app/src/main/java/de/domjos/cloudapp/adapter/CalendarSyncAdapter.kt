@@ -61,7 +61,7 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                             cursor.close()
                         }
                     } catch (ex: Exception) {
-                        Log.e("Sync-Adapter", ex.message, ex)
+                        Log.e(this.javaClass.name, ex.message, ex)
                     }
 
                     try {
@@ -84,17 +84,17 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                             }
 
                             if(eventId == -1L) {
-                                val uri = this.contentResolver.insert(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values)
+                                val uri = this.contentResolver.insert(asSyncAdapter(CalendarContract.Events.CONTENT_URI)!!, values)
                                 eventId = ContentUris.parseId(uri!!)
                             } else {
                                 val selection = "${CalendarContract.Events.CALENDAR_ID}=? AND ${CalendarContract.Events._ID}=?"
                                 val selectionArgs = arrayOf("$cid", event.eventId)
-                                this.contentResolver.update(asSyncAdapter(CalendarContract.Events.CONTENT_URI), values, selection, selectionArgs)
+                                this.contentResolver.update(asSyncAdapter(CalendarContract.Events.CONTENT_URI)!!, values, selection, selectionArgs)
                             }
                             db.calendarEventDao().updateEventSync("$eventId", Date().time, event.id)
                         }
                     } catch (ex: Exception) {
-                        Log.e("Sync-Adapter", ex.message, ex)
+                        Log.e(this.javaClass.name, ex.message, ex)
                     }
                 }
             }
@@ -120,7 +120,7 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                 cursor.close()
             }
         } catch (ex: Exception) {
-            Log.e("Error", ex.message!!)
+            Log.e(this.javaClass.name, ex.message, ex)
         }
 
         try {
@@ -134,18 +134,25 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                 cv.put(CalendarContract.Calendars.OWNER_ACCOUNT, true)
                 cv.put(CalendarContract.Calendars.VISIBLE, 1)
                 cv.put(CalendarContract.Calendars.SYNC_EVENTS, 1)
-                val uri = this.contentResolver.insert(asSyncAdapter(this.uri), cv)
+                val uri = this.contentResolver.insert(asSyncAdapter(this.uri)!!, cv)
                 return ContentUris.parseId(uri!!)
             }
-        } catch (_: Exception) {}
+        } catch (ex: Exception) {
+            Log.e(this.javaClass.name, ex.message, ex)
+        }
 
         return id
     }
 
-    private fun asSyncAdapter(baseUri: Uri): Uri {
-        return baseUri.buildUpon()
-            .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, this.account.name)
-            .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, this.account.type).build()
+    private fun asSyncAdapter(baseUri: Uri): Uri? {
+        return try {
+            baseUri.buildUpon()
+                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, this.account.name)
+                .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, this.account.type).build()
+        } catch (ex: Exception) {
+            Log.e(this.javaClass.name, ex.message, ex)
+            null
+        }
     }
 }

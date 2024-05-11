@@ -65,7 +65,6 @@ import de.domjos.cloudapp.appbasics.helper.LoadingDialog
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
-import de.domjos.cloudapp.appbasics.helper.execCatchItem
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.webdav.model.Item
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -185,15 +184,13 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
             width = Dimension.fillToConstraints
         }) {
             val context = LocalContext.current
-            val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
-                execCatchItem({item ->
-                    if(item != null) {
-                        val inputStream = context.contentResolver.openInputStream(item)
-                        if(inputStream!=null) {
-                            uploadFile(getFileName(item, context)!!, inputStream)
-                        }
+            val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {item ->
+                if(item != null) {
+                    val inputStream = context.contentResolver.openInputStream(item)
+                    if(inputStream!=null) {
+                        uploadFile(getFileName(item, context)!!, inputStream)
                     }
-                }, it, context)
+                }
             }
             Column {
                 if(isConnected && hasAuths) {

@@ -24,7 +24,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         false,
         {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
         true,
-        steps = 1, valueRepresentation = {"$it"},
+        steps = 1, valueRepresentation = {"${it.toInt()} min"},
         valueRange = 1.0f.rangeTo(200.0f)
     )
 
@@ -53,7 +53,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         false,
         {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
         true,
-        steps = 1, valueRepresentation = {"$it min"},
+        steps = 1, valueRepresentation = {"${it.toInt()} min"},
         valueRange = 1.0f.rangeTo(60.0f)
     )
     val cardavRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
@@ -63,7 +63,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         false,
         {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
         true,
-        steps = 1, valueRepresentation = {"$it min"},
+        steps = 1, valueRepresentation = {"${it.toInt()} min"},
         valueRange = 1.0f.rangeTo(10.0f)
     )
 
@@ -74,7 +74,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         false,
         {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
         true,
-        steps = 1, valueRepresentation = {"$it min"},
+        steps = 1, valueRepresentation = {"${it.toInt()} min"},
         valueRange = 1.0f.rangeTo(60.0f)
     )
     val caldavRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
@@ -84,7 +84,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         false,
         {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
         true,
-        steps = 1, valueRepresentation = {"$it min"},
+        steps = 1, valueRepresentation = {"${it.toInt()} min"},
         valueRange = 0.0f.rangeTo(10.0f)
     )
 

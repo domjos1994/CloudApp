@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -65,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -108,6 +110,7 @@ import java.util.Locale
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
+    val context = LocalContext.current
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressBooks by viewModel.addressBooks.collectAsStateWithLifecycle()
     val canInsert by viewModel.canInsert.collectAsStateWithLifecycle()
@@ -115,6 +118,13 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
     val available = connectivity === ConnectionState.Available
     viewModel.getAddressBooks(LocalContext.current)
     viewModel.loadAddresses()
+
+    viewModel.message.observe(LocalLifecycleOwner.current) {
+        if(it != null) {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.message.value = null
+        }
+    }
 
     ContactScreen(contacts, colorBackground, colorForeground, addressBooks, viewModel.hasAuthentications(), toAuths, canInsert, onSelectedAddressBook = { book: String ->
         var key = ""

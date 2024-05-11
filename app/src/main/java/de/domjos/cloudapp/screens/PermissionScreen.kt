@@ -4,6 +4,7 @@ import android.accounts.Account
 import android.accounts.AccountManager
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -47,6 +49,13 @@ fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: (
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (header, permissions, footer) = createRefs()
         val account = createSyncAccount()
+
+        viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
+            msg?.let {
+                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                viewModel.message.value = null
+            }
+        }
 
         Row(
             Modifier
@@ -97,12 +106,12 @@ fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: (
             PermissionItem(
                 stringResource(R.string.permissions_contacts_title),
                 stringResource(R.string.permissions_contacts_summary),
-                arrayOf(android.Manifest.permission.WRITE_CONTACTS, android.Manifest.permission.READ_CONTACTS)
+                arrayOf(android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS)
             ) { viewModel.addContactSync(account, viewModel.getContactRegularitySetting()) }
             PermissionItem(
                 stringResource(R.string.permissions_calendar_title),
                 stringResource(R.string.permissions_calendar_summary),
-                arrayOf(android.Manifest.permission.WRITE_CALENDAR, android.Manifest.permission.READ_CALENDAR)
+                arrayOf(android.Manifest.permission.READ_CALENDAR, android.Manifest.permission.WRITE_CALENDAR)
             ) { viewModel.addCalendarSync(account, viewModel.getCalendarRegularitySetting()) }
             PermissionItem(
                 stringResource(R.string.permissions_phone_title),
@@ -135,11 +144,13 @@ fun PermissionItem(title: String, description: String, permissions: Array<String
     var enabled by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-        if(isGranted) {
-            enabled = false
-            if(action != null) {
-                action()
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { map ->
+        map.entries.forEach { element ->
+            if(element.value) {
+                enabled = false
+                if(action != null) {
+                    action()
+                }
             }
         }
     }
@@ -151,9 +162,7 @@ fun PermissionItem(title: String, description: String, permissions: Array<String
     }
 
     PermissionComponent(title, description, enabled) {
-        permissions.forEach {
-            launcher.launch(it)
-        }
+        launcher.launch(permissions)
     }
 }
 

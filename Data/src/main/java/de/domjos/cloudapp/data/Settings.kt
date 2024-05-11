@@ -43,6 +43,10 @@ class Settings(private val context: Context) {
         return res ?: default
     }
 
+    suspend fun getTimeSpanSetting(): Float {
+        return getSetting(timeSpanKey, 20.0f)
+    }
+
     suspend fun <T> setSetting(key: Preferences.Key<T>, value: T) {
         this.context.dataStore.edit { preferences ->
             preferences[key] = value

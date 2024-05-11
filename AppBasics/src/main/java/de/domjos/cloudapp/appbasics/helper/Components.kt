@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.CalendarContract.Events
 import android.provider.ContactsContract
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,48 +32,6 @@ fun Separator(color: Color) {
             .fillMaxWidth()
             .height(1.dp)
             .background(color)) {}
-}
-
-fun execCatch(exec: ()->Unit, context: Context) {
-    try {
-        exec()
-    } catch (ex: Exception) {
-        Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-    }
-}
-
-fun execCatch(exec: ()->Unit, msg: String, context: Context) {
-    try {
-        exec()
-    } catch (_: Exception) {
-        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-    }
-}
-
-fun <T> execCatch(exec: ()->T, context: Context): T? {
-    try {
-        return exec()
-    } catch (ex: Exception) {
-        Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-    }
-    return null
-}
-
-fun <T> execCatchItem(exec: (T)->Unit, item: T, context: Context) {
-    try {
-        exec(item)
-    } catch (ex: Exception) {
-        Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-    }
-}
-
-fun <T, V> execCatchItem(exec: (T)->V, item: T, context: Context): V? {
-    try {
-        return exec(item)
-    } catch (ex: Exception) {
-        Toast.makeText(context, ex.message, Toast.LENGTH_LONG).show()
-    }
-    return null
 }
 
 @Composable
