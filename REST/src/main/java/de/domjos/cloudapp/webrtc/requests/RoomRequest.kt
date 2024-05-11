@@ -25,23 +25,29 @@ class RoomRequest(private val authentication: Authentication?) : BasicRequest(au
                 try {
                     if(request!=null) {
                         client.newCall(request).execute().use { response ->
-                            val content = response.body!!.string()
-                            val ocs =  super.json.decodeFromString<OCSObject>(content)
-                            if(ocs.ocs.meta.statuscode==200) {
-                                val req = AvatarRequest(authentication)
-                                val lst = ocs.ocs.data.toList()
-                                for(i in 0..<lst.count()) {
-                                    lst[i].icon = req.getAvatar(lst[i].token)
+                            try {
+                                val content = response.body!!.string()
+                                val ocs =  super.json.decodeFromString<OCSObject>(content)
+                                if(ocs.ocs.meta.statuscode==200) {
+                                    val req = AvatarRequest(authentication)
+                                    val lst = ocs.ocs.data.toList()
+                                    for(i in 0..<lst.count()) {
+                                        lst[i].icon = req.getAvatar(lst[i].token)
+                                    }
+                                    emit(ocs.ocs.data.toList())
+                                } else {
+                                    throw Exception(ocs.ocs.meta.message)
                                 }
-                                emit(ocs.ocs.data.toList())
-                            } else {
-                                throw Exception(ocs.ocs.meta.message)
+                            } catch (ex:Exception) {
+                                throw ex
                             }
                         }
                     } else {
                         emit(listOf())
                     }
-                } catch (_:Exception) {}
+                } catch (ex:Exception) {
+                    throw ex
+                }
                 delay(20000L)
             }
         }

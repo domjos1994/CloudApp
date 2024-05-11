@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.webrtc.model.msg.Message
+import de.domjos.cloudapp.webrtc.model.msg.ParameterArray
 
 
 @Composable

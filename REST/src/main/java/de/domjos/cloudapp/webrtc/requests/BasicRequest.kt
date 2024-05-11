@@ -11,6 +11,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.internal.ignoreIoExceptions
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -21,6 +22,7 @@ open class BasicRequest(authentication: Authentication?, urlPart: String) {
     protected val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false
+        ignoreIoExceptions {  }
     }
     protected val client: OkHttpClient
     private val url: String

@@ -66,7 +66,9 @@ import de.domjos.cloudapp.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp.appbasics.helper.ConnectionState
 import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
+import de.domjos.cloudapp.webrtc.model.msg.ParameterArray
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.json.JSONArray
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
@@ -226,7 +228,7 @@ fun RoomItem(room: Room, colorBackground: Color, colorForeground: Color,
             Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(1.dp),
                 color = colorForeground)
             Text(
-                content,
+                room.lastMessage.getParameterizedMessage(content),
                 modifier = Modifier
                     .padding(1.dp), maxLines = 1,
                 fontStyle = if(room.unreadMessages==0) FontStyle.Normal else FontStyle.Italic,
