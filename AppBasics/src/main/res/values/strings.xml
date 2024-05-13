@@ -35,6 +35,7 @@
     <string name="calendar_categories">Categories (separated by ,)</string>
     <string name="calendar_save">Save Item</string>
     <string name="calendar_delete">Delete Item</string>
+    <string name="calendar_open">Open Event in Calendar-App</string>
 
     <string name="contacts">Contacts</string>
     <string name="contacts_all">All Contacts</string>
@@ -108,6 +109,8 @@
     <string name="validation.notEmpty.min_max">Field should be between %d and %d characters!</string>
 
     <string name="sys_format">yyyy-MM-dd HH:mm:ss</string>
+    <string name="sys_format_date">yyyy-MM-dd</string>
+
     <string name="sys_no_entry">No Entry available!</string>
     <string name="sys_no_internet">No Internet-Connection available!</string>
     <string name="sys_no_connection">No Authentication exists</string>

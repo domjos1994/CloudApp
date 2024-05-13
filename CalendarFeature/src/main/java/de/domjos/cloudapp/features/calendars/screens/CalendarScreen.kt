@@ -1,9 +1,11 @@
 package de.domjos.cloudapp.features.calendars.screens
 
+import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +23,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -31,6 +35,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -161,6 +166,7 @@ fun CalendarScreen(
     var event by remember { mutableStateOf<CalendarEvent?>(null) }
     var dt by remember { mutableStateOf(Date()) }
     val initial = stringResource(id = R.string.calendars_all)
+    var showEventView by remember { mutableStateOf(false) }
 
     if(showDialog) {
         EditDialog(
@@ -173,6 +179,11 @@ fun CalendarScreen(
                  onDelete(it)
                 showDialog = false
              })
+    }
+    if(showEventView && event != null) {
+        EventView(event = event!!) {
+            showEventView = it
+        }
     }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -211,10 +222,13 @@ fun CalendarScreen(
                         .verticalScroll(rememberScrollState())) {
                         if(hasAuths) {
                             calendarEvents.forEach {
-                                CalendarEventItem(it, colorBackground, colorForeground) { item: CalendarEvent ->
+                                CalendarEventItem(it, colorBackground, colorForeground, { item: CalendarEvent ->
                                     event = item
                                     dt = Date()
                                     showDialog = true
+                                }) { item: CalendarEvent ->
+                                    event = item
+                                    showEventView = true
                                 }
                             }
                         } else {
@@ -410,25 +424,24 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
                     onClick(tmp.time)
                 }
             )) {
-        Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier.padding(5.dp).semantics { contentDescription = cal.time.toString() })
+        Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier
+            .padding(5.dp)
+            .semantics { contentDescription = cal.time.toString() })
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CalendarEventItem(calendarEvent: CalendarEvent, colorBackground: Color, colorForeground: Color, onClick: (CalendarEvent)->Unit) {
-    val context = LocalContext.current
+fun CalendarEventItem(calendarEvent: CalendarEvent, colorBackground: Color, colorForeground: Color, onClick: (CalendarEvent)->Unit, onLongClick: (CalendarEvent) -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .padding(5.dp)
             .background(colorBackground)
-            .combinedClickable(onClick = {
-                 if(calendarEvent.eventId != "") {
-                     openEvent(context, calendarEvent.eventId)
-                 }
-            }, onLongClick =  { onClick(calendarEvent) })) {
+            .combinedClickable(
+                onClick = { onLongClick(calendarEvent) },
+                onLongClick = { onClick(calendarEvent) })) {
         Column(Modifier.weight(1f)) {
             Icon(Icons.Default.DateRange, calendarEvent.title, tint = colorForeground)
         }
@@ -485,6 +498,152 @@ fun CalendarEventItem(calendarEvent: CalendarEvent, colorBackground: Color, colo
         }
     }
     Separator(color = colorForeground)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
+    ModalBottomSheet(
+        onDismissRequest = { showBottomSheet(false) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(5.dp)) {
+
+        Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center) {
+                Text(event.title, fontSize = 16.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold)
+            }
+        }
+        Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+            Column(
+                modifier = Modifier.weight(4f),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(getFormattedDate(ts = event.from), fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text("-", fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+            }
+            Column(
+                modifier = Modifier.weight(4f),
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(getFormattedDate(ts = event.to), fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+            }
+        }
+        if(event.location != "") {
+            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Center) {
+                    Icon(Icons.Filled.LocationOn, event.location)
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {}
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center) {
+                    Text(event.location, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+                }
+            }
+        }
+        if(event.calendar != "") {
+            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Center) {
+                    Icon(Icons.Filled.DateRange, event.calendar)
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {}
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center) {
+                    Text(event.calendar, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+                }
+            }
+        }
+        if(event.categories != "") {
+            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Center) {
+                    Icon(Icons.Filled.Info, event.categories)
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {}
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center) {
+                    Text(event.categories, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+                }
+            }
+        }
+        if(event.description != "") {
+            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center) {
+                    Text(event.description, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+                }
+            }
+        }
+
+        if(event.eventId != "") {
+            val context = LocalContext.current
+            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Button(onClick = {openEvent(context, event.eventId)}) {
+                        Text(stringResource(R.string.calendar_open))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun getFormattedDate(ts: Long): String {
+    val dt = Date(ts)
+    val zdt = dt.toInstant().atZone(ZoneId.systemDefault())
+    val dFormat = SimpleDateFormat(stringResource(R.string.sys_format_date), Locale.getDefault())
+    val dtFormat = SimpleDateFormat(stringResource(R.string.sys_format), Locale.getDefault())
+
+    return if(zdt.hour == 0 && zdt.minute == 0 && zdt.second == 0) {
+        dFormat.format(dt)
+    } else {
+        dtFormat.format(dt)
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -743,7 +902,18 @@ fun CalendarPreview() {
 @Preview(showBackground = true)
 @Composable
 fun CalendarItemPreview() {
-    CalendarEventItem(fakeEvent(1), colorBackground = Color.Blue, colorForeground = Color.White) {}
+    CalendarEventItem(fakeEvent(1), colorBackground = Color.Blue, colorForeground = Color.White, {}) {}
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun EventViewPreview() {
+    CloudAppTheme {
+        EventView(event = fakeEvent(1L)) {
+            
+        }
+    }
 }
 
 @Preview(showBackground = true)

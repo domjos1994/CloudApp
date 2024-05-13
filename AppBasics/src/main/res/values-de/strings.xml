@@ -32,6 +32,8 @@
     <string name="calendar_categories">Kategorie (separiert durch ,)</string>
     <string name="calendar_save">Element speichern</string>
     <string name="calendar_delete">Element löschen</string>
+    <string name="calendar_open">Öffne Event in Kalender-App</string>
+
     <string name="contacts">Kontakte</string>
     <string name="contacts_all">Alle Kontakte</string>
     <string name="contacts_system">System-Kontakte</string>
@@ -94,7 +96,10 @@
     <string name="validation.notEmpty.min">Feld sollte mehr als %d Buchstaben enthalten!</string>
     <string name="validation.notEmpty.max">Feld sollte weniger als %d Buchstaben enthalten!</string>
     <string name="validation.notEmpty.min_max">Feld sollte zwischen %d und %d Zeichen enthalten!</string>
-    <string name="sys_format">dd-MM-yyyy HH:mm:ss</string>
+
+    <string name="sys_format">dd.MM.yyyy HH:mm:ss</string>
+    <string name="sys_format_date">dd.MM.yyyy</string>
+
     <string name="sys_no_entry">Kein Eintrag vorhanden</string>
     <string name="sys_no_internet">Keine Internet-Verbindung vorhanden</string>
     <string name="sys_no_connection">Keine Zugangsdaten existieren</string>
