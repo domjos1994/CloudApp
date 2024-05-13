@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.webrtc.requests
 
+import android.util.Log
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.webrtc.model.capabilities.Data
 import de.domjos.cloudapp.webrtc.model.user.OCSObject as UOCSObject
@@ -18,7 +19,9 @@ class UserRequest(private val authentication: Authentication?) : BasicRequest(au
                 if(ocs.ocs.meta.statuscode==100) {
                     return ocs.ocs.data
                 }
-            } catch (_: Exception) {}
+            } catch (ex: Exception) {
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
             return null
         }
     }

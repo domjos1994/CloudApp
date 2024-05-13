@@ -52,14 +52,18 @@ class DefaultAuthenticationRepository @Inject constructor(
 
     override suspend fun update(authentication: Authentication, msg: String): String {
         val auth = this.authenticationDAO.getItemByTitle(authentication.title)
-        if(auth == null) {
+
+        return if(auth == null) {
             this.authenticationDAO.updateAuthentication(authentication)
+            ""
         } else {
-            return msg
+            if(auth.id != authentication.id) {
+                msg
+            } else {
+                this.authenticationDAO.updateAuthentication(authentication)
+                ""
+            }
         }
-
-
-        return ""
     }
 
     override suspend fun getLoggedInUser(): Authentication? {
