@@ -34,6 +34,7 @@ icons = "1.6.7"
 workRuntimeKtx = "2.9.0"
 glance = "1.0.0"
 datastorePreferencesCoreJvm = "1.1.1"
+markdown = "0.16.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -82,6 +83,8 @@ androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx"
 glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glance" }
 glance-material = { group = "androidx.glance", name = "glance-material3", version.ref = "glance" }
 androidx-datastore-preferences-core-jvm = { group = "androidx.datastore", name = "datastore-preferences-core-jvm", version.ref = "datastorePreferencesCoreJvm" }
+markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer", version.ref = "markdown" }
+markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

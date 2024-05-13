@@ -50,9 +50,10 @@ class DataViewModel @Inject constructor(
         }
     }
 
-    fun openElement(item: Item, context: Context, onFinish: () -> Unit) {
+    fun openElement(item: Item, onFinish: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                var path = ""
                 if(item.directory) {
                     if(item.name == "..") {
                         dataRepository.back()
@@ -68,9 +69,20 @@ class DataViewModel @Inject constructor(
                     if(!exists(item)) {
                         dataRepository.openResource(item, dir)
                     }
-                    dataRepository.openFile("$dir/${item.name.trim().replace(" ", "_")}", item, context)
+                    path = "$dir/${item.name.trim().replace(" ", "_")}"
                 }
-                onFinish()
+                onFinish(path)
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
+        }
+    }
+
+    fun loadElement(path: String, item: Item, context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataRepository.openFile(path, item, context)
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)

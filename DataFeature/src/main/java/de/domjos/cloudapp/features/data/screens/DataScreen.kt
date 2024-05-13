@@ -3,7 +3,11 @@ package de.domjos.cloudapp.features.data.screens
 import android.content.Context
 import android.content.res.Configuration
 import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.pdf.PdfRenderer
 import android.net.Uri
+import android.os.ParcelFileDescriptor
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -23,17 +27,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -57,6 +67,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp.appbasics.R
 import de.domjos.cloudapp.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp.appbasics.custom.NoInternetItem
@@ -68,6 +79,8 @@ import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp.webdav.model.Item
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import java.io.File
+import java.io.FileInputStream
 import java.io.InputStream
 
 
@@ -80,6 +93,9 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     val isConnected = connection === ConnectionState.Available
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
+    var showFile by remember { mutableStateOf(false) }
+    var path by remember { mutableStateOf("") }
+    var currentItem by remember { mutableStateOf<Item?>(null) }
 
     if(isConnected) {
         viewModel.init()
@@ -98,6 +114,12 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
         }
     }
 
+    if(showFile) {
+        ShowFile(path, {showFile = it}) {
+            viewModel.loadElement(it, currentItem!!, context)
+        }
+    }
+
     if(showDialog) {
         LoadingDialog { showDialog = it }
     }
@@ -105,9 +127,14 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
         {item: Item, o: () -> Unit ->
             showDialog = true
-            viewModel.openElement(item, context) {
-                o()
+            viewModel.openElement(item) {
+                path = it
+                currentItem = item
+                if(!item.directory) {
+                    showFile = true
+                }
                 showDialog = false
+                o()
             }
         },
         { viewModel.path.value},
@@ -460,6 +487,176 @@ fun CreateFolderDialog(showDialog: (Boolean) -> Unit, onSave: (String) -> Unit) 
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowFile(path: String, onShowFile: (Boolean) -> Unit, loadUnknownFile: (String) -> Unit) {
+    val file = File(path)
+
+    when(file.extension.lowercase()) {
+        "pdf" -> {
+            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) {PdfViewer(path = path)}
+        }
+        "png", "jpg", "jpeg", "gif", "svg" -> {
+            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { ImageViewer(path = path) }
+        }
+        "txt", "csv", "rtf", "xml" -> {
+            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { FileViewer(path = path) }
+        }
+        "md" -> {
+            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { MarkDownViewer(path = path) }
+        }
+        else -> loadUnknownFile(path)
+    }
+}
+
+@Composable
+fun MarkDownViewer(path: String) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(5.dp)) {
+        val file = File(path)
+        val fis = FileInputStream(file)
+        var result = ""
+        var current: Char
+        while (fis.available() > 0) {
+            current = fis.read().toChar()
+            result += current.toString()
+        }
+        fis.close()
+        Markdown(result)
+    }
+}
+
+@Composable
+fun FileViewer(path: String) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(5.dp)) {
+        val file = File(path)
+        val fis = FileInputStream(file)
+        var result = ""
+        var current: Char
+        while (fis.available() > 0) {
+            current = fis.read().toChar()
+            result += current.toString()
+        }
+        fis.close()
+        Text(result)
+    }
+}
+
+@Composable
+fun ImageViewer(path: String) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(5.dp)) {
+        val image = File(path)
+        val bmOptions = BitmapFactory.Options()
+        var bitmap = BitmapFactory.decodeFile(image.absolutePath, bmOptions)
+        bitmap = Bitmap.createScaledBitmap(bitmap!!, bitmap.width, bitmap.height, true)
+        Image(bitmap.asImageBitmap(), path)
+    }
+}
+
+@Composable
+fun PdfViewer(path: String) {
+    var currentPage by remember { mutableIntStateOf(0) }
+    var maxPage by remember { mutableIntStateOf(0) }
+    var renderer by remember { mutableStateOf<PdfRenderer?>(null) }
+    var bitmap by remember { mutableStateOf(
+        Bitmap.createBitmap(1920,1080, Bitmap.Config.ARGB_8888)
+    ) }
+    var page by remember { mutableStateOf<PdfRenderer.Page?>(null) }
+    val updatePage = {index: Int ->
+        if(maxPage != 0) {
+            currentPage = index
+        }
+        if(page != null) {
+            page!!.close()
+        }
+        page = renderer!!.openPage(currentPage)
+        bitmap = Bitmap.createBitmap(page!!.width, page!!.height, Bitmap.Config.ARGB_8888)
+        page!!.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+    }
+
+    try {
+        if(path.isNotEmpty()) {
+            val descriptor = ParcelFileDescriptor.open(
+                File(path),
+                ParcelFileDescriptor.MODE_READ_ONLY
+            )
+            renderer = PdfRenderer(descriptor)
+            maxPage = renderer!!.pageCount
+            updatePage(0)
+        }
+    } catch (ex: Exception) {
+        Toast.makeText(LocalContext.current, ex.message, Toast.LENGTH_LONG).show()
+    }
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(5.dp)) {
+        Column(
+            Modifier
+                .weight(4f)
+                .wrapContentHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center) {
+            IconButton(onClick = {
+                if(currentPage - 1 != -1) {
+                    updatePage(currentPage - 1)
+                }
+            }) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, (currentPage - 1).toString())
+            }
+        }
+        Column(
+            Modifier
+                .weight(4f)
+                .wrapContentHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center) {
+            Text("${currentPage + 1} / $maxPage")
+        }
+        Column(
+            Modifier
+                .weight(4f)
+                .wrapContentHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center) {
+            IconButton(onClick = {
+                if(currentPage != maxPage - 1) {
+                    updatePage(currentPage + 1)
+                }
+            }) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowForward, (currentPage + 1).toString())
+            }
+        }
+    }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .padding(5.dp)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center) {
+            Image(bitmap.asImageBitmap(), path,
+                modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)

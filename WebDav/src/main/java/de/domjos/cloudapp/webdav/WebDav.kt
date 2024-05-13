@@ -6,7 +6,6 @@ import de.domjos.cloudapp.database.dao.AuthenticationDAO
 import de.domjos.cloudapp.database.model.Authentication
 import de.domjos.cloudapp.webdav.model.Item
 import java.io.File
-import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.LinkedList
 
@@ -92,7 +91,7 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
                 if(tmp.endsWith("/")) {
                     tmp = "$tmp-".replace("/-", "")
                 }
-                if(!(tmp.endsWith(pathPart) && it.isDirectory)) {
+                if(!("${authentication?.url}${basePath}${pathPart}" == tmp && it.isDirectory)) {
                     items.add(item)
                 }
             }

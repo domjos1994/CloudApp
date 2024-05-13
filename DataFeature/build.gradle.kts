@@ -62,6 +62,10 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
 
+    // markdown
+    implementation(libs.markdown.renderer)
+    implementation(libs.markdown.renderer.m3)
+
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
