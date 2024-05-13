@@ -18,6 +18,18 @@
     <string name="settings_calendar_regularity_header">Regelmäßge Kalender-Synchronisation (in Minuten)</string>
     <string name="settings_cardav_regularity_title">Regelmäßge Server-Synchronisation</string>
     <string name="settings_cardav_regularity_header">Regelmäßge Server-Synchronisation (in Minuten)</string>
+    <string name="settings_data_show_internal_title">Dateien in interner Anzeige</string>
+    <string name="settings_data_show_internal_header">Zeige Dateien in interner Anzeige an</string>
+    <string name="settings_data_show_pdf_title">PDF-Dateien in interner Anzeige</string>
+    <string name="settings_data_show_pdf_header">Zeige PDF-Dateien in interner Anzeige an</string>
+    <string name="settings_data_show_img_title">Bild-Dateien in interner Anzeige</string>
+    <string name="settings_data_show_img_header">Zeige Bild-Dateien in interner Anzeige an</string>
+    <string name="settings_data_show_txt_title">Text-Dateien in interner Anzeige</string>
+    <string name="settings_data_show_txt_header">Zeige Text-Dateien in interner Anzeige an</string>
+    <string name="settings_data_show_md_title">Markdown-Dateien in interner Anzeige</string>
+    <string name="settings_data_show_md_header">Zeige Markdown-Dateien in interner Anzeige an</string>
+
+
     <string name="calendars">Kalender</string>
     <string name="calendars_all">Alle Kalender</string>
     <string name="calendar_import">Importieren</string>

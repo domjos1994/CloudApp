@@ -12,6 +12,7 @@ import de.domjos.cloudapp.appbasics.R
 import de.schnettler.datastore.compose.material3.PreferenceScreen
 import de.schnettler.datastore.compose.material3.model.Preference
 import de.schnettler.datastore.manager.PreferenceRequest
+import de.domjos.cloudapp.data.Settings
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -77,15 +78,10 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         steps = 1, valueRepresentation = {"${it.toInt()} min"},
         valueRange = 1.0f.rangeTo(60.0f)
     )
-    val caldavRegularityPreference = Preference.PreferenceItem.SeekBarPreference(
-        createPreferenceRequest(de.domjos.cloudapp.data.Settings.caldavRegularityKey, 0.0f),
-        stringResource(id = R.string.settings_caldav_regularity_title),
-        stringResource(id = R.string.settings_caldav_regularity_header),
-        false,
-        {Image(painterResource(id = R.drawable.baseline_access_time_24), "")},
-        true,
-        steps = 1, valueRepresentation = {"${it.toInt()} min"},
-        valueRange = 0.0f.rangeTo(10.0f)
+    val caldavRegularityPreference = createSeekBarPreference(
+        Settings.caldavRegularityKey, 0.0f, R.string.settings_caldav_regularity_title,
+        R.string.settings_caldav_regularity_header, R.drawable.baseline_access_time_24,
+        {"${it.toInt()} min"}, 0.0f.rangeTo(10.0f)
     )
 
     val cloudGroup = Preference.PreferenceGroup(stringResource(id = R.string.settings_cloud_title), true, listOf(cloudThemePreference, cloudThemeMobilePreference))
@@ -96,6 +92,21 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         items = listOf(timeSpanPreference, cloudGroup, contactGroup, calendarGroup),
         dataStore = viewModel.init(),
         statusBarPadding = true
+    )
+}
+
+@Composable
+fun createSeekBarPreference(key: Preferences.Key<Float>, default: Float, titleId: Int, headerId: Int, resId: Int, representation: (Float)->String, range: ClosedFloatingPointRange<Float>): Preference.PreferenceItem.SeekBarPreference {
+    return Preference.PreferenceItem.SeekBarPreference(
+        createPreferenceRequest(key, default),
+        stringResource(titleId), stringResource(headerId),
+        false,
+        {Image(painterResource(resId), key.name)},
+        true,
+        steps = 1,
+        valueRepresentation = representation,
+        valueRange = range
+
     )
 }
 

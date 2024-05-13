@@ -20,6 +20,16 @@
     <string name="settings_calendar_regularity_header">Regularity of Calendar-Synchronization (in Minutes)!</string>
     <string name="settings_cardav_regularity_title">Regularity of Server-Synchronization</string>
     <string name="settings_cardav_regularity_header">Regularity of Server-Synchronization (in Minutes)!</string>
+    <string name="settings_data_show_internal_title">Files in Internal Viewer</string>
+    <string name="settings_data_show_internal_header">Show Files in Internal Viewer</string>
+    <string name="settings_data_show_pdf_title">PDF in Internal Viewer</string>
+    <string name="settings_data_show_pdf_header">Show PDF-Files in Internal Viewer</string>
+    <string name="settings_data_show_img_title">Image-Files in Internal Viewer</string>
+    <string name="settings_data_show_img_header">Show Image-Files in Internal Viewer</string>
+    <string name="settings_data_show_txt_title">Text-Files in Internal Viewer</string>
+    <string name="settings_data_show_txt_header">Show Text-Files in Internal Viewer</string>
+    <string name="settings_data_show_md_title">Markdown-Files in Internal Viewer</string>
+    <string name="settings_data_show_md_header">Show Markdown-Files in Internal Viewer</string>
 
     <string name="calendars">Calendar</string>
     <string name="calendars_all">All Calendars</string>
