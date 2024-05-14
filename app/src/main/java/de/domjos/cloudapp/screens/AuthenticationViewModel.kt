@@ -41,6 +41,9 @@ class AuthenticationViewModel @Inject constructor(
     fun insertAuthentication(authentication: Authentication, msg: String) {
         viewModelScope.launch {
             try {
+                if(!authenticationRepository.hasAuthentications()) {
+                    authentication.selected = true
+                }
                 val result = authenticationRepository.insert(authentication, msg)
                 if(result != "") {
                     message.postValue(result)

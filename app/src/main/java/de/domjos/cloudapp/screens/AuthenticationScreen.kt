@@ -8,6 +8,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,13 +22,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -227,7 +228,7 @@ fun AuthenticationList(authentications: List<Authentication>, isConnected: Boole
 fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication) -> Unit, select: (Authentication) -> Unit, colorBackground: Color, colorForeground: Color) {
     Column(modifier = Modifier
         .fillMaxWidth()
-        .wrapContentHeight()
+        .height(70.dp)
         .background(color = colorBackground)
         .combinedClickable(
             onClick = { onSelect(authentication) },
@@ -235,15 +236,28 @@ fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication
         )) {
 
 
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth().height(69.dp)) {
             Column(modifier = Modifier
                 .weight(1f)
-                .wrapContentHeight()) {
-                Checkbox(checked = authentication.selected, onCheckedChange = {}, enabled = false)
+                .fillMaxHeight(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                if(authentication.selected) {
+                    Icon(
+                        Icons.Filled.CheckCircle,
+                        "${authentication.title} selected",
+                        tint = colorForeground)
+                } else {
+                    Icon(
+                        Icons.Filled.Circle,
+                        "${authentication.title} not selected",
+                        tint = colorForeground
+                    )
+                }
             }
             Column(modifier = Modifier
                 .weight(9f)
-                .wrapContentHeight()) {
+                .fillMaxHeight()) {
                 Row(modifier = Modifier
                     .wrapContentHeight()
                     .padding(all = 5.dp), Arrangement.Center) {
@@ -267,11 +281,11 @@ fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication
                 }
             }
         }
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(colorForeground)) {}
     }
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .height(1.dp)
-        .background(colorForeground)) {}
 }
 
 @Composable
@@ -501,7 +515,19 @@ private fun fake(no: Long): Authentication {
 @Preview(showBackground = true)
 @Composable
 fun AuthenticationItemPreview() {
-    AuthenticationItem(authentication = fake(1L), onSelect = {}, colorBackground = Color.Red, colorForeground = Color.Green, select = {})
+    CloudAppTheme {
+        AuthenticationItem(authentication = fake(1L), onSelect = {}, colorBackground = Color.Red, colorForeground = Color.Green, select = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AuthenticationItemSelectedPreview() {
+    CloudAppTheme {
+        val fake = fake(1L)
+        fake.selected = true
+        AuthenticationItem(authentication = fake, onSelect = {}, colorBackground = Color.Red, colorForeground = Color.Green, select = {})
+    }
 }
 
 @Preview(showBackground = true)
