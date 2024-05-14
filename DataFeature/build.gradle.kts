@@ -47,6 +47,8 @@ dependencies {
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.constraint)
+    implementation(libs.androidx.preference)
+    implementation(libs.compose.preference.datastore)
 
     // compose
     implementation(libs.androidx.activity.compose)

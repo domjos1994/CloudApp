@@ -1,5 +1,6 @@
 package de.domjos.cloudapp.features.data.screens
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.database.Cursor
@@ -44,6 +45,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -65,7 +67,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.datastore.preferences.core.Preferences
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp.appbasics.R
@@ -77,6 +81,7 @@ import de.domjos.cloudapp.appbasics.helper.Separator
 import de.domjos.cloudapp.appbasics.helper.Validator
 import de.domjos.cloudapp.appbasics.helper.connectivityState
 import de.domjos.cloudapp.appbasics.ui.theme.CloudAppTheme
+import de.domjos.cloudapp.data.Settings
 import de.domjos.cloudapp.webdav.model.Item
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
@@ -115,9 +120,9 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     }
 
     if(showFile) {
-        ShowFile(path, {showFile = it}) {
+        ShowFile(path, {showFile = it}, {
             viewModel.loadElement(it, currentItem!!, context)
-        }
+        }, viewModel)
     }
 
     if(showDialog) {
@@ -489,21 +494,53 @@ fun CreateFolderDialog(showDialog: (Boolean) -> Unit, onSave: (String) -> Unit) 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowFile(path: String, onShowFile: (Boolean) -> Unit, loadUnknownFile: (String) -> Unit) {
+fun ShowFile(path: String, onShowFile: (Boolean) -> Unit, loadUnknownFile: (String) -> Unit, viewModel: DataViewModel) {
     val file = File(path)
+    val pdf by produceState(initialValue = true) {
+        this.value = viewModel.getSetting(Settings.dataShowPdfInInternalViewer, true)
+    }
+    val img by produceState(initialValue = true) {
+        this.value = viewModel.getSetting(Settings.dataShowImageInInternalViewer, true)
+    }
+    val txt by produceState(initialValue = true) {
+        this.value = viewModel.getSetting(Settings.dataShowTextInInternalViewer, true)
+    }
+    val md by produceState(initialValue = true) {
+        this.value = viewModel.getSetting(Settings.dataShowMarkDownInInternalViewer, true)
+    }
+    val all by produceState(initialValue = true) {
+        this.value = viewModel.getSetting(Settings.dataShowInInternalViewer, true)
+    }
+
 
     when(file.extension.lowercase()) {
         "pdf" -> {
-            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) {PdfViewer(path = path)}
+            if(pdf && all) {
+                ModalBottomSheet(onDismissRequest = { onShowFile(false) }) {PdfViewer(path = path)}
+            } else {
+                loadUnknownFile(path)
+            }
         }
         "png", "jpg", "jpeg", "gif", "svg" -> {
-            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { ImageViewer(path = path) }
+            if(img && all) {
+                ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { ImageViewer(path = path) }
+            } else {
+                loadUnknownFile(path)
+            }
         }
         "txt", "csv", "rtf", "xml" -> {
-            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { FileViewer(path = path) }
+            if(txt && all) {
+                ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { FileViewer(path = path) }
+            } else {
+                loadUnknownFile(path)
+            }
         }
         "md" -> {
-            ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { MarkDownViewer(path = path) }
+            if(md && all) {
+                ModalBottomSheet(onDismissRequest = { onShowFile(false) }) { MarkDownViewer(path = path) }
+            } else {
+                loadUnknownFile(path)
+            }
         }
         else -> loadUnknownFile(path)
     }

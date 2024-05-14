@@ -6,7 +6,6 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 
@@ -34,9 +33,11 @@ class Settings(private val context: Context) {
         // data settings
         val dataShowInInternalViewer = booleanPreferencesKey("user_data_show_internal")
         val dataShowPdfInInternalViewer = booleanPreferencesKey("user_data_show_pdf")
-        val dataShowImageInInternalViewer = stringPreferencesKey("user_data_show_image")
-        val dataShowTextInInternalViewer = stringPreferencesKey("user_data_show_text")
+        val dataShowImageInInternalViewer = booleanPreferencesKey("user_data_show_image")
+        val dataShowTextInInternalViewer = booleanPreferencesKey("user_data_show_text")
         val dataShowMarkDownInInternalViewer = booleanPreferencesKey("user_data_show_markdown")
+
+
     }
 
     // general settings
@@ -55,8 +56,8 @@ class Settings(private val context: Context) {
     // data settings
     private var showDataInternal: Boolean = true
     private var showPdfInternal: Boolean = true
-    private var showImgInternal: String = "png, jpg, jpeg, gif, svg"
-    private var showTxtInternal: String = "txt, csv, rtf, xml"
+    private var showImgInternal: Boolean = true
+    private var showTxtInternal: Boolean = true
     private var showMarkDownInternal: Boolean = true
 
     @Suppress("UNCHECKED_CAST")

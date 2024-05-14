@@ -2,6 +2,7 @@ package de.domjos.cloudapp.features.data.screens
 
 import android.content.Context
 import android.util.Log
+import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,10 +16,14 @@ import kotlinx.coroutines.launch
 import java.io.InputStream
 import javax.inject.Inject
 import de.domjos.cloudapp.appbasics.R
+import de.domjos.cloudapp.data.Settings
+import de.schnettler.datastore.manager.DataStoreManager
+import de.schnettler.datastore.manager.PreferenceRequest
 
 @HiltViewModel
 class DataViewModel @Inject constructor(
-    private val dataRepository: DataRepository
+    private val dataRepository: DataRepository,
+    private val settings: Settings
 ) : ViewModel() {
     private val _path = MutableStateFlow("")
     private val _items = MutableStateFlow(listOf<Item>())
@@ -178,5 +183,10 @@ class DataViewModel @Inject constructor(
 
     fun hasAuthentications(): Boolean {
         return dataRepository.hasAuthentications()
+    }
+
+    suspend fun <T> getSetting(key: Preferences.Key<T>, default: T): T {
+        val manager = DataStoreManager(settings.getStore())
+        return manager.getPreference(PreferenceRequest(key, default))
     }
 }
