@@ -1,12 +1,12 @@
 plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsKotlinAndroid)
-    alias(libs.plugins.kaptLibrary)
     alias(libs.plugins.hiltLibrary)
+    alias(libs.plugins.kaptLibrary)
 }
 
 android {
-    namespace = "de.domjos.cloudapp.database"
+    namespace = "de.domjos.cloudapp2.database"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.features.contacts"
+    namespace = "de.domjos.cloudapp2.features.contacts"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {

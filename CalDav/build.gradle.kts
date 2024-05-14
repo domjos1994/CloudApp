@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.caldav"
+    namespace = "de.domjos.cloudapp2.caldav"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {

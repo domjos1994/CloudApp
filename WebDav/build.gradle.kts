@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.webdav"
+    namespace = "de.domjos.cloudapp2.webdav"
     compileSdk = 34
 
     defaultConfig {

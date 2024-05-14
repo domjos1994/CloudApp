@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.features.notifications"
+    namespace = "de.domjos.cloudapp2.features.notifications"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {

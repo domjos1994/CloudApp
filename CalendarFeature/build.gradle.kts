@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.features.calendarfeature"
+    namespace = "de.domjos.cloudapp2.features.calendarfeature"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {

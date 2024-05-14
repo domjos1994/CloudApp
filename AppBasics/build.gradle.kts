@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.appbasics"
+    namespace = "de.domjos.cloudapp2.appbasics"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Nextcloud Connect</string>
+    <string name="app_name" translatable="false">Cloud-App</string>
 
     <string name="widget_news">Top 3 News</string>
     <string name="widget_contacts">Contacts</string>

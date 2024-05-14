@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "de.domjos.cloudapp.webrtc"
+    namespace = "de.domjos.cloudapp2.rest"
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {
