@@ -1,7 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">CloudApp</string>
-
-    <string name="sys_account_type" translatable="false">com.android.cloudapp.datasync</string>
+    <string name="app_name" translatable="false">Nextcloud Connect</string>
 
     <string name="widget_news">Top 3 News</string>
     <string name="widget_contacts">Contacts</string>

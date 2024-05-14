@@ -17,7 +17,6 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
 import android.provider.ContactsContract.RawContacts
 import android.util.Log
-import de.domjos.cloudapp.R
 import de.domjos.cloudapp.database.DB
 import de.domjos.cloudapp.database.model.contacts.Address
 import de.domjos.cloudapp.database.model.contacts.AddressType
@@ -52,7 +51,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
             val addresses = db.contactDao().getAllWithAddresses(id)
             val emails = db.contactDao().getAllWithEmails(id)
             db.contactDao().getAll(id).forEach { contact ->
-                val groupId = this.addOrGetGroup(contact.addressBook, provider!!)
+                val groupId = this.addOrGetGroup(account, contact.addressBook, provider!!)
                 val phoneItems = LinkedList<de.domjos.cloudapp.database.model.contacts.Phone>()
                 val emailItems = LinkedList<de.domjos.cloudapp.database.model.contacts.Email>()
                 val addressItems = LinkedList<Address>()
@@ -260,14 +259,14 @@ class ContactSyncAdapter @JvmOverloads constructor(
     }
 
     @Throws(java.lang.Exception::class)
-    private fun addOrGetGroup(group: String, provider: ContentProviderClient): Long {
+    private fun addOrGetGroup(account: Account?, group: String, provider: ContentProviderClient): Long {
         val lst = getContactLists(provider)
         return if(lst.containsKey(group)) {
             lst[group]!!
         } else {
             val contentValues = ContentValues()
-            contentValues.put(ContactsContract.Groups.ACCOUNT_NAME, this.context.getString(R.string.app_name))
-            contentValues.put(ContactsContract.Groups.ACCOUNT_TYPE, this.context.getString(R.string.sys_account_type))
+            contentValues.put(ContactsContract.Groups.ACCOUNT_NAME, account!!.name)
+            contentValues.put(ContactsContract.Groups.ACCOUNT_TYPE, account.type)
             contentValues.put(ContactsContract.Groups.TITLE, group)
             contentValues.put(ContactsContract.Groups.GROUP_VISIBLE, 1)
             contentValues.put(ContactsContract.Groups.SHOULD_SYNC, true)
