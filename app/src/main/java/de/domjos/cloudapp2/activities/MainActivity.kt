@@ -193,7 +193,7 @@ class MainActivity : ComponentActivity() {
                         if(isConnected && it && isMobile) {
                             viewModel.getCapabilities({ data ->
                                 if(data != null) {
-                                    colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.background))
+                                    colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.color))
                                     colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
                                     icon = data.capabilities.theming.logo
                                     authTitle = "(${data.capabilities.theming.url})"
