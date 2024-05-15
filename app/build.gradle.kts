@@ -11,7 +11,7 @@ android {
     compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {
-        applicationId = "de.domjos.cloudapp"
+        applicationId = "de.domjos.cloudapp2"
         minSdk = rootProject.extra["sdk_min"] as Int
         targetSdk = rootProject.extra["sdk_compile"] as Int
         versionCode = 9
