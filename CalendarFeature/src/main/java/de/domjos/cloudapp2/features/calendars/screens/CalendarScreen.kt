@@ -180,6 +180,9 @@ fun CalendarScreen(
                 showDialog = false
              })
     }
+    if(showEventView && event != null) {
+        EventView(event = event!!) {showEventView=it}
+    }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (dropdown, list, control) = createRefs()
@@ -419,7 +422,9 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
                     onClick(tmp.time)
                 }
             )) {
-        Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier.padding(5.dp).semantics { contentDescription = cal.time.toString() })
+        Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier
+            .padding(5.dp)
+            .semantics { contentDescription = cal.time.toString() })
     }
 }
 

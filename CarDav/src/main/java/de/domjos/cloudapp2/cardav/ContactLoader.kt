@@ -149,18 +149,34 @@ class ContactLoader(private val authentication: Authentication?) {
             photo = vCard.photos[0].data
         }
 
-        val suffix =
-            if(vCard.structuredName.suffixes!=null) vCard.structuredName.suffixes.joinToString(",") else ""
-        val prefix =
-            if(vCard.structuredName.prefixes!=null) vCard.structuredName.prefixes.joinToString(",") else ""
-        val additional =
-            if(vCard.structuredName.additionalNames!=null) vCard.structuredName.additionalNames.joinToString(",") else ""
-        val organization =
-            if(vCard.organization!=null) vCard.organization.values.joinToString(",") else ""
-        val given =
-            if(vCard.structuredName.given!=null) vCard.structuredName.given else ""
-        val family =
-            if(vCard.structuredName.family!=null) vCard.structuredName.family else ""
+        var suffix = ""
+        var prefix = ""
+        var additional = ""
+        var organization = ""
+        var given = ""
+        var family = ""
+        if(vCard.structuredName != null) {
+            suffix =
+                if(vCard.structuredName.suffixes!=null) vCard.structuredName.suffixes.joinToString(",") else ""
+            prefix =
+                if(vCard.structuredName.prefixes!=null) vCard.structuredName.prefixes.joinToString(",") else ""
+            additional =
+                if(vCard.structuredName.additionalNames!=null) vCard.structuredName.additionalNames.joinToString(",") else ""
+            organization =
+                if(vCard.organization!=null) vCard.organization.values.joinToString(",") else ""
+            given =
+                if(vCard.structuredName.given!=null) vCard.structuredName.given else ""
+            family =
+                if(vCard.structuredName.family!=null) vCard.structuredName.family else ""
+        } else if(vCard.formattedName != null) {
+            val value = vCard.formattedName.value
+            if(value.contains(" ")) {
+                given = value.split(" ")[0].trim()
+                family = value.replace(given, "").trim()
+            } else {
+                given = value
+            }
+        }
 
         val contact = Contact(0L,
             vCard.uid.value, suffix, prefix,
