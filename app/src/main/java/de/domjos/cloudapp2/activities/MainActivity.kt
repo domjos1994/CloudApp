@@ -113,7 +113,8 @@ data class TabBarItem(
     val title: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
-    val badgeAmount: Int? = null
+    val badgeAmount: Int? = null,
+    val header: String = ""
 )
 
 
@@ -138,7 +139,7 @@ class MainActivity : ComponentActivity() {
             val dataTab = TabBarItem(title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
             val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
             val contactsTab = TabBarItem(title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
-            val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
+            val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox, header = stringResource(id = R.string.chats))
             val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
 
             // creating a list of all the tabs
@@ -513,11 +514,11 @@ fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Uni
                                 isSelected = selectedTabIndex == index,
                                 selectedIcon = tabBarItem.selectedIcon,
                                 unselectedIcon = tabBarItem.unselectedIcon,
-                                title = tabBarItem.title,
+                                title = if(tabBarItem.header=="") tabBarItem.title else tabBarItem.header,
                                 badgeAmount = tabBarItem.badgeAmount
                             )
                         },
-                        label = {Text(tabBarItem.title)})
+                        label = {Text(if(tabBarItem.header=="") tabBarItem.title else tabBarItem.header)})
                 }
             }
         }
