@@ -95,6 +95,14 @@
     <string name="chats_rooms_name">Name</string>
     <string name="chats_rooms_description">Description</string>
 
+    <string name="notes">Notes</string>
+    <string name="notes_title">Title</string>
+    <string name="notes_content">Content</string>
+    <string name="notes_category">Category</string>
+    <string name="notes_favorite">Favorite</string>
+    <string name="notes_readonly">Read-Only</string>
+    <string name="notes_saved">Note saved successfully!</string>
+    <string name="notes_deleted">Note deleted successfully!</string>
 
     <string name="login">Login</string>
     <string name="login.authentications">Authentications</string>

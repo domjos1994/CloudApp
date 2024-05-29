@@ -88,6 +88,16 @@
     <string name="chats_rooms_type">Typ</string>
     <string name="chats_rooms_name">Name</string>
     <string name="chats_rooms_description">Beschreibung</string>
+
+    <string name="notes">Notizen</string>
+    <string name="notes_title">Titel</string>
+    <string name="notes_content">Inhalt</string>
+    <string name="notes_category">Kategorie</string>
+    <string name="notes_favorite">Favorisiert</string>
+    <string name="notes_readonly">Nur Lesend</string>
+    <string name="notes_saved">Notiz erfolgreich gespeichert!</string>
+    <string name="notes_deleted">Notiz erfolgreich gelöscht!</string>
+
     <string name="login">Anmelden</string>
     <string name="login.authentications">Authentifikation</string>
     <string name="login.title">Titel</string>
@@ -104,6 +114,7 @@
     <string name="login.check.user">Falscher Benutzername oder Passwort</string>
     <string name="login.check.success">Verbindung erfolgreich</string>
     <string name="login.check.not.success">Verbindung nicht erfolgreich</string>
+
     <string name="validation.notEmpty">Feld sollte nicht leers ein!</string>
     <string name="validation.notEmpty.min">Feld sollte mehr als %d Buchstaben enthalten!</string>
     <string name="validation.notEmpty.max">Feld sollte weniger als %d Buchstaben enthalten!</string>

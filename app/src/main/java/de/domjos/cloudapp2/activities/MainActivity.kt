@@ -19,11 +19,13 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.AccountBox
+import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
@@ -98,6 +100,7 @@ import de.domjos.cloudapp2.features.chats.screens.RoomScreen
 import de.domjos.cloudapp2.features.contacts.screens.ContactScreen
 import de.domjos.cloudapp2.features.contacts.screens.importContactAction
 import de.domjos.cloudapp2.features.data.screens.DataScreen
+import de.domjos.cloudapp2.features.notesfeature.NotesScreen
 import de.domjos.cloudapp2.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp2.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -137,13 +140,14 @@ class MainActivity : ComponentActivity() {
             // create tabs
             val notificationsTab = TabBarItem(title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
             val dataTab = TabBarItem(title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
+            val notesTab = TabBarItem(title = stringResource(id = R.string.notes), selectedIcon = Icons.Filled.Create, unselectedIcon = Icons.Outlined.Create)
             val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
             val contactsTab = TabBarItem(title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
             val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox, header = stringResource(id = R.string.chats))
             val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
 
             // creating a list of all the tabs
-            val tabBarItems = mutableListOf(notificationsTab, dataTab, calendarsTab, contactsTab, roomTab)
+            val tabBarItems = mutableListOf(notificationsTab, dataTab, notesTab, calendarsTab, contactsTab, roomTab)
             val authentications = stringResource(id = R.string.login_authentications)
             val settings = stringResource(id = R.string.settings)
             val permissions = stringResource(R.string.permissions)
@@ -379,6 +383,13 @@ class MainActivity : ComponentActivity() {
                                 refreshVisible = false
                                 tabBarVisible.value = true
                             }
+                            composable(notesTab.title) {
+                                NotesScreen(colorBackground = colorBackground, colorForeground = colorForeground)
+                                title = notesTab.title
+                                header = notesTab.title
+                                refreshVisible = false
+                                tabBarVisible.value = true
+                            }
                             composable(calendarsTab.title) {
                                 CalendarScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = calendarsTab.title
@@ -501,7 +512,7 @@ fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Uni
         NavigationBar {
             // looping over each tab to generate the views and navigation for each item
             tabBarItems.forEachIndexed { index, tabBarItem ->
-                if((index == 4 && hasSpreed) || index != 4) {
+                if((index == 5 && hasSpreed) || index != 5) {
                     NavigationBarItem(
                         selected = selectedTabIndex == index,
                         onClick = {
@@ -518,7 +529,7 @@ fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Uni
                                 badgeAmount = tabBarItem.badgeAmount
                             )
                         },
-                        label = {Text(if(tabBarItem.header=="") tabBarItem.title else tabBarItem.header)})
+                        label = {Text(if(tabBarItem.header=="") tabBarItem.title else tabBarItem.header, fontSize = 10.sp)})
                 }
             }
         }

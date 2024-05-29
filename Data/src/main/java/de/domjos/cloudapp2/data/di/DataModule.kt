@@ -18,8 +18,10 @@ import de.domjos.cloudapp2.data.repository.DefaultCalendarRepository
 import de.domjos.cloudapp2.data.repository.DefaultChatRepository
 import de.domjos.cloudapp2.data.repository.DefaultContactRepository
 import de.domjos.cloudapp2.data.repository.DefaultDataRepository
+import de.domjos.cloudapp2.data.repository.DefaultNoteRepository
 import de.domjos.cloudapp2.data.repository.DefaultNotificationsRepository
 import de.domjos.cloudapp2.data.repository.DefaultRoomRepository
+import de.domjos.cloudapp2.data.repository.NoteRepository
 import de.domjos.cloudapp2.data.repository.NotificationsRepository
 import de.domjos.cloudapp2.data.repository.RoomRepository
 import javax.inject.Singleton
@@ -51,6 +53,12 @@ interface DataModule {
     fun bindsNotificationsRepository(
         notificationsRepository: DefaultNotificationsRepository
     ): NotificationsRepository
+
+    @Singleton
+    @Binds
+    fun bindsNoteRepository(
+        noteRepository: DefaultNoteRepository
+    ): NoteRepository
 
     @Singleton
     @Binds
