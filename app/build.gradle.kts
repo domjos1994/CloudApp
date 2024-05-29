@@ -14,8 +14,8 @@ android {
         applicationId = "de.domjos.cloudapp2"
         minSdk = rootProject.extra["sdk_min"] as Int
         targetSdk = rootProject.extra["sdk_compile"] as Int
-        versionCode = 9
-        versionName = "1.0"
+        versionCode = 12
+        versionName = "1.0.Beta.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
