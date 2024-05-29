@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="notifications">Neuigkeiten</string>
+    <string name="notifications">News</string>
     <string name="auth_test">Verbindung testen</string>
     <string name="settings">Einstellungen</string>
     <string name="settings_timeSpan_title">Zeitdifferenz</string>
