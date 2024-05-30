@@ -384,7 +384,7 @@ class MainActivity : ComponentActivity() {
                                 tabBarVisible.value = true
                             }
                             composable(notesTab.title) {
-                                NotesScreen(colorBackground = colorBackground, colorForeground = colorForeground)
+                                NotesScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = notesTab.title
                                 header = notesTab.title
                                 refreshVisible = false

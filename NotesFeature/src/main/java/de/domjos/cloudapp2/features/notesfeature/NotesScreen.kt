@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.rest.model.notes.Note
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
@@ -64,7 +65,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @Composable
 fun NotesScreen(
-    viewModel: NotesViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color
+    viewModel: NotesViewModel = hiltViewModel(), toAuths: () -> Unit, colorBackground: Color, colorForeground: Color
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -80,6 +81,8 @@ fun NotesScreen(
     NotesScreen(notes,
         onSaveClick = {viewModel.save(it)},
         onDeleteClick = {viewModel.delete(it)},
+        hasAuths = viewModel.hasAuthentications(),
+        toAuths = toAuths,
         colorBackground = colorBackground,
         colorForeground = colorForeground
     )
@@ -91,6 +94,8 @@ fun NotesScreen(
     items: List<Note>,
     onSaveClick: (Note) -> Unit,
     onDeleteClick: (Note) -> Unit,
+    hasAuths: Boolean,
+    toAuths: () -> Unit,
     colorBackground: Color,
     colorForeground: Color) {
 
@@ -132,7 +137,11 @@ fun NotesScreen(
             .padding(5.dp)
             .verticalScroll(rememberScrollState())) {
             NotesList(
-                items, isConnected, {
+                items,
+                isConnected,
+                hasAuths,
+                toAuths,
+                {
                     selectedItem.value = it
                     showDialog.value = true
                 }, colorBackground, colorForeground
@@ -158,20 +167,34 @@ fun NotesScreen(
 }
 
 @Composable
-fun NotesList(notes: List<Note>, isConnected: Boolean, onSelect: (Note) -> Unit, colorBackground: Color, colorForeground: Color) {
-    if(isConnected) {
-        if(notes.isEmpty()) {
-            Column {
-                NoEntryItem(colorForeground, colorBackground)
+fun NotesList(
+    notes: List<Note>,
+    isConnected: Boolean,
+    hasAuths: Boolean,
+    toAuths: () -> Unit,
+    onSelect: (Note) -> Unit,
+    colorBackground: Color,
+    colorForeground: Color) {
+
+    if(hasAuths) {
+        if(isConnected) {
+            if(notes.isEmpty()) {
+                Column {
+                    NoEntryItem(colorForeground, colorBackground)
+                }
+            } else {
+                notes.forEach { item ->
+                    NotesItem(item, onSelect, colorBackground, colorForeground)
+                }
             }
         } else {
-            notes.forEach { item ->
-                NotesItem(item, onSelect, colorBackground, colorForeground)
+            Column {
+                NoInternetItem(colorForeground, colorBackground)
             }
         }
     } else {
         Column {
-            NoInternetItem(colorForeground, colorBackground)
+            NoAuthenticationItem(colorForeground, colorBackground, toAuths)
         }
     }
 }
@@ -341,7 +364,7 @@ fun NotesScreenPreview() {
     CloudAppTheme {
         val items = listOf(fake(1), fake(2), fake(3))
 
-        NotesScreen(items, {}, {}, colorBackground = Color.Blue, colorForeground = Color.White)
+        NotesScreen(items, {}, {}, false, {}, colorBackground = Color.Blue, colorForeground = Color.White)
     }
 }
 

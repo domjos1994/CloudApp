@@ -65,4 +65,8 @@ class NotesViewModel @Inject constructor(
             }
         }
     }
+
+    fun hasAuthentications(): Boolean {
+        return noteRepository.hasAuthentications()
+    }
 }

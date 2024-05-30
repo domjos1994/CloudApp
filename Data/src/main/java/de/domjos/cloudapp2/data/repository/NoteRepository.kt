@@ -12,6 +12,7 @@ interface NoteRepository {
     suspend fun insertNote(note: Note)
     suspend fun updateNote(note: Note)
     suspend fun deleteNote(id: Int)
+    fun hasAuthentications(): Boolean
 }
 
 class DefaultNoteRepository @Inject constructor(
@@ -40,5 +41,7 @@ class DefaultNoteRepository @Inject constructor(
     override suspend fun deleteNote(id: Int) {
         request.deleteNote(id)
     }
-
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
+    }
 }
