@@ -237,11 +237,11 @@ fun NotesItem(note: Note, onDialog: (Note) -> Unit, onBottomSheet: (Note) -> Uni
                 onClick = { onBottomSheet(note) },
                 onLongClick = { onDialog(note) }
             )
-            .height(80.dp)) {
+            .height(60.dp)) {
         Column(
             Modifier
                 .weight(3f)
-                .height(80.dp),
+                .height(60.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
@@ -252,13 +252,14 @@ fun NotesItem(note: Note, onDialog: (Note) -> Unit, onBottomSheet: (Note) -> Uni
         Column(
             Modifier
                 .weight(17f)
-                .height(80.dp)
+                .height(60.dp)
                 .padding(5.dp)) {
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(35.dp)) {
-                Text(note.title, fontWeight = FontWeight.Bold, fontSize = 26.sp, color = colorForeground)
+                    .height(25.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(note.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorForeground)
             }
             Row(
                 Modifier
@@ -267,8 +268,19 @@ fun NotesItem(note: Note, onDialog: (Note) -> Unit, onBottomSheet: (Note) -> Uni
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(30.dp)) {
-                Text(note.category, fontWeight = FontWeight.Normal, fontSize = 22.sp, color = colorForeground)
+                    .height(20.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                if(note.category != "") {
+                    Column(Modifier.weight(2f)) {
+                        Image(
+                            painterResource(R.drawable.baseline_category_24),
+                            contentDescription = "Category ${note.category}",
+                            colorFilter = ColorFilter.tint(colorForeground))
+                    }
+                    Column(Modifier.weight(28f)) {
+                        Text(note.category, fontWeight = FontWeight.Normal, fontSize = 14.sp, color = colorForeground)
+                    }
+                }
             }
         }
     }
