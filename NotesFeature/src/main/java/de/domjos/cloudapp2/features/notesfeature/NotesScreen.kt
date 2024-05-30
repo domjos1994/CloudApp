@@ -64,6 +64,7 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
@@ -118,6 +119,7 @@ fun NotesScreen(
 
     val showDialog =  remember { mutableStateOf(false) }
     val showBottomSheet = remember { mutableStateOf(false) }
+    val showDeleteDialog = remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Note?>(null) }
 
     if(showDialog.value) {
@@ -130,8 +132,8 @@ fun NotesScreen(
                 showDialog.value = false
             },
             {
-                selectedItem.value = null
-                onDeleteClick(it)
+                selectedItem.value = it
+                showDeleteDialog.value = true
                 showDialog.value = false
             }
         )
@@ -140,6 +142,12 @@ fun NotesScreen(
         NotesBottomSheet(selectedItem.value) {
             showBottomSheet.value = it
         }
+    }
+    if(showDeleteDialog.value) {
+        ShowDeleteDialog({showDeleteDialog.value = it}, {
+            onDeleteClick(selectedItem.value!!)
+            selectedItem.value = null
+        })
     }
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {

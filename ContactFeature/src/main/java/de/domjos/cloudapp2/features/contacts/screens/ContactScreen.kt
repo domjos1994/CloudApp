@@ -83,6 +83,7 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
+import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ImageHelper
 import de.domjos.cloudapp2.appbasics.helper.Separator
@@ -162,6 +163,11 @@ fun ContactScreen(
     var showBottomSheet by remember { mutableStateOf(false) }
     var contact by remember { mutableStateOf<Contact?>(null) }
     val all = stringResource(R.string.contacts_all)
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if(showDeleteDialog) {
+        ShowDeleteDialog(onShowDialog = {showDeleteDialog = it}, {onDelete(contact!!)})
+    }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (list, control) = createRefs()
@@ -186,7 +192,10 @@ fun ContactScreen(
                 if(showDialog) {
                     EditDialog(contact = contact, setShowDialog = {
                         showDialog=it
-                    }, onSave = onSave, onDelete = onDelete, canInsert = canInsert)
+                    }, onSave = onSave, onDelete = {
+                        contact = it
+                        showDeleteDialog = true
+                    }, canInsert = canInsert)
                 }
                 if(showBottomSheet) {
                     BottomSheet(contact = contact!!) {showBottomSheet=it}

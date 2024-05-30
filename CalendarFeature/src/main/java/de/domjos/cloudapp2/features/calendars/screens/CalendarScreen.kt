@@ -71,6 +71,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
+import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.openEvent
@@ -163,6 +164,7 @@ fun CalendarScreen(
     onCalendarSelected: (String) -> Unit) {
 
     var showDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var event by remember { mutableStateOf<CalendarEvent?>(null) }
     var dt by remember { mutableStateOf(Date()) }
     val initial = stringResource(id = R.string.calendars_all)
@@ -176,10 +178,15 @@ fun CalendarScreen(
                 onSave(it)
                 showDialog = false
              }, onDelete = {
-                 onDelete(it)
-                showDialog = false
+                 event = it
+                 showDeleteDialog = true
+                 showDialog = false
              })
     }
+    if(showDeleteDialog) {
+        ShowDeleteDialog({showDeleteDialog = it}, {onDelete(event!!)})
+    }
+
     if(showEventView && event != null) {
         EventView(event = event!!) {showEventView=it}
     }

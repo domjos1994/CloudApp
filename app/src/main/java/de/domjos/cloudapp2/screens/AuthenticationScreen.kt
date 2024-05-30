@@ -65,6 +65,7 @@ import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
@@ -149,6 +150,7 @@ fun AuthenticationScreen(
     val isConnected = connection === ConnectionState.Available
 
     val showDialog =  remember { mutableStateOf(false) }
+    val deleteDialog = remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Authentication?>(null) }
 
     if(showDialog.value) {
@@ -159,10 +161,18 @@ fun AuthenticationScreen(
                 selectedItem.value = it
                 onSaveClick(selectedItem.value!!)
             },
-            onDeleteClick, onConnectionCheck
+            {
+                selectedItem.value = it
+                deleteDialog.value = true
+            }, onConnectionCheck
         )
     }
-
+    if(deleteDialog.value) {
+        ShowDeleteDialog(
+            onShowDialog = {deleteDialog.value = it},
+            deleteAction = {onDeleteClick(selectedItem.value!!)}
+        )
+    }
 
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
@@ -236,7 +246,9 @@ fun AuthenticationItem(authentication: Authentication, onSelect: (Authentication
         )) {
 
 
-        Row(modifier = Modifier.fillMaxWidth().height(69.dp)) {
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .height(69.dp)) {
             Column(modifier = Modifier
                 .weight(1f)
                 .fillMaxHeight(),

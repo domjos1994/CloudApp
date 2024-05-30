@@ -72,6 +72,7 @@ import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.LoadingDialog
 import de.domjos.cloudapp2.appbasics.helper.Separator
@@ -311,6 +312,12 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
 @Composable
 fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: Boolean, cutPath: String) {
     var downloaded by remember { mutableStateOf(item.exists) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if(showDeleteDialog) {
+        ShowDeleteDialog(onShowDialog = {showDeleteDialog = it}, {onDelete(item)})
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -403,7 +410,7 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
             .padding(5.dp)
             .weight(1f)) {
             if(item.name != "..") {
-                IconButton(onClick = { onDelete(item) },
+                IconButton(onClick = { showDeleteDialog = true },
                     colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
                     Icon(Icons.Rounded.Delete, stringResource(R.string.calendar_delete), tint = colorForeground)
                 }

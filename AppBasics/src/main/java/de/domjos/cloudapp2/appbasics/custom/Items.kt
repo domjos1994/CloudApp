@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.appbasics.custom
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -7,13 +8,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,7 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @Composable
 fun NoEntryItem(colorForeground: Color, colorBackground: Color) {
@@ -147,6 +154,40 @@ fun NoAuthenticationItem(colorForeground: Color, colorBackground: Color, toAuths
     }
 }
 
+@Composable
+fun ShowDeleteDialog(onShowDialog: (Boolean) -> Unit, deleteAction: () -> Unit) {
+    Dialog(onDismissRequest = { onShowDialog(false) }) {
+        Surface(
+            shape = RoundedCornerShape(4.dp)
+        ) {
+            Column(modifier = Modifier.padding(5.dp)) {
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.sys_delete_item), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.weight(14f)) {}
+                    Column(modifier = Modifier.weight(3f)) {
+                        IconButton(
+                            onClick = { onShowDialog(false) },
+                            modifier = Modifier.padding(3.dp)) {
+                            Icon(Icons.Rounded.Clear, contentDescription = "Cancel deletion item!")
+                        }
+                    }
+                    Column(modifier = Modifier.weight(3f)) {
+                        IconButton(onClick = {
+                            deleteAction()
+                            onShowDialog(false)
+                        },
+                            modifier = Modifier.padding(3.dp)) {
+                            Icon(Icons.Rounded.Check, contentDescription = "Cancel deletion item!")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun NoEntryItemPreview() {
@@ -163,4 +204,13 @@ fun NoInternetItemPreview() {
 @Composable
 fun NoAuthenticationItemPreview() {
     NoAuthenticationItem(Color.White, Color.Blue) {}
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun DeleteDialogPreview() {
+    CloudAppTheme {
+        ShowDeleteDialog(onShowDialog = {}) {}
+    }
 }

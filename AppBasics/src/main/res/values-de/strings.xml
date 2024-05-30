@@ -128,6 +128,8 @@
     <string name="sys_no_connection">Keine Zugangsdaten existieren</string>
     <string name="sys_no_connection_description">Bitte geh zu den Zugangsdaten und füge eine Verbindung hinzu.</string>
     <string name="sys_no_connection_button">Zu den Accounts</string>
+    <string name="sys_delete_item">Sind Sie sicher, dass Sie den Eintrag löschen möchten?</string>
+
     <string name="permissions">Berechtigung</string>
     <string name="permissions_grant">Berechtigung gewähren</string>
     <string name="permissions_back">Zurück</string>

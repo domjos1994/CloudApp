@@ -63,6 +63,7 @@ import de.domjos.cloudapp2.rest.model.room.Type
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
@@ -114,6 +115,7 @@ fun RoomScreen(
     colorForeground: Color) {
 
     val showDialog =  remember { mutableStateOf(false) }
+    val showDeleteDialog = remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Room?>(null) }
 
     if(showDialog.value) {
@@ -124,8 +126,14 @@ fun RoomScreen(
                 selectedItem.value = it
                 onSaveClick(selectedItem.value!!)
             },
-            onDeleteClick = onDeleteClick
+            onDeleteClick = {
+                selectedItem.value = it
+                showDeleteDialog.value = true
+            }
         )
+    }
+    if(showDeleteDialog.value) {
+        ShowDeleteDialog({showDeleteDialog.value = it}, {onDeleteClick(selectedItem.value!!)})
     }
 
     ConstraintLayout(modifier = Modifier
