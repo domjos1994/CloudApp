@@ -24,9 +24,7 @@ class NotesViewModel @Inject constructor(
     fun reload() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                noteRepository.reload().collect {
-                    _notes.value = it
-                }
+                load()
             } catch (ex: Exception) {
                 Log.e(this.javaClass.name, ex.message, ex)
                 message.postValue(ex.message)
@@ -42,9 +40,7 @@ class NotesViewModel @Inject constructor(
                 } else {
                     noteRepository.updateNote(note)
                 }
-                noteRepository.reload().collect {
-                    _notes.value = it
-                }
+                load()
             } catch (ex: Exception) {
                 Log.e(this.javaClass.name, ex.message, ex)
                 message.postValue(ex.message)
@@ -56,9 +52,7 @@ class NotesViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 noteRepository.deleteNote(note.id)
-                noteRepository.reload().collect {
-                    _notes.value = it
-                }
+                load()
             } catch (ex: Exception) {
                 Log.e(this.javaClass.name, ex.message, ex)
                 message.postValue(ex.message)
@@ -68,5 +62,22 @@ class NotesViewModel @Inject constructor(
 
     fun hasAuthentications(): Boolean {
         return noteRepository.hasAuthentications()
+    }
+
+    private suspend fun load() {
+        noteRepository.reload().collect {notes ->
+            val tmp = mutableListOf<Note>()
+            val favorites = mutableListOf<Note>()
+            notes.forEach { note ->
+                if(note.favorite) {
+                    favorites.add(note)
+                } else {
+                    tmp.add(note)
+                }
+            }
+
+            favorites.addAll(tmp)
+            _notes.value = favorites
+        }
     }
 }
