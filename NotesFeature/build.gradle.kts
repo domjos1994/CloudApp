@@ -70,6 +70,10 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    // markdown
+    implementation(libs.markdown.renderer)
+    implementation(libs.markdown.renderer.m3)
+
     // debug
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)

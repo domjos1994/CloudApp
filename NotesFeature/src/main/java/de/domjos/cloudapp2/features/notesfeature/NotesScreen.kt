@@ -3,9 +3,11 @@ package de.domjos.cloudapp2.features.notesfeature
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -22,9 +25,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,6 +57,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.rest.model.notes.Note
 import de.domjos.cloudapp2.appbasics.R
@@ -110,6 +117,7 @@ fun NotesScreen(
 
 
     val showDialog =  remember { mutableStateOf(false) }
+    val showBottomSheet = remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Note?>(null) }
 
     if(showDialog.value) {
@@ -127,6 +135,11 @@ fun NotesScreen(
                 showDialog.value = false
             }
         )
+    }
+    if(showBottomSheet.value) {
+        NotesBottomSheet(selectedItem.value) {
+            showBottomSheet.value = it
+        }
     }
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
@@ -151,7 +164,13 @@ fun NotesScreen(
                 {
                     selectedItem.value = it
                     showDialog.value = true
-                }, colorBackground, colorForeground
+                },
+                {
+                    selectedItem.value = it
+                    showBottomSheet.value = true
+                },
+                colorBackground,
+                colorForeground
             )
         }
         if(isConnected) {
@@ -179,7 +198,8 @@ fun NotesList(
     isConnected: Boolean,
     hasAuths: Boolean,
     toAuths: () -> Unit,
-    onSelect: (Note) -> Unit,
+    onDialog: (Note) -> Unit,
+    onBottomSheet: (Note) -> Unit,
     colorBackground: Color,
     colorForeground: Color) {
 
@@ -191,7 +211,7 @@ fun NotesList(
                 }
             } else {
                 notes.forEach { item ->
-                    NotesItem(item, onSelect, colorBackground, colorForeground)
+                    NotesItem(item, onDialog, onBottomSheet, colorBackground, colorForeground)
                 }
             }
         } else {
@@ -206,13 +226,17 @@ fun NotesList(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun NotesItem(note: Note, onSelect: (Note) -> Unit, colorBackground: Color, colorForeground: Color) {
+fun NotesItem(note: Note, onDialog: (Note) -> Unit, onBottomSheet: (Note) -> Unit, colorBackground: Color, colorForeground: Color) {
     Row(
         Modifier
             .fillMaxWidth()
             .background(colorBackground)
-            .clickable { onSelect(note) }
+            .combinedClickable(
+                onClick = { onBottomSheet(note) },
+                onLongClick = { onDialog(note) }
+            )
             .height(80.dp)) {
         Column(
             Modifier
@@ -318,6 +342,16 @@ fun NotesDialog(
                         enabled = !readOnly
                     )
                 }
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(top = 2.dp)
+                    .border(1.dp, MaterialTheme.colorScheme.primaryContainer)) {
+                    Markdown(
+                        content = content,
+                        modifier = Modifier.padding(2.dp)
+                    )
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically) {
@@ -363,6 +397,40 @@ fun NotesDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotesBottomSheet(note: Note?, setShowSheet: (Boolean) -> Unit) {
+    if(note != null) {
+        ModalBottomSheet(
+            onDismissRequest = { setShowSheet(false) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
+
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(40.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center) {
+
+                    Text(note.title, fontSize = 32.sp, fontWeight = FontWeight.Bold)
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center) {
+
+                    Markdown(note.content)
+                }
+            }
+        }
+    }
+}
 
 @Composable
 @Preview(uiMode = UI_MODE_NIGHT_NO)
@@ -381,7 +449,7 @@ fun NotesScreenPreview() {
 @Preview(uiMode = UI_MODE_NIGHT_YES)
 fun NotesItemPreview() {
     CloudAppTheme {
-        NotesItem(fake(1), {}, colorBackground = Color.Blue, colorForeground = Color.White)
+        NotesItem(fake(1), {}, {}, colorBackground = Color.Blue, colorForeground = Color.White)
     }
 }
 
@@ -396,7 +464,7 @@ fun NotesDialogPreview() {
 
 fun fake(id: Int): Note {
     return Note(
-        id, "Hello, this is a veeeeeeeeeeeery long test $id",
+        id, "Hello, this is a very long test $id",
         "This is a test! $id", "test $id", false, 0
     )
 }
