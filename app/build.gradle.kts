@@ -14,8 +14,8 @@ android {
         applicationId = "de.domjos.cloudapp2"
         minSdk = rootProject.extra["sdk_min"] as Int
         targetSdk = rootProject.extra["sdk_compile"] as Int
-        versionCode = 12
-        versionName = "1.0.Beta.5"
+        versionCode = rootProject.extra["version"] as Int
+        versionName = rootProject.extra["version_name"] as String
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -25,7 +25,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = rootProject.extra["minify"] as Boolean
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

@@ -5,10 +5,10 @@ plugins {
 
 android {
     namespace = "de.domjos.cloudapp2.webdav"
-    compileSdk = 34
+    compileSdk = rootProject.extra["sdk_compile"] as Int
 
     defaultConfig {
-        minSdk = 26
+        minSdk = rootProject.extra["sdk_min"] as Int
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -16,7 +16,7 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = rootProject.extra["minify"] as Boolean
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -24,11 +24,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = rootProject.extra["java_jvm"] as JavaVersion
+        targetCompatibility = rootProject.extra["java_jvm"] as JavaVersion
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = rootProject.extra["java_version"] as String
     }
 }
 

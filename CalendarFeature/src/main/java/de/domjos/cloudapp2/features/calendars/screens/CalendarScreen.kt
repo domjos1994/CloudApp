@@ -410,6 +410,7 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
         Modifier
             .padding(1.dp)
             .background(bgColor)
+            .height(55.dp)
             .combinedClickable(
                 onClick = {
                     val tmp = cal.clone() as Calendar
