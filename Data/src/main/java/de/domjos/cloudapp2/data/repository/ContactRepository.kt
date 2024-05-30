@@ -128,17 +128,39 @@ class DefaultContactRepository @Inject constructor(
 
     override fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact) {
         contact.authId = authenticationDAO.getSelectedItem()!!.id
-        var update = true
         if(contact.uid == "") {
-            update = false
             contact.uid = UUID.randomUUID().toString()
         }
         this.loader.insertContact(contact)
         contact.addressBook = this.addressBook
-        if(update) {
-            this.contactDAO.updateContact(contact)
-        } else {
-            this.contactDAO.insertContact(contact)
+
+        val uid = contact.uid
+        try {
+            if(this.authenticationDAO.getSelectedItem() != null) {
+                val tmp = this.contactDAO.getAll(this.authenticationDAO.getSelectedItem()!!.id, uid)
+                if(tmp != null) {
+                    contact.contactId = tmp.contactId
+                    contact.lastUpdatedContactPhone = tmp.lastUpdatedContactPhone
+                }
+            }
+            contactDAO.deleteAddresses(uid)
+            contactDAO.deleteEmails(uid)
+            contactDAO.deletePhones(uid)
+            contactDAO.deleteContact(uid)
+        } catch (_: Exception) {}
+
+        this.contactDAO.insertContact(contact)
+        for(i in 0..<contact.addresses?.size!!) {
+            contact.addresses!![i].contactId = uid
+            contact.addresses!![i].id = contactDAO.insertAddress(contact.addresses!![i])
+        }
+        for(i in 0..<contact.phoneNumbers?.size!!) {
+            contact.phoneNumbers!![i].contactId = uid
+            contact.phoneNumbers!![i].id = contactDAO.insertPhone(contact.phoneNumbers!![i])
+        }
+        for(i in 0..<contact.emailAddresses?.size!!) {
+            contact.emailAddresses!![i].contactId = uid
+            contact.emailAddresses!![i].id = contactDAO.insertEmail(contact.emailAddresses!![i])
         }
     }
 

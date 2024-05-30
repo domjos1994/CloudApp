@@ -585,17 +585,29 @@ fun EditDialog(
                                 val bd = fullDay.parse(birthDate.text)
                                 val org = organization.text
                                 val ph = LinkedList<Phone>()
-                                phones.forEach { ph.add(it) }
+                                phones.forEach {
+                                    if(it.value != "") {
+                                        ph.add(it)
+                                    }
+                                }
                                 val em = LinkedList<Email>()
-                                mails.forEach { em.add(it) }
+                                mails.forEach {
+                                    if(it.value != "") {
+                                        em.add(it)
+                                    }
+                                }
                                 val a = LinkedList<Address>()
-                                addresses.forEach { a.add(it) }
+                                addresses.forEach {
+                                    if(it.locality != "") {
+                                        a.add(it)
+                                    }
+                                }
                                 val photo = img.value
                                 val addressBook = contact?.addressBook ?: ""
                                 val id = contact?.id ?: 0L
                                 val path = contact?.path ?: ""
 
-                                val new = Contact(id, path, uid, suf, pre, last, first, add, bd, org, photo, addressBook, "", -1L, -1L, 0L)
+                                val new = Contact(id, uid, path, suf, pre, last, first, add, bd, org, photo, addressBook, "", -1L, -1L, 0L)
                                 new.addresses = a
                                 new.emailAddresses = em
                                 new.phoneNumbers = ph
@@ -1208,6 +1220,8 @@ fun convertImageToByte(uri: Uri?, context: Context): ByteArray? {
 
 @Composable
 fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
+    var number by remember { mutableStateOf(phone.value) }
+
     Row(
         Modifier
             .fillMaxWidth()
@@ -1251,9 +1265,10 @@ fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
                 .height(75.dp),
             verticalArrangement = Arrangement.Center) {
             OutlinedTextField(
-                value = phone.value,
+                value = number,
                 onValueChange = {
-                    phone.value = it
+                    number = it
+                    phone.value = number
                 },
                 label = {
                     Text(stringResource(R.string.contact_phone))
@@ -1283,6 +1298,8 @@ fun PhoneItem(phone: Phone, onDelete: (Phone) -> Unit) {
 
 @Composable
 fun MailItem(email: Email, onDelete: (Email) -> Unit) {
+    var mail by remember { mutableStateOf(email.value) }
+
     Row(
         Modifier
             .fillMaxWidth()
@@ -1294,9 +1311,10 @@ fun MailItem(email: Email, onDelete: (Email) -> Unit) {
                 .height(75.dp),
             verticalArrangement = Arrangement.Center) {
             OutlinedTextField(
-                value = email.value,
+                value = mail,
                 onValueChange = {
-                    email.value = it
+                    mail = it
+                    email.value = mail
                 },
                 label = {
                     Text(stringResource(R.string.contact_mail))
@@ -1326,6 +1344,13 @@ fun MailItem(email: Email, onDelete: (Email) -> Unit) {
 
 @Composable
 fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
+    var poAddress by remember { mutableStateOf(address.postOfficeAddress ?: "") }
+    var street by remember { mutableStateOf(address.street) }
+    var postal by remember { mutableStateOf(address.postalCode ?: "") }
+    var localty by remember { mutableStateOf(address.locality ?: "") }
+    var region by remember { mutableStateOf(address.region ?: "") }
+    var ext by remember { mutableStateOf(address.extendedAddress ?: "") }
+
     Row(
         Modifier
             .fillMaxWidth()
@@ -1371,9 +1396,10 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                         .height(75.dp),
                     verticalArrangement = Arrangement.Center) {
                     OutlinedTextField(
-                        value = address.postOfficeAddress ?: "",
+                        value = poAddress,
                         onValueChange = {
-                            address.postOfficeAddress = it
+                            poAddress = it
+                            address.postOfficeAddress = poAddress
                         },
                         label = {
                             Text(stringResource(R.string.contact_addresses_postOfficeAddress), fontSize=13.sp)
@@ -1397,9 +1423,10 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     .wrapContentHeight()
                     .padding(2.dp)) {
                 OutlinedTextField(
-                    value = address.street,
+                    value = street,
                     onValueChange = {
-                        address.street = it
+                        street = it
+                        address.street = street
                     },
                     label = {
                         Text(stringResource(R.string.contact_addresses_street), fontSize=13.sp)
@@ -1415,9 +1442,10 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                         .weight(4f)
                         .padding(1.dp)) {
                     OutlinedTextField(
-                        value = address.postalCode ?: "",
+                        value = postal,
                         onValueChange = {
-                            address.postalCode = it
+                            postal = it
+                            address.postalCode = postal
                         },
                         label = {
                             Text(stringResource(R.string.contact_addresses_postal), fontSize=13.sp)
@@ -1428,9 +1456,10 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                         .weight(6f)
                         .padding(1.dp)) {
                     OutlinedTextField(
-                        value = address.locality ?: "",
+                        value = localty,
                         onValueChange = {
-                            address.locality = it
+                            localty = it
+                            address.locality = localty
                         },
                         label = {
                             Text(stringResource(R.string.contact_addresses_locality), fontSize=13.sp)
@@ -1443,9 +1472,10 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     .wrapContentHeight()
                     .padding(2.dp)) {
                 OutlinedTextField(
-                    value = address.region ?: "",
+                    value = region,
                     onValueChange = {
-                        address.region = it
+                        region = it
+                        address.region = region
                     },
                     label = {
                         Text(stringResource(R.string.contact_addresses_region), fontSize=13.sp)
@@ -1471,9 +1501,10 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     .wrapContentHeight()
                     .padding(2.dp)) {
                 OutlinedTextField(
-                    value = address.extendedAddress ?: "",
+                    value = ext,
                     onValueChange = {
-                        address.extendedAddress = it
+                        ext = it
+                        address.extendedAddress = ext
                     },
                     label = {
                         Text(stringResource(R.string.contact_addresses_extended), fontSize=13.sp)
