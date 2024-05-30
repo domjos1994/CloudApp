@@ -63,13 +63,19 @@ import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun NotesScreen(
     viewModel: NotesViewModel = hiltViewModel(), toAuths: () -> Unit, colorBackground: Color, colorForeground: Color
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    viewModel.reload()
+    val connection by connectivityState()
+    val isConnected = connection === ConnectionState.Available
+
+    if(isConnected) {
+        viewModel.reload()
+    }
 
     viewModel.message.observe(LocalLifecycleOwner.current) {
         if(it != null) {
@@ -83,12 +89,13 @@ fun NotesScreen(
         onDeleteClick = {viewModel.delete(it)},
         hasAuths = viewModel.hasAuthentications(),
         toAuths = toAuths,
+        isConnected = isConnected,
         colorBackground = colorBackground,
         colorForeground = colorForeground
     )
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+
 @Composable
 fun NotesScreen(
     items: List<Note>,
@@ -96,11 +103,11 @@ fun NotesScreen(
     onDeleteClick: (Note) -> Unit,
     hasAuths: Boolean,
     toAuths: () -> Unit,
+    isConnected: Boolean,
     colorBackground: Color,
     colorForeground: Color) {
 
-    val connection by connectivityState()
-    val isConnected = connection === ConnectionState.Available
+
 
     val showDialog =  remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Note?>(null) }
@@ -364,7 +371,7 @@ fun NotesScreenPreview() {
     CloudAppTheme {
         val items = listOf(fake(1), fake(2), fake(3))
 
-        NotesScreen(items, {}, {}, false, {}, colorBackground = Color.Blue, colorForeground = Color.White)
+        NotesScreen(items, {}, {}, false, {}, true, colorBackground = Color.Blue, colorForeground = Color.White)
     }
 }
 
