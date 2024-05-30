@@ -593,8 +593,9 @@ fun EditDialog(
                                 val photo = img.value
                                 val addressBook = contact?.addressBook ?: ""
                                 val id = contact?.id ?: 0L
+                                val path = contact?.path ?: ""
 
-                                val new = Contact(id, uid, suf, pre, last, first, add, bd, org, photo, addressBook, "", -1L, -1L, 0L)
+                                val new = Contact(id, path, uid, suf, pre, last, first, add, bd, org, photo, addressBook, "", -1L, -1L, 0L)
                                 new.addresses = a
                                 new.emailAddresses = em
                                 new.phoneNumbers = ph
@@ -1522,6 +1523,6 @@ fun fakeContact(id: Int): Contact {
     bDate.set(1960, 1, 1)
     bDate.add(Calendar.DAY_OF_MONTH, id)
     return Contact(0L,
-        "$id", "", "", "Doe", "John$id", "",
+        "$id", "", "", "", "Doe", "John$id", "",
         bDate.time, "", null, "Test", "", -1L, -1L, 0L)
 }

@@ -21,6 +21,7 @@ import java.util.LinkedList
 data class Contact(
     @PrimaryKey(autoGenerate = true) @ColumnInfo("id", defaultValue = "0") var id: Long,
     var uid: String,
+    @ColumnInfo("path", defaultValue = "") var path: String,
     var suffix: String?,
     var prefix: String?,
     var familyName: String?,
@@ -46,6 +47,7 @@ data class Contact(
         other as Contact
 
         if (uid != other.uid) return false
+        if (path != other.path) return false
         if (suffix != other.suffix) return false
         if (prefix != other.prefix) return false
         if (familyName != other.familyName) return false
@@ -64,6 +66,7 @@ data class Contact(
 
     override fun hashCode(): Int {
         var result = uid.hashCode()
+        result = 31 * result + (path.hashCode())
         result = 31 * result + (suffix?.hashCode() ?: 0)
         result = 31 * result + (prefix?.hashCode() ?: 0)
         result = 31 * result + (familyName?.hashCode() ?: 0)

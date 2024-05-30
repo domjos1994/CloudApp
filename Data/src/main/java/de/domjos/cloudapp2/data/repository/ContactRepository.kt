@@ -133,7 +133,7 @@ class DefaultContactRepository @Inject constructor(
             update = false
             contact.uid = UUID.randomUUID().toString()
         }
-        this.loader.insertContact(this.addressBook, contact)
+        this.loader.insertContact(contact)
         contact.addressBook = this.addressBook
         if(update) {
             this.contactDAO.updateContact(contact)
@@ -143,7 +143,7 @@ class DefaultContactRepository @Inject constructor(
     }
 
     override fun deleteContact(hasInternet: Boolean, contact: Contact) {
-        this.loader.deleteContact(this.addressBook, contact)
+        this.loader.deleteContact(contact)
         this.contactDAO.deleteContact(contact)
     }
 }

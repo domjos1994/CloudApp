@@ -24,7 +24,7 @@ import de.domjos.cloudapp2.database.model.contacts.Phone
         Authentication::class, CalendarEvent::class,
         Contact::class, Address::class, Phone::class, Email::class
    ],
-    version = 9,
+    version = 10,
     autoMigrations = [
         AutoMigration(1, 2),
         AutoMigration(2, 3),
@@ -33,7 +33,8 @@ import de.domjos.cloudapp2.database.model.contacts.Phone
         AutoMigration(5, 6),
         AutoMigration(6, 7),
         AutoMigration(7, 8),
-        AutoMigration(8, 9)
+        AutoMigration(8, 9),
+        AutoMigration(9, 10)
     ]
 )
 @TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class)

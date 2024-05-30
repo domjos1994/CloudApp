@@ -72,7 +72,7 @@ class ContactLoader(private val authentication: Authentication?) {
                             val inputStream = this.sardine?.get(cardPath, headers)
                             val tmp = Ezvcard.parse(inputStream).all()
                             tmp.forEach { vCard ->
-                                lst.add(this.vcardToContact(vCard, name))
+                                lst.add(this.vcardToContact(vCard, davResource.path, name))
                             }
                         } catch (ex: Exception) {
                             println(ex.message)
@@ -85,16 +85,16 @@ class ContactLoader(private val authentication: Authentication?) {
         return lst
     }
 
-    fun insertContact(name: String, contact: Contact) {
+    fun insertContact(contact: Contact) {
         if(this.sardine != null) {
-            val cardPath = "${basePath}/$name/${contact.uid}.vcf"
+            val cardPath = "${authentication?.url}${contact.path}"
             this.sardine?.put(cardPath, Ezvcard.write(this.contactToVCard(contact)).go().toByteArray())
         }
     }
 
-    fun deleteContact(name: String, contact: Contact) {
+    fun deleteContact(contact: Contact) {
         if(this.sardine != null) {
-            val cardPath = "${basePath}/$name/${contact.uid}.vcf"
+            val cardPath = "${authentication?.url}${contact.path}"
             this.sardine?.delete(cardPath)
         }
     }
@@ -115,7 +115,7 @@ class ContactLoader(private val authentication: Authentication?) {
         return headers
     }
 
-    private fun vcardToContact(vCard: VCard, name: String): Contact {
+    private fun vcardToContact(vCard: VCard, path: String, name: String): Contact {
         val addresses = LinkedList<Address>()
         if(vCard.addresses != null) {
             vCard.addresses.forEach { address ->
@@ -179,7 +179,7 @@ class ContactLoader(private val authentication: Authentication?) {
         }
 
         val contact = Contact(0L,
-            vCard.uid.value, suffix, prefix,
+            vCard.uid.value, path, suffix, prefix,
             family, given, additional,
             birthday, organization, photo, name, "", 0L, Date().time, authentication?.id!!)
         contact.categories = lst
