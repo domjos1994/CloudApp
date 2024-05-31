@@ -494,10 +494,13 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
         DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = {
             updateTheme(null)
-            onSettings() })
+            onSettings()
+            onExpanded(false)
+        })
         DropdownMenuItem(text = { Text(stringResource(R.string.permissions)) }, onClick = {
             updateTheme(null)
             onPermissions()
+            onExpanded(false)
         })
     }
 }
