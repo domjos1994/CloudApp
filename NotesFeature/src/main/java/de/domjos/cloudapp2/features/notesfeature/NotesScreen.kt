@@ -451,7 +451,8 @@ fun NotesBottomSheet(note: Note?, setShowSheet: (Boolean) -> Unit) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight(),
+                        .wrapContentHeight()
+                        .padding(10.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center) {
 
