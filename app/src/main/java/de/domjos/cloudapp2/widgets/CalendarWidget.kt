@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
@@ -39,7 +40,6 @@ import java.util.Locale
 class CalendarWidget : AbstractWidget<CalendarEvent>() {
     @Composable
     override fun Content() {
-        val context = LocalContext.current
         val prefs = currentState<Preferences>()
         val deserializedList = prefs[AbstractWidgetReceiver.currentData] ?: ""
         val itemList = if(deserializedList == "")
@@ -47,11 +47,18 @@ class CalendarWidget : AbstractWidget<CalendarEvent>() {
         else
             Json.decodeFromString<List<Event>>(deserializedList)
 
+        ViewContent(lst = itemList)
+    }
+
+    @Composable
+    fun ViewContent(lst: List<Event>) {
+        val context = LocalContext.current
+
         Column(
             modifier =
             GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.background),
+                .background(GlanceTheme.colors.primaryContainer),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -62,16 +69,17 @@ class CalendarWidget : AbstractWidget<CalendarEvent>() {
 
                 Text(
                     context.getString(R.string.widget_calendar),
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold, color = GlanceTheme.colors.primary)
                 )
             }
 
             LazyColumn(GlanceModifier.fillMaxWidth().wrapContentHeight()) {
-                this.items(itemList) { event ->
+                this.items(lst) { event ->
                     Row(
                         GlanceModifier.padding(5.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
+                            .background(GlanceTheme.colors.primary)
                             .clickable {
                                 val uid = event.uid
                                 if(uid.isNotEmpty()) {
@@ -82,31 +90,69 @@ class CalendarWidget : AbstractWidget<CalendarEvent>() {
                         Column(
                             GlanceModifier.width(40.dp).height(40.dp).padding(5.dp),
                             horizontalAlignment = Alignment.Start) {
-                            Image(getImageProvider(), event.title)
+                            Image(
+                                getImageProvider(),
+                                event.title,
+                                colorFilter = ColorFilter.tint(GlanceTheme.colors.primaryContainer))
                         }
                         Column(GlanceModifier.fillMaxWidth().wrapContentHeight()) {
                             Row(GlanceModifier.padding(1.dp)) {
-                                Text(event.title, style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                                Text(
+                                    event.title,
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = GlanceTheme.colors.primaryContainer
+                                    )
+                                )
                             }
                             Row(GlanceModifier.padding(1.dp).fillMaxWidth()) {
                                 Column(
                                     GlanceModifier.defaultWeight(),
                                     horizontalAlignment = Alignment.Start) {
                                     Row(GlanceModifier.padding(1.dp)) {
-                                        Text(event.calendar, style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Normal))
+                                        Text(
+                                            event.calendar,
+                                            style = TextStyle(
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                color = GlanceTheme.colors.primaryContainer
+                                            )
+                                        )
                                     }
                                     Row(GlanceModifier.padding(1.dp)) {
-                                        Text(event.location, style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Normal))
+                                        Text(
+                                            event.location,
+                                            style = TextStyle(
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                color = GlanceTheme.colors.primaryContainer
+                                            )
+                                        )
                                     }
                                 }
                                 Column(
                                     GlanceModifier.defaultWeight(),
                                     horizontalAlignment = Alignment.End) {
                                     Row(GlanceModifier.padding(1.dp)) {
-                                        Text(longToDate(event.start), style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Normal))
+                                        Text(
+                                            longToDate(event.start),
+                                            style = TextStyle(
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                color = GlanceTheme.colors.primaryContainer
+                                            )
+                                        )
                                     }
                                     Row(GlanceModifier.padding(1.dp)) {
-                                        Text(longToDate(event.end), style = TextStyle(fontSize = 9.sp, fontWeight = FontWeight.Normal))
+                                        Text(
+                                            longToDate(event.end),
+                                            style = TextStyle(
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                color = GlanceTheme.colors.primaryContainer
+                                            )
+                                        )
                                     }
                                 }
                             }

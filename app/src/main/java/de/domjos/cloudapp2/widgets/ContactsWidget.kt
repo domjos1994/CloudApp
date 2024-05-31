@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
@@ -51,7 +52,7 @@ class ContactsWidget : AbstractWidget<Contact>() {
             modifier =
             GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.background),
+                .background(GlanceTheme.colors.primaryContainer),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -61,7 +62,11 @@ class ContactsWidget : AbstractWidget<Contact>() {
 
                 Text(
                     context.getString(R.string.widget_contacts),
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GlanceTheme.colors.primary
+                    )
                 )
             }
 
@@ -71,21 +76,47 @@ class ContactsWidget : AbstractWidget<Contact>() {
                         GlanceModifier.padding(5.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
+                            .background(GlanceTheme.colors.primary)
                             .clickable {
                                 openPhone(context, it.phone)
                             }) {
                         Column(GlanceModifier.width(40.dp).height(40.dp).padding(5.dp)) {
-                            Image(getImageProvider(it), it.name)
+                            Image(
+                                getImageProvider(it),
+                                it.name,
+                                colorFilter = ColorFilter.tint(GlanceTheme.colors.primaryContainer)
+                            )
                         }
                         Column(GlanceModifier.wrapContentWidth().wrapContentHeight()) {
                             Row(GlanceModifier.padding(1.dp)) {
-                                Text(it.name, style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Bold))
+                                Text(
+                                    it.name,
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = GlanceTheme.colors.primaryContainer
+                                    )
+                                )
                             }
                             Row(GlanceModifier.padding(1.dp)) {
-                                Text(it.phone, style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Normal))
+                                Text(
+                                    it.phone,
+                                    style = TextStyle(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = GlanceTheme.colors.primaryContainer
+                                    )
+                                )
                             }
                             Row(GlanceModifier.padding(1.dp)) {
-                                Text(it.addressBook, style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Normal))
+                                Text(
+                                    it.addressBook,
+                                    style = TextStyle(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = GlanceTheme.colors.primaryContainer
+                                    )
+                                )
                             }
                         }
                     }

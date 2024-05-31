@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
@@ -49,7 +50,7 @@ class NewsWidget : AbstractWidget<Notification>() {
             modifier =
                 GlanceModifier
                     .fillMaxSize()
-                    .background(GlanceTheme.colors.background),
+                    .background(GlanceTheme.colors.primaryContainer),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -59,7 +60,11 @@ class NewsWidget : AbstractWidget<Notification>() {
 
                 Text(
                     context.getString(R.string.widget_news),
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GlanceTheme.colors.primary
+                    )
                 )
             }
 
@@ -69,12 +74,17 @@ class NewsWidget : AbstractWidget<Notification>() {
                         GlanceModifier.padding(5.dp)
                             .fillMaxWidth()
                             .wrapContentHeight()
+                            .background(GlanceTheme.colors.primary)
                             .clickable {
                                 openUrl(context, it.link)
                             }
                     ) {
                         Column(GlanceModifier.width(40.dp).height(40.dp).padding(5.dp)) {
-                            Image(getImageProvider(), it.icon)
+                            Image(
+                                getImageProvider(),
+                                it.icon,
+                                colorFilter = ColorFilter.tint(GlanceTheme.colors.primaryContainer)
+                            )
                         }
                         Column(GlanceModifier.wrapContentWidth().wrapContentHeight()) {
                             Row(GlanceModifier.padding(1.dp)) {
@@ -82,7 +92,8 @@ class NewsWidget : AbstractWidget<Notification>() {
                                     it.subject,
                                     style = TextStyle(
                                         fontSize = 12.sp,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        color = GlanceTheme.colors.primaryContainer
                                     )
                                 )
                             }
@@ -91,7 +102,8 @@ class NewsWidget : AbstractWidget<Notification>() {
                                     it.message,
                                     style = TextStyle(
                                         fontSize = 10.sp,
-                                        fontWeight = FontWeight.Normal
+                                        fontWeight = FontWeight.Normal,
+                                        color = GlanceTheme.colors.primaryContainer
                                     )
                                 )
                             }
