@@ -151,4 +151,6 @@
     <string name="permissions_phone_summary">Um Nummern direkt zu wählen, werden dazu Berechtigungen benötigt</string>
 
     <string name="validate_auth">Titel existiert bereits!</string>
+
+    <string name="documentations">Dokumentation</string>
 </resources>

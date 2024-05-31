@@ -1,7 +1,9 @@
 package de.domjos.cloudapp2.activities
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -501,6 +503,16 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
             updateTheme(null)
             onPermissions()
             onExpanded(false)
+        })
+        val context = LocalContext.current
+        DropdownMenuItem(text = { Text(stringResource(R.string.documentations)) }, onClick = {
+            try {
+                val uri = "https://domjos.de/cloudapp/Introduction.html"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+                onExpanded(false)
+            } catch (_: Exception) {}
         })
     }
 }
