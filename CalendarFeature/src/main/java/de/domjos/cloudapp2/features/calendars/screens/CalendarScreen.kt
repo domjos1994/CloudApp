@@ -111,6 +111,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     var selectedCalendar by remember { mutableStateOf("") }
     viewModel.getCalendars()
     viewModel.load(selectedCalendar, start, end)
+    viewModel.count(selectedCalendar, baseStart)
     val context = LocalContext.current
 
     viewModel.message.observe(LocalLifecycleOwner.current) {
