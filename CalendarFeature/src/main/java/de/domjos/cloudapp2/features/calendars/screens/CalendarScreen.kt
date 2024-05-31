@@ -515,13 +515,11 @@ fun CalendarEventItem(calendarEvent: CalendarEvent, colorBackground: Color, colo
 @Composable
 fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
     ModalBottomSheet(
-        onDismissRequest = { showBottomSheet(false) },
-        modifier = Modifier
-            .fillMaxWidth()
+        onDismissRequest = { showBottomSheet(false) }) {
+
+        Row(Modifier.fillMaxWidth()
             .wrapContentHeight()
             .padding(5.dp)) {
-
-        Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -529,7 +527,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 Text(event.title, fontSize = 16.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold)
             }
         }
-        Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+        Row(Modifier.fillMaxWidth()
+            .wrapContentHeight()
+            .padding(5.dp)) {
             Column(
                 modifier = Modifier.weight(4f),
                 horizontalAlignment = Alignment.End,
@@ -553,7 +553,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.location != "") {
-            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+            Row(Modifier.fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
                 Column(
                     modifier = Modifier.weight(4f),
                     horizontalAlignment = Alignment.End,
@@ -574,7 +576,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.calendar != "") {
-            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+            Row(Modifier.fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
                 Column(
                     modifier = Modifier.weight(4f),
                     horizontalAlignment = Alignment.End,
@@ -595,7 +599,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.categories != "") {
-            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+            Row(Modifier.fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
                 Column(
                     modifier = Modifier.weight(4f),
                     horizontalAlignment = Alignment.End,
@@ -616,7 +622,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.description != "") {
-            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+            Row(Modifier.fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -628,7 +636,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
 
         if(event.eventId != "") {
             val context = LocalContext.current
-            Row(Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+            Row(Modifier.fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -640,6 +650,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 }
             }
         }
+        Row(Modifier.fillMaxWidth()
+            .height(10.dp)
+            .padding(5.dp)) {}
     }
 }
 
