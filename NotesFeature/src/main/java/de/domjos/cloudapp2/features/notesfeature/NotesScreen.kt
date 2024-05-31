@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -384,31 +385,40 @@ fun NotesDialog(
                     )
                     Text(stringResource(R.string.notes_favorite))
                 }
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.weight(1f)) {
+                Row(modifier = Modifier.fillMaxWidth().height(50.dp)) {
+                    Column(Modifier.weight(1f).height(50.dp)) {
                         if(id != 0) {
                             IconButton(onClick = {
                                 val tmp = Note(id, content, title, category, favorite, 0)
                                 onDeleteClick(tmp)
                             }) {
-                                Icon(Icons.Filled.Delete, "Delete $title")
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    "Delete $title",
+                                    Modifier.width(50.dp).height(50.dp))
                             }
                         }
                     }
-                    Column(Modifier.weight(7f)) {}
-                    Column(Modifier.weight(1f)) {
+                    Column(Modifier.weight(7f).height(50.dp)) {}
+                    Column(Modifier.weight(1f).height(50.dp)) {
                         IconButton(onClick = {
                             setShowDialog(false)
                         }) {
-                            Icon(Icons.Filled.Close, "Cancel $title")
+                            Icon(
+                                Icons.Filled.Close,
+                                "Cancel $title",
+                                Modifier.width(50.dp).height(50.dp))
                         }
                     }
-                    Column(Modifier.weight(1f)) {
+                    Column(Modifier.weight(1f).height(50.dp)) {
                         IconButton(onClick = {
                             val tmp = Note(id, content, title, category, favorite, 0)
                             onSaveClick(tmp)
                         }, enabled = isValidTitle && isValidContent) {
-                            Icon(Icons.Filled.Done, "Save $title")
+                            Icon(
+                                Icons.Filled.Done,
+                                "Save $title",
+                                Modifier.width(50.dp).height(50.dp))
                         }
                     }
                 }

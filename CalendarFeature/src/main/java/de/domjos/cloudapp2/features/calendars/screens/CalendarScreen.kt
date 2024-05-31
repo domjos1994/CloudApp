@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -342,7 +343,7 @@ fun Calendar(
                 .wrapContentHeight()
                 .fillMaxWidth()) {
                 for (col in 0..6) {
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(Modifier.weight(1f).height(50.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Day(row, col, dt, colorBackground, colorForeground, {selected ->
                             selectedDate = selected.get(Calendar.DAY_OF_MONTH)
                             format = "dd.MM.yyyy"
@@ -418,6 +419,7 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
         Modifier
             .padding(1.dp)
             .background(bgColor)
+            .width(55.dp)
             .height(55.dp)
             .combinedClickable(
                 onClick = {
@@ -430,7 +432,9 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
                     tmp.set(Calendar.DAY_OF_MONTH, day)
                     onClick(tmp.time)
                 }
-            )) {
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
         Text("$day", fontStyle = style, fontWeight = weight, color = color, modifier = Modifier
             .padding(5.dp)
             .semantics { contentDescription = cal.time.toString() })
