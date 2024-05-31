@@ -81,6 +81,7 @@
     <string name="data_element_delete_error">Element kann nicht gelöscht werden, vielleicht ist es geteilt!</string>
     <string name="data_element_cut_error">Element kann nicht ausgeschnitten werden, vielleicht ist es geteilt!</string>
     <string name="data_element_add_error">Element kann nicht hinzugefügt werden!</string>
+
     <string name="chats">Chats</string>
     <string name="chats_msg">Nachricht</string>
     <string name="chats_send">Senden</string>
@@ -88,6 +89,9 @@
     <string name="chats_rooms_type">Typ</string>
     <string name="chats_rooms_name">Name</string>
     <string name="chats_rooms_description">Beschreibung</string>
+    <string name="chats_rooms_created">Raum wurde erfolgreich erstellt!</string>
+    <string name="chats_rooms_exists">Raum existiert bereits!</string>
+    <string name="chats_rooms_error">Raum konnte nicht erstellt werden!</string>
 
     <string name="notes">Notizen</string>
     <string name="notes_title">Titel</string>

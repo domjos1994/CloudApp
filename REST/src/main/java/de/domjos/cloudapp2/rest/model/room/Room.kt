@@ -10,6 +10,7 @@ data class Room(
     var id: Long,
     var token: String,
     var type: Int,
+    var invite: String = "",
     var name: String?,
     var displayName: String?,
     var description: String?,
@@ -28,6 +29,7 @@ data class Room(
         if (id != other.id) return false
         if (token != other.token) return false
         if (type != other.type) return false
+        if (invite != other.invite) return false
         if (name != other.name) return false
         if (displayName != other.displayName) return false
         if (description != other.description) return false
@@ -43,6 +45,7 @@ data class Room(
         var result = id.hashCode()
         result = 31 * result + token.hashCode()
         result = 31 * result + type
+        result = 31 * result + invite.hashCode()
         result = 31 * result + (name?.hashCode() ?: 0)
         result = 31 * result + displayName.hashCode()
         result = 31 * result + (description?.hashCode() ?: 0)
@@ -56,10 +59,12 @@ data class Room(
 
 @Serializable
 data class RoomInput(
-    @Transient var token: String? = "",
     var roomType: Int,
+    var invite: String,
+    val source: String = "",
     var roomName: String?,
-    @Transient var description: String? = null
+    val objectType: String = "room",
+    val objectId: String = ""
 )
 
 enum class Type(val value: Int) {

@@ -61,24 +61,28 @@ import de.domjos.cloudapp2.rest.model.msg.Message
 import de.domjos.cloudapp2.rest.model.room.Room
 import de.domjos.cloudapp2.rest.model.room.Type
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
+import de.domjos.cloudapp2.rest.model.user.User
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
     val rooms by viewModel.rooms.collectAsStateWithLifecycle()
+    val users by viewModel.users.collectAsStateWithLifecycle()
 
     val connection by connectivityState()
     val isConnected = connection === ConnectionState.Available
 
     if(isConnected) {
         viewModel.reload()
+        viewModel.loadUsers()
     }
 
     val context = LocalContext.current
@@ -92,7 +96,7 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Colo
     RoomScreen(
         onSaveClick = {
             if(it.token == "") {
-                viewModel.insertRoom(it)
+                viewModel.insertRoom(it, context)
             } else {
                 viewModel.updateRoom(it)
             }
@@ -100,7 +104,7 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Colo
         onDeleteClick = {
             viewModel.deleteRoom(it)
         },
-        rooms = rooms, isConnected, viewModel.hasAuthentications(), toAuths, onChatScreen,
+        rooms = rooms, users, isConnected, viewModel.hasAuthentications(), toAuths, onChatScreen,
         colorBackground, colorForeground)
 }
 
@@ -108,7 +112,9 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Colo
 fun RoomScreen(
     onSaveClick: (Room) -> Unit,
     onDeleteClick: (Room) -> Unit,
-    rooms: List<Room>, isConnected: Boolean,
+    rooms: List<Room>,
+    users: List<User?>,
+    isConnected: Boolean,
     hasAuths: Boolean, toAuths: () -> Unit,
     onChatScreen: (Int, String) -> Unit,
     colorBackground: Color,
@@ -121,6 +127,7 @@ fun RoomScreen(
     if(showDialog.value) {
         EditDialog(
             room = selectedItem.value,
+            users,
             setShowDialog = { showDialog.value = it },
             onSaveClick = {
                 selectedItem.value = it
@@ -212,8 +219,7 @@ fun RoomItem(room: Room, colorBackground: Color, colorForeground: Color,
                     .padding(5.dp)
                     .height(60.dp)
                     .width(60.dp)
-                    .clip(RoundedCornerShape(5.dp)),
-                colorFilter = ColorFilter.tint(colorForeground))
+                    .clip(RoundedCornerShape(5.dp)))
         } else {
             Image(
                 painterResource(R.drawable.baseline_person_24),
@@ -250,12 +256,14 @@ fun RoomItem(room: Room, colorBackground: Color, colorForeground: Color,
 @Composable
 fun EditDialog(
     room: Room?,
+    users: List<User?>,
     setShowDialog: (Boolean) -> Unit,
     onSaveClick: (Room) -> Unit,
     onDeleteClick: (Room) -> Unit
 ) {
     var token by remember { mutableStateOf("") }
     var type by remember { mutableStateOf(Type.OneToOne.name) }
+    var invite by remember { mutableStateOf(room?.invite ?: "") }
     var name by remember { mutableStateOf(TextFieldValue("")) }
     var description by remember { mutableStateOf(TextFieldValue("")) }
     var expanded by remember { mutableStateOf(false) }
@@ -263,6 +271,7 @@ fun EditDialog(
     if(room != null) {
         token = room.token
         type = Type.fromInt(room.type).name
+        invite = room.invite
         name = TextFieldValue(room.displayName!!)
         description = TextFieldValue(room.description!!)
     }
@@ -324,7 +333,18 @@ fun EditDialog(
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 5)
                 }
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    val items = mutableListOf<String>()
+                    users.forEach {items.add(it?.displayname?:"")}
 
+                    DropDown(items = items, initial = invite) { selected ->
+                        users.forEach {
+                            if(it?.displayname == selected) {
+                                invite = it.id
+                            }
+                        }
+                    }
+                }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Start) {
@@ -354,6 +374,7 @@ fun EditDialog(
                                 0L,
                                 token,
                                 Type.valueOf(type).value,
+                                invite,
                                 name.text,
                                 name.text,
                                 description.text,
@@ -376,22 +397,23 @@ fun EditDialog(
 @Preview(showBackground = true)
 @Composable
 fun DialogNewPreview() {
-    EditDialog(null, {}, {}, {})
+    EditDialog(null, listOf(), {}, {}, {})
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DialogUpdatePreview() {
-    EditDialog(fakeRoom(1), {}, {}, {})
+    EditDialog(fakeRoom(1), listOf(), {}, {}, {})
 }
 
 @Preview(showBackground = true)
 @Composable
 fun RoomScreenPreview() {
-    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)),
+    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)), listOf(),
         isConnected = true,
         hasAuths = true, {},
-        onChatScreen = { _, _->}, colorBackground = Color.Blue, colorForeground = Color.White)
+        onChatScreen = { _, _->}, colorBackground = Color.Blue, colorForeground = Color.White
+    )
 }
 
 @Preview(showBackground = true)
@@ -414,7 +436,7 @@ fun fakeRoom(no: Int): Room {
     return Room(
         no.toLong(),
         "token$no",
-        no,
+        no, "",
         "Chat$no",
         "Group-Chat$no",
         "description$no",

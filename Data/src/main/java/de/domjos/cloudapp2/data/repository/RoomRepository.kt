@@ -3,7 +3,9 @@ package de.domjos.cloudapp2.data.repository
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.rest.model.room.Room
 import de.domjos.cloudapp2.rest.model.room.RoomInput
+import de.domjos.cloudapp2.rest.model.user.User
 import de.domjos.cloudapp2.rest.requests.RoomRequest
+import de.domjos.cloudapp2.rest.requests.UserRequest
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
@@ -14,6 +16,7 @@ interface RoomRepository {
     suspend fun insertRoom(input: RoomInput)
     suspend fun updateRoom(token: String, name: String?, description: String?)
     suspend fun deleteRoom(token: String)
+    suspend fun getUsers(): List<User?>
     fun hasAuthentications(): Boolean
 }
 
@@ -22,6 +25,8 @@ class DefaultRoomRepository @Inject constructor(
 ) : RoomRepository {
     private val request: RoomRequest
         get() = RoomRequest(authenticationDAO.getSelectedItem())
+    private val userRequest: UserRequest
+        get() = UserRequest(authenticationDAO.getSelectedItem())
     override var rooms: Flow<List<Room>> = reload()
 
     override fun reload(): Flow<List<Room>> {
@@ -50,5 +55,10 @@ class DefaultRoomRepository @Inject constructor(
     @Throws(Exception::class)
     override suspend fun deleteRoom(token: String) {
         request.deleteRoom(token)
+    }
+
+    @Throws(Exception::class)
+    override suspend fun getUsers(): List<User?> {
+        return userRequest.getUsers()
     }
 }

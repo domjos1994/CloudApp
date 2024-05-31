@@ -55,17 +55,17 @@ class RoomRequest(private val authentication: Authentication?) : BasicRequest(au
 
     @Throws(Exception::class)
     fun addRoom(input: RoomInput) {
-        val request = super.buildRequest("room", "post", super.json.encodeToString(input))
+        val request = super.buildRequest("room?format=json", "post", super.json.encodeToString(input))
 
         if(request != null) {
             client.newCall(request).execute().use { response ->
                 val content = response.code
-                if(content != 200) {
-                    throw Exception(response.message)
+                if(content != 201) {
+                    throw Exception("$content")
                 }
             }
         } else {
-            throw Exception("Something went wrong!")
+            throw Exception("400")
         }
     }
 

@@ -94,6 +94,9 @@
     <string name="chats_rooms_type">Type</string>
     <string name="chats_rooms_name">Name</string>
     <string name="chats_rooms_description">Description</string>
+    <string name="chats_rooms_created">Room was created successfully!</string>
+    <string name="chats_rooms_exists">Room already exists!</string>
+    <string name="chats_rooms_error">Can\'t create room!</string>
 
     <string name="notes">Notes</string>
     <string name="notes_title">Title</string>
