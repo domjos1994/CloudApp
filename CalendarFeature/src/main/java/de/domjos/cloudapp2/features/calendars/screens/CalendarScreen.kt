@@ -86,12 +86,14 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
 import java.util.LinkedList
 import java.util.Locale
+import java.util.TimeZone
 import java.util.UUID
 
 @Composable
@@ -378,7 +380,7 @@ fun Calendar(
     colorBackground: Color,
     colorForeground: Color,
     currentDate: Date,
-    calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
+    calendar: Calendar = Calendar.getInstance(Locale.getDefault()), onChange: (Int, Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     var dt by remember { mutableStateOf(calendar) }
     var format by remember { mutableStateOf("MM.yyyy") }
     val sdfMonth = SimpleDateFormat("MM.yyyy", Locale.getDefault())
@@ -439,7 +441,7 @@ fun Calendar(
 
             days.forEach { day ->
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(day.name.substring(0, 2), fontWeight = FontWeight.Bold)
+                    Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault()).substring(0, 2), fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -496,7 +498,8 @@ fun DateHeader(
 fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: Color, colorForeground: Color, onSelected: (Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     // get first day
     val firstDayCal = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, 1)
-    val firstDay = firstDayCal.dayOfWeek.value
+    val firstDayOfWeek = WeekFields.of(Locale.getDefault()).firstDayOfWeek.value
+    val firstDay = firstDayCal.dayOfWeek.value - (firstDayOfWeek % 7)
 
     val previous = cal.clone() as Calendar
     previous.add(Calendar.MONTH, -1)
