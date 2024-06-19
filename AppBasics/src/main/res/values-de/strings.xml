@@ -134,7 +134,7 @@
     <string name="sys_no_connection_button">Zu den Accounts</string>
     <string name="sys_delete_item">Sind Sie sicher, dass Sie den Eintrag löschen möchten?</string>
 
-    <string name="permissions">Berechtigung</string>
+    <string name="permissions">Berechtigungen</string>
     <string name="permissions_grant">Berechtigung gewähren</string>
     <string name="permissions_back">Zurück</string>
     <string name="permissions_write_files_title">Datei schreiben</string>
