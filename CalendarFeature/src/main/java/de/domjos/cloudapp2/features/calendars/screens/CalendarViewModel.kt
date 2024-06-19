@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,10 +27,14 @@ class CalendarViewModel @Inject constructor(
     val calendars: StateFlow<List<String>> get() = _calendars
     val message = MutableLiveData<String?>()
 
+    private val _date = MutableStateFlow(Date())
+    val date: StateFlow<Date> get() = _date
+
     fun load(calendar: String, startTime: Long, endTime: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _events.value = calendarRepository.loadData(calendar, startTime, endTime)
+                _date.value = Date(startTime)
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)

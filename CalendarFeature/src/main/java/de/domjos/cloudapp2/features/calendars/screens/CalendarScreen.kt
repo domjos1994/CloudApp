@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
@@ -97,8 +99,10 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     val events by viewModel.events.collectAsStateWithLifecycle()
     val calendars by viewModel.calendars.collectAsStateWithLifecycle()
     val days by viewModel.days.collectAsStateWithLifecycle()
+    val date by viewModel.date.collectAsStateWithLifecycle()
 
     val dt = Calendar.getInstance()
+    dt.time = date
     val baseStart = Calendar.getInstance()
     baseStart.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), 1)
     val baseEnd = Calendar.getInstance()
@@ -122,7 +126,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
         }
     }
 
-    CalendarScreen(events, colorBackground, colorForeground, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
+    CalendarScreen(events, colorBackground, colorForeground, date, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
         val calStart = updateTime(0, 0, 0, calendar.clone() as Calendar)
         val calEnd = updateTime(23, 59, 59, calendar.clone() as Calendar)
         if(mode==Calendar.MONTH) {
@@ -157,6 +161,7 @@ fun CalendarScreen(
     calendarEvents: List<CalendarEvent>,
     colorBackground: Color,
     colorForeground: Color,
+    currentDate: Date,
     calendars: List<String>,
     countDays: List<Int>,
     hasAuths: Boolean, toAuths: () -> Unit,
@@ -168,9 +173,12 @@ fun CalendarScreen(
     var showDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var event by remember { mutableStateOf<CalendarEvent?>(null) }
-    var dt by remember { mutableStateOf(Date()) }
+    var dt by remember { mutableStateOf(currentDate) }
     val initial = stringResource(id = R.string.calendars_all)
     var showEventView by remember { mutableStateOf(false) }
+    val config = LocalConfiguration.current
+    val isLandScape by remember { mutableStateOf(config.orientation == Configuration.ORIENTATION_LANDSCAPE) }
+
 
     if(showDialog) {
         EditDialog(
@@ -193,47 +201,62 @@ fun CalendarScreen(
         EventView(event = event!!) {showEventView=it}
     }
 
-    ConstraintLayout(Modifier.fillMaxSize()) {
-        val (dropdown, list, control) = createRefs()
+    if(!isLandScape) {
+        ConstraintLayout(Modifier.fillMaxSize()) {
+            val (dropdown, list, control) = createRefs()
 
-        Column(Modifier.constrainAs(dropdown) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            width = Dimension.fillToConstraints
-        }) {
-            DropDown(calendars, initial, onCalendarSelected)
-            Separator(colorForeground)
-        }
-
-        Column(Modifier.constrainAs(list) {
-            top.linkTo(dropdown.bottom)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            bottom.linkTo(parent.bottom)
-            height = Dimension.fillToConstraints
-            width = Dimension.fillToConstraints
-        }) {
-            Row {
-                Calendar(colorBackground, colorForeground, onChange = onChange, countDays = countDays) {
-                    dt = it
-                    event = null
-                    showDialog = true
-                }
+            Column(Modifier.constrainAs(dropdown) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                width = Dimension.fillToConstraints
+            }) {
+                DropDown(calendars, initial, onCalendarSelected)
+                Separator(colorForeground)
             }
-            Row {
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .verticalScroll(rememberScrollState())) {
-                        if(hasAuths) {
+
+            Column(Modifier.constrainAs(list) {
+                top.linkTo(dropdown.bottom)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+                height = Dimension.fillToConstraints
+                width = Dimension.fillToConstraints
+            }) {
+                Row {
+                    Calendar(
+                        colorBackground,
+                        colorForeground,
+                        currentDate,
+                        onChange = onChange,
+                        countDays = countDays
+                    ) {
+                        //dt = it
+                        event = null
+                        showDialog = true
+                    }
+                }
+                Row {
+                    DateHeader(colorForeground, currentDate)
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        if (hasAuths) {
                             calendarEvents.forEach {
-                                CalendarEventItem(it, colorBackground, colorForeground, { item: CalendarEvent ->
-                                    event = item
-                                    dt = Date()
-                                    showDialog = true
-                                }) { item: CalendarEvent ->
+                                CalendarEventItem(
+                                    it,
+                                    colorBackground,
+                                    colorForeground,
+                                    { item: CalendarEvent ->
+                                        event = item
+                                        //dt = Date()
+                                        showDialog = true
+                                    }) { item: CalendarEvent ->
                                     event = item
                                     showEventView = true
                                 }
@@ -241,24 +264,111 @@ fun CalendarScreen(
                         } else {
                             NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                         }
+                    }
                 }
             }
-        }
 
-        FloatingActionButton(
-            onClick = {
-                dt = Date()
-                event = null
-                showDialog = true
-            },
-            modifier = Modifier
-                .constrainAs(control) {
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
+            FloatingActionButton(
+                onClick = {
+                    dt = Date()
+                    event = null
+                    showDialog = true
+                },
+                modifier = Modifier
+                    .constrainAs(control) {
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(5.dp)) {
+                Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+            }
+        }
+    } else {
+        ConstraintLayout(Modifier.fillMaxSize()) {
+            val (dropdown, list, control) = createRefs()
+
+            Column(Modifier.constrainAs(dropdown) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                bottom.linkTo(parent.bottom)
+                height = Dimension.fillToConstraints
+                width = Dimension.percent(0.5f)
+            }) {
+                Row {
+                    DropDown(calendars, initial, onCalendarSelected)
+                    Separator(colorForeground)
                 }
-                .padding(5.dp)) {
-            Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+                Row {
+                    Calendar(
+                        colorBackground,
+                        colorForeground,
+                        currentDate,
+                        onChange = onChange,
+                        countDays = countDays
+                    ) {
+                        //dt = it
+                        event = null
+                        showDialog = true
+                    }
+                }
+            }
+
+            Column(Modifier.constrainAs(list) {
+                top.linkTo(parent.top)
+                start.linkTo(dropdown.end)
+                bottom.linkTo(parent.bottom)
+                height = Dimension.fillToConstraints
+                width = Dimension.percent(0.5f)
+            }) {
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Row {
+                            DateHeader(colorForeground, currentDate)
+                        }
+
+                        if (hasAuths) {
+                            calendarEvents.forEach {
+                                CalendarEventItem(
+                                    it,
+                                    colorBackground,
+                                    colorForeground,
+                                    { item: CalendarEvent ->
+                                        event = item
+                                        //dt = Date()
+                                        showDialog = true
+                                    }) { item: CalendarEvent ->
+                                    event = item
+                                    showEventView = true
+                                }
+                            }
+                        } else {
+                            NoAuthenticationItem(colorForeground, colorBackground, toAuths)
+                        }
+                    }
+                }
+            }
+
+            FloatingActionButton(
+                onClick = {
+                    dt = Date()
+                    event = null
+                    showDialog = true
+                },
+                modifier = Modifier
+                    .constrainAs(control) {
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(5.dp)) {
+                Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+            }
         }
     }
 }
@@ -267,6 +377,7 @@ fun CalendarScreen(
 fun Calendar(
     colorBackground: Color,
     colorForeground: Color,
+    currentDate: Date,
     calendar: Calendar = Calendar.getInstance(), onChange: (Int, Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     var dt by remember { mutableStateOf(calendar) }
     var format by remember { mutableStateOf("MM.yyyy") }
@@ -343,8 +454,11 @@ fun Calendar(
                 .wrapContentHeight()
                 .fillMaxWidth()) {
                 for (col in 0..6) {
-                    Column(Modifier.weight(1f).height(50.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Day(row, col, dt, colorBackground, colorForeground, {selected ->
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .height(50.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Day(row, col, currentDate, dt, colorBackground, colorForeground, {selected ->
                             selectedDate = selected.get(Calendar.DAY_OF_MONTH)
                             format = "dd.MM.yyyy"
                             onChange(Calendar.DAY_OF_MONTH, selected)
@@ -358,22 +472,28 @@ fun Calendar(
                 .height(1.dp)
                 .fillMaxWidth()
                 .background(color = Color.Black)) {}
-        val fsdf = SimpleDateFormat(format, Locale.getDefault())
-        val tmp = dt.clone() as Calendar
-        tmp.set(Calendar.DAY_OF_MONTH, selectedDate)
-        Column(
-            Modifier
-                .padding(5.dp)
-                .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(fsdf.format(tmp.time), fontWeight = FontWeight.Bold)
-        }
-        Separator(color = colorForeground)
     }
+}
+
+@Composable
+fun DateHeader(
+    colorForeground: Color,
+    date: Date
+) {
+    val format by remember { mutableStateOf("MM.yyyy") }
+    val fsdf = SimpleDateFormat(format, Locale.getDefault())
+    Column(
+        Modifier
+            .padding(5.dp)
+            .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(fsdf.format(date), fontWeight = FontWeight.Bold)
+    }
+    Separator(color = colorForeground)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForeground: Color, onSelected: (Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
+fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: Color, colorForeground: Color, onSelected: (Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
     // get first day
     val firstDayCal = LocalDate.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1, 1)
     val firstDay = firstDayCal.dayOfWeek.value
@@ -389,6 +509,8 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
     var day = (row * 7) + (col - firstDay + 1)
     var bgColor = Color.Transparent
     var weight = FontWeight.Normal
+    var borderWidth = 0.dp
+    var borderColor = Color.Transparent
 
     if(day <= 0) {
         day += lastDayOfLastMonth
@@ -413,6 +535,19 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
             bgColor = colorBackground
             color = colorForeground
         }
+        val currentCal = Calendar.getInstance()
+        currentCal.time = currentDate
+        if(
+            cal.get(Calendar.YEAR)==currentCal.get(Calendar.YEAR) &&
+            cal.get(Calendar.MONTH)==currentCal.get(Calendar.MONTH) &&
+            day==currentCal.get(Calendar.DAY_OF_MONTH)
+        ) {
+            borderWidth = 1.dp
+            borderColor = colorBackground
+        } else {
+            borderWidth = 0.dp
+            borderColor = Color.Transparent
+        }
     }
 
     Column(
@@ -421,6 +556,7 @@ fun Day(row: Int, col: Int, cal: Calendar, colorBackground: Color, colorForegrou
             .background(bgColor)
             .width(55.dp)
             .height(55.dp)
+            .border(borderWidth, borderColor)
             .combinedClickable(
                 onClick = {
                     val tmp = cal.clone() as Calendar
@@ -517,9 +653,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
     ModalBottomSheet(
         onDismissRequest = { showBottomSheet(false) }) {
 
-        Row(Modifier.fillMaxWidth()
-            .wrapContentHeight()
-            .padding(5.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -527,9 +665,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 Text(event.title, fontSize = 16.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold)
             }
         }
-        Row(Modifier.fillMaxWidth()
-            .wrapContentHeight()
-            .padding(5.dp)) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
             Column(
                 modifier = Modifier.weight(4f),
                 horizontalAlignment = Alignment.End,
@@ -553,9 +693,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.location != "") {
-            Row(Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .padding(5.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp)) {
                 Column(
                     modifier = Modifier.weight(4f),
                     horizontalAlignment = Alignment.End,
@@ -576,9 +718,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.calendar != "") {
-            Row(Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .padding(5.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp)) {
                 Column(
                     modifier = Modifier.weight(4f),
                     horizontalAlignment = Alignment.End,
@@ -599,9 +743,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.categories != "") {
-            Row(Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .padding(5.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp)) {
                 Column(
                     modifier = Modifier.weight(4f),
                     horizontalAlignment = Alignment.End,
@@ -622,9 +768,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
             }
         }
         if(event.description != "") {
-            Row(Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .padding(5.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp)) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -636,9 +784,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
 
         if(event.eventId != "") {
             val context = LocalContext.current
-            Row(Modifier.fillMaxWidth()
-                .wrapContentHeight()
-                .padding(5.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp)) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -650,9 +800,11 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 }
             }
         }
-        Row(Modifier.fillMaxWidth()
-            .height(10.dp)
-            .padding(5.dp)) {}
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+                .padding(5.dp)) {}
     }
 }
 
@@ -919,7 +1071,7 @@ private fun isDate(sdf: SimpleDateFormat, dt: String): Date? {
 @Composable
 fun CalendarPreview() {
     CloudAppTheme {
-        Calendar(onChange = {_,_->}, colorBackground = Color.Blue, colorForeground = Color.White, countDays = listOf(), onClick = {})
+        Calendar(onChange = {_,_->}, colorBackground = Color.Blue, colorForeground = Color.White, countDays = listOf(), onClick = {}, currentDate = Date())
     }
 }
 
@@ -941,9 +1093,13 @@ fun EventViewPreview() {
 }
 
 @Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    device = "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=landscape"
+)
 @Composable
 fun ScreenPreview() {
-    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), colorBackground = Color.Blue, colorForeground = Color.White, listOf(), listOf(), true, {}, {_,_->}, {}, {}, {})
+    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), colorBackground = Color.Blue, colorForeground = Color.White, Date(), listOf(), listOf(), true, {}, {_,_->}, {}, {}, {})
 }
 
 @Preview(showBackground = true)
