@@ -5,9 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
@@ -38,13 +40,12 @@ fun NoEntryItem(colorForeground: Color, colorBackground: Color) {
     Row(
         Modifier
             .fillMaxWidth()
-            .height(50.dp)
             .padding(5.dp)
             .background(colorBackground)) {
         Column(
             Modifier
                 .weight(1f)
-                .height(50.dp),
+                .padding(5.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -53,7 +54,7 @@ fun NoEntryItem(colorForeground: Color, colorBackground: Color) {
         Column(
             Modifier
                 .weight(9f)
-                .height(50.dp),
+                .padding(5.dp),
             verticalArrangement = Arrangement.Center) {
 
             Text(
@@ -71,13 +72,12 @@ fun NoInternetItem(colorForeground: Color, colorBackground: Color) {
     Row(
         Modifier
             .fillMaxWidth()
-            .height(50.dp)
             .padding(5.dp)
             .background(colorBackground)) {
         Column(
             Modifier
                 .weight(1f)
-                .height(50.dp),
+                .padding(5.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
 
@@ -86,7 +86,7 @@ fun NoInternetItem(colorForeground: Color, colorBackground: Color) {
         Column(
             Modifier
                 .weight(9f)
-                .height(50.dp),
+                .padding(5.dp),
             verticalArrangement = Arrangement.Center) {
 
             Text(
@@ -104,23 +104,24 @@ fun NoAuthenticationItem(colorForeground: Color, colorBackground: Color, toAuths
     Row(
         Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .wrapContentHeight()
             .padding(5.dp)
             .background(colorBackground)) {
         Column(
             Modifier
                 .weight(1f)
-                .height(100.dp),
+                .wrapContentHeight()
+                .padding(5.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-
             Icon(Icons.Rounded.AccountCircle, "No Authentication!", tint = colorForeground)
         }
         Column(
             Modifier
                 .weight(9f)
-                .height(100.dp))  {
-            Row(Modifier.height(35.dp)) {
+                .wrapContentHeight()
+                .padding(5.dp))  {
+            Row(Modifier.wrapContentHeight()) {
                 Column(verticalArrangement = Arrangement.Center) {
 
                     Text(
@@ -131,7 +132,7 @@ fun NoAuthenticationItem(colorForeground: Color, colorBackground: Color, toAuths
                     )
                 }
             }
-            Row(Modifier.height(15.dp)) {
+            Row(Modifier.wrapContentHeight()) {
                 Column(verticalArrangement = Arrangement.Center) {
                     Text(
                         stringResource(id = R.string.sys_no_connection_description),
@@ -142,7 +143,7 @@ fun NoAuthenticationItem(colorForeground: Color, colorBackground: Color, toAuths
             }
             Row(
                 Modifier
-                    .height(49.dp)
+                    .wrapContentHeight()
                     .padding(2.dp)) {
                 Column(verticalArrangement = Arrangement.Center) {
                     Button(onClick = {toAuths()}, colors = ButtonDefaults.buttonColors(containerColor = colorForeground, contentColor = colorBackground)) {
