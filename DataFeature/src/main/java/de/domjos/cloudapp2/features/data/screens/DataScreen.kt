@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.AccountBox
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Delete
@@ -91,6 +92,7 @@ import java.io.InputStream
 @Composable
 fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
     val items by viewModel.items.collectAsStateWithLifecycle()
+    val parentItem by viewModel.item.collectAsStateWithLifecycle()
 
     val connection by connectivityState()
     val isConnected = connection === ConnectionState.Available
@@ -127,7 +129,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
         LoadingDialog { showDialog = it }
     }
 
-    DataScreen(items, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
+    DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
         {item: Item, o: () -> Unit ->
             showDialog = true
             viewModel.openElement(item) {
@@ -154,8 +156,9 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
 }
 
 @Composable
-fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String, uploadFile: (String, InputStream) -> Unit) {
+fun DataScreen(items: List<Item>, parentItem: Item?, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String, uploadFile: (String, InputStream) -> Unit) {
     var showDialog by remember { mutableStateOf(false) }
+    val can_edit = parentItem?.share?.can_edit ?: true
 
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (breadCrumb, list, controls) = createRefs()
@@ -184,7 +187,7 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
                 if(hasAuths) {
                     if(isConnected) {
 
-                        items.forEach { item -> DataItem(item, colorBackground, colorForeground, onClick, {
+                        items.forEach { item -> DataItem(item, parentItem, colorBackground, colorForeground, onClick, {
                             download = onExists(it)
                             download
                         }, onDelete, {
@@ -223,7 +226,7 @@ fun DataScreen(items: List<Item>, isConnected: Boolean, hasAuths: Boolean, toAut
                 }
             }
             Column {
-                if(isConnected && hasAuths) {
+                if(isConnected && hasAuths && can_edit) {
                     Separator(colorBackground)
                     Row {
                         Column(
@@ -310,9 +313,10 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
 }
 
 @Composable
-fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: Boolean, cutPath: String) {
+fun DataItem(item: Item, parentItem: Item?, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: Boolean, cutPath: String) {
     var downloaded by remember { mutableStateOf(item.exists) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val canDelete = parentItem?.share?.can_delete ?: true
 
     if(showDeleteDialog) {
         ShowDeleteDialog(onShowDialog = {showDeleteDialog = it}, {onDelete(item)})
@@ -372,7 +376,31 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            if(item.name != "..") {
+            if(item.share != null) {
+                val context = LocalContext.current
+                val msg = stringResource(id = R.string.data_shared_toast)
+                IconButton(onClick = {
+                    val text = String.format(msg, item.name, item.share?.displayname_owner)
+                    Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+                },
+                    colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
+                    if(cutPath != item.path) {
+                        Icon(
+                            Icons.Rounded.AccountBox,
+                            stringResource(R.string.data_shared),
+                            tint = colorForeground
+                        )
+                    }
+                }
+            }
+        }
+        Column(
+            Modifier
+                .padding(5.dp)
+                .weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            if(item.name != ".." && item.share == null) {
                 IconButton(onClick = {
                     onSetCutElement(item)
                 },
@@ -409,10 +437,19 @@ fun DataItem(item: Item, colorBackground: Color, colorForeground: Color, onClick
         Column(modifier = Modifier
             .padding(5.dp)
             .weight(1f)) {
-            if(item.name != "..") {
-                IconButton(onClick = { showDeleteDialog = true },
-                    colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
-                    Icon(Icons.Rounded.Delete, stringResource(R.string.calendar_delete), tint = colorForeground)
+            if(item.name != ".." && canDelete) {
+                if(item.share != null) {
+                    if(item.share!!.can_delete) {
+                        IconButton(onClick = { showDeleteDialog = true },
+                            colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
+                            Icon(Icons.Rounded.Delete, stringResource(R.string.calendar_delete), tint = colorForeground)
+                        }
+                    }
+                } else {
+                    IconButton(onClick = { showDeleteDialog = true },
+                        colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
+                        Icon(Icons.Rounded.Delete, stringResource(R.string.calendar_delete), tint = colorForeground)
+                    }
                 }
             }
         }
@@ -704,7 +741,9 @@ fun PdfViewer(path: String) {
 @Composable
 fun DataScreenPreview() {
     CloudAppTheme {
-        DataScreen(listOf(fake(1L), fake(2L), fake(3L)),
+        DataScreen(
+            listOf(fake(1L), fake(2L), fake(3L)),
+            null,
             isConnected = true,
             hasAuths = true,
             colorForeground = Color.White,
@@ -725,7 +764,7 @@ fun DataScreenPreview() {
 @Preview(showBackground = true)
 @Composable
 fun DataItemPreview() {
-    DataItem(fake(1L),
+    DataItem(fake(1L), null,
         Color.Blue,
         Color.White, {_,_->}, {true}, {}, {}, {}, true, "")
 }

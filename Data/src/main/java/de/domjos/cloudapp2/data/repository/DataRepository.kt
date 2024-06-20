@@ -10,8 +10,11 @@ import androidx.core.content.FileProvider
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
+import de.domjos.cloudapp2.rest.model.shares.Share
+import de.domjos.cloudapp2.rest.requests.ShareRequest
 import de.domjos.cloudapp2.webdav.WebDav
 import de.domjos.cloudapp2.webdav.model.Item
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.io.InputStream
 import java.util.LinkedList
@@ -20,8 +23,9 @@ import javax.inject.Inject
 
 interface DataRepository {
     var path: String
+
     fun init()
-    fun getList(): List<Item>
+    suspend fun getList(): List<Item>
     fun openFolder(item: Item)
     fun reload()
     fun hasFolderToMove(): Boolean
@@ -47,10 +51,15 @@ class DefaultDataRepository @Inject constructor(
     private var source: Item? = null
     private val basePath: String
     override var path: String = ""
+    private val shareRequest: ShareRequest
+        get() = ShareRequest(authenticationDAO.getSelectedItem())
+    private var shares: Flow<List<Share>>? = null
 
     init {
-        val publicDoc = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val publicDoc =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         this.basePath = "$publicDoc/CloudApp/${authenticationDAO.getSelectedItem()?.title}"
+        shares = this.shareRequest.getShares()
     }
 
     override fun init() {
@@ -65,12 +74,23 @@ class DefaultDataRepository @Inject constructor(
         return authenticationDAO.selected()!=0L
     }
 
-    override fun getList(): List<Item> {
+    override suspend fun getList(): List<Item> {
         path = webDav!!.getPath()
         val items = LinkedList<Item>()
         webDav?.getList()!!.forEach {
             it.exists = exists(it)
             items.add(it)
+        }
+        if(shares != null) {
+            items.forEach { item ->
+                shares?.collect { shares ->
+                    shares.forEach { share ->
+                        if(item.path.endsWith(share.file_target)) {
+                            item.share = share
+                        }
+                    }
+                }
+            }
         }
         return items
     }

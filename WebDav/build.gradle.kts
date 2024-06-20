@@ -40,6 +40,7 @@ dependencies {
     implementation(libs.material)
 
     implementation(libs.sardine)
+    implementation(project(":REST"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

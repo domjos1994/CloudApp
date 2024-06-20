@@ -86,6 +86,8 @@
     <string name="data_element_delete_error">Can\'t delete element, maybe it is shared!</string>
     <string name="data_element_cut_error">Can\'t cut element, maybe it is shared!</string>
     <string name="data_element_add_error">Can\'t add element!</string>
+    <string name="data_shared">Item was shared by other User!</string>
+    <string name="data_shared_toast">The item "%s" was shared by "%s"!</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Message</string>

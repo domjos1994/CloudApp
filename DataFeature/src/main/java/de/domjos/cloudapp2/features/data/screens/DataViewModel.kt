@@ -28,6 +28,8 @@ class DataViewModel @Inject constructor(
     private val _path = MutableStateFlow("")
     private val _items = MutableStateFlow(listOf<Item>())
     val items: StateFlow<List<Item>> get() = _items
+    private val _item = MutableStateFlow<Item?>(null)
+    val item: StateFlow<Item?> get() = _item
     val path: StateFlow<String> get() = _path
     var message = MutableLiveData<String?>()
     var resId = MutableLiveData<Int>()
@@ -58,6 +60,7 @@ class DataViewModel @Inject constructor(
     fun openElement(item: Item, onFinish: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                _item.value = item
                 var path = ""
                 if(item.directory) {
                     if(item.name == "..") {

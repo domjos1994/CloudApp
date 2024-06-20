@@ -44,6 +44,7 @@ dependencies {
     implementation(project(":AppBasics"))
     implementation(project(":Data"))
     implementation(project(":WebDav"))
+    implementation(project(":REST"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.constraint)

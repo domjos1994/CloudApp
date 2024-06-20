@@ -81,6 +81,8 @@
     <string name="data_element_delete_error">Element kann nicht gelöscht werden, vielleicht ist es geteilt!</string>
     <string name="data_element_cut_error">Element kann nicht ausgeschnitten werden, vielleicht ist es geteilt!</string>
     <string name="data_element_add_error">Element kann nicht hinzugefügt werden!</string>
+    <string name="data_shared">Element wurde von anderem Benutzer geteilt!</string>
+    <string name="data_shared_toast">Das Element "%s" wurde geteilt von "%s"!</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Nachricht</string>
