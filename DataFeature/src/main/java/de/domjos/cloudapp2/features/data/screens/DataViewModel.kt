@@ -198,12 +198,17 @@ class DataViewModel @Inject constructor(
         return manager.getPreference(PreferenceRequest(key, default))
     }
 
-    fun insertShare(share: InsertShare) {
+    fun insertShare(share: InsertShare, onUseClipBoard: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataRepository.insertShare(share).collect { state ->
-                    if(!state) {
-                        resId.postValue(R.string.data_went_wrong)
+                    if(state.startsWith("http")) {
+                        onUseClipBoard(state)
+                        resId.postValue(R.string.data_shared_copied)
+                    } else {
+                        if(state != "") {
+                            message.postValue(state)
+                        }
                     }
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path
@@ -219,8 +224,8 @@ class DataViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataRepository.deleteShare(id).collect { state ->
-                    if(!state) {
-                        resId.postValue(R.string.data_went_wrong)
+                    if(state != "") {
+                        message.postValue(state)
                     }
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path
@@ -236,8 +241,8 @@ class DataViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataRepository.updateShare(id, share).collect { state ->
-                    if(!state) {
-                        resId.postValue(R.string.data_went_wrong)
+                    if(state != "") {
+                        message.postValue(state)
                     }
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path

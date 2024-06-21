@@ -95,6 +95,7 @@
     <string name="data_shared_item_delete">Share löschen</string>
     <string name="data_shared_item_insert_or_update">Share hinzufügen oder aktualisieren</string>
     <string name="data_shared_item_cancel">Share abbrechen</string>
+    <string name="data_shared_copied">Link wurde in die Zwischenablage kopiert!</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Nachricht</string>

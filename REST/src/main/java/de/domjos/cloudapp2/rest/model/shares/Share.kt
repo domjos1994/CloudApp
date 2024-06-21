@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class Share(
     var id: Long,
     val share_type: Int,
-    val share_with: String,
+    val share_with: String? = "",
     var displayname_owner: String,
     var permissions: Int,
     var can_edit: Boolean,
@@ -17,6 +17,7 @@ data class Share(
     var file_target: String,
     var note: String
 ) {
+    var url: String = ""
     override fun toString(): String {
         return file_target
     }

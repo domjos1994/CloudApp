@@ -48,9 +48,9 @@ interface DataRepository {
     fun hasAuthentications(): Boolean
 
     suspend fun getShares(): Flow<List<Share>>
-    suspend fun insertShare(share: InsertShare): Flow<Boolean>
-    suspend fun deleteShare(id: Int): Flow<Boolean>
-    suspend fun updateShare(id: Int, share: UpdateShare): Flow<Boolean>
+    suspend fun insertShare(share: InsertShare): Flow<String>
+    suspend fun deleteShare(id: Int): Flow<String>
+    suspend fun updateShare(id: Int, share: UpdateShare): Flow<String>
 
     suspend fun getAutocompleteItems(text: String, shareType: Types): Flow<List<String>>
 }
@@ -241,19 +241,19 @@ class DefaultDataRepository @Inject constructor(
         return shareRequest.getShares(false)
     }
 
-    override suspend fun insertShare(share: InsertShare): Flow<Boolean> {
+    override suspend fun insertShare(share: InsertShare): Flow<String> {
         val result = shareRequest.addShare(share)
         sharesByMe = this.getShares()
         return result
     }
 
-    override suspend fun deleteShare(id: Int): Flow<Boolean> {
+    override suspend fun deleteShare(id: Int): Flow<String> {
         val result = shareRequest.deleteShare(id)
         sharesByMe = this.getShares()
         return result
     }
 
-    override suspend fun updateShare(id: Int, share: UpdateShare): Flow<Boolean> {
+    override suspend fun updateShare(id: Int, share: UpdateShare): Flow<String> {
         val result = shareRequest.updateShare(id, share)
         sharesByMe = this.getShares()
         return result

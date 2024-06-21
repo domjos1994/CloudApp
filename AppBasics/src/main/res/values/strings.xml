@@ -100,6 +100,7 @@
     <string name="data_shared_item_delete">Delete Share</string>
     <string name="data_shared_item_insert_or_update">Insert or update Share</string>
     <string name="data_shared_item_cancel">Cancel Share</string>
+    <string name="data_shared_copied">Link was copied to clipboard!</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Message</string>

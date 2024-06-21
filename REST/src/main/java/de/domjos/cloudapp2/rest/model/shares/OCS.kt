@@ -28,3 +28,10 @@ data class OCS(val meta: Meta, val data: Array<Share>) {
 
 @Serializable
 data class OCSObject(val ocs: OCS)
+
+
+@Serializable
+data class OCS2(val meta: Meta, val data: Share)
+
+@Serializable
+data class OCSObject2(val ocs: OCS2)

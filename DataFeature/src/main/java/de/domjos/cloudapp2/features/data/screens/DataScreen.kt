@@ -62,10 +62,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -148,6 +150,8 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
         LoadingDialog { showDialog = it }
     }
 
+    val clipboardManager = LocalClipboardManager.current
+
     DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
     { text: String, type: Types ->
         viewModel.autoComplete(text, type)
@@ -175,7 +179,12 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
             showDialog = true
             viewModel.createFile(name, stream) { showDialog = false }
         },
-        {share: InsertShare -> viewModel.insertShare(share)},
+        {share: InsertShare -> viewModel.insertShare(share) {
+            clipboardManager.setText(
+                AnnotatedString(it)
+            )
+        }
+        },
         {id: Int -> viewModel.deleteShare(id)},
         {id: Int, share: UpdateShare -> viewModel.updateShare(id, share)})
 }
@@ -606,6 +615,7 @@ fun ShareDialog(
                             label = stringResource(R.string.data_shared_type),
                             onSelected = {
                                 shareType = Types.toInt(Types.fromString(it))
+                                isShareNameValid = if(shareType==3) true else shareName.text.isNotEmpty()
                             })
                     }
                     Row(
@@ -616,7 +626,7 @@ fun ShareDialog(
                             value = shareName,
                             onValueChange = {
                                 shareName = it
-                                isShareNameValid = Validator.check(false, 1, 255, it.text)
+                                isShareNameValid = Validator.check(shareType==3, 1, 255, it.text)
                             },
                             label = {Text(stringResource(R.string.data_shared_name))},
                             onAutoCompleteChange = {
@@ -737,7 +747,7 @@ fun ShareDialog(
                                 onInsert(insertShare)
                             }
                             showDialog(false)
-                        }, enabled = isExpireDateValid && isNoteValid && isShareNameValid) {
+                        }, enabled = isExpireDateValid && isNoteValid && (isShareNameValid || isUpdate)) {
                             Icon(
                                 Icons.Filled.Check,
                                 stringResource(R.string.data_shared_item_insert_or_update),

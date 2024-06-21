@@ -4,6 +4,7 @@ import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.rest.model.shares.InsertShare
 import de.domjos.cloudapp2.rest.model.shares.Share
 import de.domjos.cloudapp2.rest.model.shares.OCSObject
+import de.domjos.cloudapp2.rest.model.shares.OCSObject2
 import de.domjos.cloudapp2.rest.model.shares.UpdateShare
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -33,48 +34,66 @@ class ShareRequest(private val authentication: Authentication?) : BasicRequest(a
     }
 
     @Throws(Exception::class)
-    fun addShare(share: InsertShare): Flow<Boolean> {
+    fun addShare(share: InsertShare): Flow<String> {
         share.path = share.path.split(authentication?.userName ?: "")[1]
         val content = super.json.encodeToString<InsertShare>(share)
-        val request = super.buildRequest("shares", "POST", content)
+        val request = super.buildRequest("shares?format=json", "POST", content)
 
         return flow {
             if(request != null) {
                 client.newCall(request).execute().use { response ->
-                    emit(response.code == 200)
+                    if(response.code == 200) {
+                        val res = response.body!!.string()
+                        val ocsObject = super.json.decodeFromString<OCSObject2>(res)
+                        emit(ocsObject.ocs.data.url)
+                    } else {
+                        val res = response.body!!.string()
+                        val ocsObject = super.json.decodeFromString<OCSObject>(res)
+                        emit(ocsObject.ocs.meta.message)
+                    }
                 }
             } else {
-                emit(false)
+                emit("")
             }
         }
     }
 
     @Throws(Exception::class)
-    fun deleteShare(id: Int): Flow<Boolean> {
-        val request = super.buildRequest("shares/${id}", "DELETE", null)
+    fun deleteShare(id: Int): Flow<String> {
+        val request = super.buildRequest("shares/${id}?format=json", "DELETE", null)
 
         return flow {
             if(request != null) {
                 client.newCall(request).execute().use { response ->
-                    emit(response.code == 200)
+                    if(response.code == 200) {
+                        emit("")
+                    } else {
+                        val ocsObject = super.json.decodeFromString<OCSObject>(response.body!!.toString())
+                        emit(ocsObject.ocs.meta.message)
+                    }
                 }
             } else {
-                emit(false)
+                emit("")
             }
         }
     }
 
     @Throws(Exception::class)
-    fun updateShare(id: Int, updateShare: UpdateShare): Flow<Boolean> {
-        val request = super.buildRequest("shares/${id}", "PUT", super.json.encodeToString<UpdateShare>(updateShare))
+    fun updateShare(id: Int, updateShare: UpdateShare): Flow<String> {
+        val request = super.buildRequest("shares/${id}?format=json", "PUT", super.json.encodeToString<UpdateShare>(updateShare))
 
         return flow {
             if(request != null) {
                 client.newCall(request).execute().use { response ->
-                    emit(response.code == 200)
+                    if(response.code == 200) {
+                        emit("")
+                    } else {
+                        val ocsObject = super.json.decodeFromString<OCSObject>(response.body!!.toString())
+                        emit(ocsObject.ocs.meta.message)
+                    }
                 }
             } else {
-                emit(false)
+                emit("")
             }
         }
     }
