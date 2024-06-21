@@ -1,3 +1,5 @@
+@file:Suppress("LocalVariableName")
+
 package de.domjos.cloudapp2.features.data.screens
 
 import android.content.Context
@@ -22,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,10 +32,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.rounded.AccountBox
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -71,8 +79,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
+import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
+import de.domjos.cloudapp2.appbasics.custom.OutlinedPasswordField
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.LoadingDialog
@@ -81,11 +92,19 @@ import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.data.Settings
+import de.domjos.cloudapp2.rest.model.shares.InsertShare
+import de.domjos.cloudapp2.rest.model.shares.Permissions
+import de.domjos.cloudapp2.rest.model.shares.Share
+import de.domjos.cloudapp2.rest.model.shares.Types
+import de.domjos.cloudapp2.rest.model.shares.UpdateShare
 import de.domjos.cloudapp2.webdav.model.Item
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -130,6 +149,9 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     }
 
     DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
+    { text: String, type: Types ->
+        viewModel.autoComplete(text, type)
+    },
         {item: Item, o: () -> Unit ->
             showDialog = true
             viewModel.openElement(item) {
@@ -148,17 +170,38 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
         { data: String -> viewModel.createFolder(data)},
         { item: Item -> viewModel.setFolderToMove(item)},
         { item: Item -> viewModel.moveFolder(item)},
-        {viewModel.hasFolderToMove()}, {viewModel.getFolderToMove()})
-    {name, stream ->
-        showDialog = true
-        viewModel.createFile(name, stream) { showDialog = false }
-    }
+        {viewModel.hasFolderToMove()}, {viewModel.getFolderToMove()},
+        {name, stream ->
+            showDialog = true
+            viewModel.createFile(name, stream) { showDialog = false }
+        },
+        {share: InsertShare -> viewModel.insertShare(share)},
+        {id: Int -> viewModel.deleteShare(id)},
+        {id: Int, share: UpdateShare -> viewModel.updateShare(id, share)})
 }
 
 @Composable
-fun DataScreen(items: List<Item>, parentItem: Item?, isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onPath: ()->String, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onCreateFolder: (String) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: () -> Boolean, getCutElement: () -> String, uploadFile: (String, InputStream) -> Unit) {
+fun DataScreen(
+    items: List<Item>, parentItem: Item?,
+    isConnected: Boolean, hasAuths: Boolean, toAuths: () -> Unit,
+    colorBackground: Color, colorForeground: Color,
+    onAutoComplete: (String, Types) -> List<String>,
+    onClick: (Item, () -> Unit) -> Unit,
+    onPath: ()->String,
+    onExists: (Item) -> Boolean,
+    onDelete: (Item) -> Unit,
+    onCreateFolder: (String) -> Unit,
+    onSetCutElement: (Item) -> Unit,
+    onMoveFolder: (Item)->Unit,
+    hasCutElement: () -> Boolean, getCutElement: () -> String,
+    uploadFile: (String, InputStream) -> Unit,
+    onInsertShare: (InsertShare) -> Unit,
+    onDeleteShare: (Int) -> Unit,
+    onUpdateShare: (Int, UpdateShare) -> Unit) {
+
+
     var showDialog by remember { mutableStateOf(false) }
-    val can_edit = parentItem?.share?.can_edit ?: true
+    val can_edit = parentItem?.sharedWithMe?.can_edit ?: true
 
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (breadCrumb, list, controls) = createRefs()
@@ -187,7 +230,7 @@ fun DataScreen(items: List<Item>, parentItem: Item?, isConnected: Boolean, hasAu
                 if(hasAuths) {
                     if(isConnected) {
 
-                        items.forEach { item -> DataItem(item, parentItem, colorBackground, colorForeground, onClick, {
+                        items.forEach { item -> DataItem(item, parentItem, colorBackground, colorForeground, onAutoComplete, onClick, {
                             download = onExists(it)
                             download
                         }, onDelete, {
@@ -198,7 +241,7 @@ fun DataScreen(items: List<Item>, parentItem: Item?, isConnected: Boolean, hasAu
                             onMoveFolder(it)
                             hasCut = false
                             getCut = ""
-                        }, hasCut, getCut)}
+                        }, hasCut, getCut, onInsertShare, onDeleteShare, onUpdateShare)}
                     } else {
                         NoInternetItem(colorForeground, colorBackground)
                     }
@@ -313,14 +356,42 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
 }
 
 @Composable
-fun DataItem(item: Item, parentItem: Item?, colorBackground: Color, colorForeground: Color, onClick: (Item, () -> Unit) -> Unit, onExists: (Item) -> Boolean, onDelete: (Item) -> Unit, onSetCutElement: (Item) -> Unit, onMoveFolder: (Item)->Unit, hasCutElement: Boolean, cutPath: String) {
+fun DataItem(
+    item: Item, parentItem: Item?,
+    colorBackground: Color, colorForeground: Color,
+    onAutoComplete: (String, Types) -> List<String>,
+    onClick: (Item, () -> Unit) -> Unit,
+    onExists: (Item) -> Boolean,
+    onDelete: (Item) -> Unit,
+    onSetCutElement: (Item) -> Unit,
+    onMoveFolder: (Item)->Unit,
+    hasCutElement: Boolean, cutPath: String,
+    onInsertShare: (InsertShare) -> Unit,
+    onDeleteShare: (Int) -> Unit,
+    onUpdateShare: (Int, UpdateShare) -> Unit) {
+
+
     var downloaded by remember { mutableStateOf(item.exists) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    val canDelete = parentItem?.share?.can_delete ?: true
+    var showDeleteShareDialog by remember { mutableStateOf(false) }
+    var showShareDialog by remember { mutableStateOf(false) }
+    val canDelete = parentItem?.sharedWithMe?.can_delete ?: true
+    var share by remember { mutableStateOf<Share?>(null) }
+    var shareId by remember { mutableIntStateOf(0) }
 
     if(showDeleteDialog) {
         ShowDeleteDialog(onShowDialog = {showDeleteDialog = it}, {onDelete(item)})
     }
+    if(showDeleteShareDialog) {
+        ShowDeleteDialog(onShowDialog = {showDeleteShareDialog = it}, {onDeleteShare(shareId)})
+    }
+    if(showShareDialog) {
+        ShareDialog({showShareDialog = it}, share, item, onAutoComplete, onUpdateShare, onInsertShare, {
+            shareId = it
+            showDeleteShareDialog = true
+        })
+    }
+
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -376,11 +447,32 @@ fun DataItem(item: Item, parentItem: Item?, colorBackground: Color, colorForegro
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            if(item.share != null) {
+            val color = if(item.sharedFromMe != null) colorForeground else Color.LightGray
+            IconButton(onClick = {
+                share = item.sharedFromMe
+                showShareDialog = true
+            },
+                colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
+                if(cutPath != item.path) {
+                    Icon(
+                        Icons.Rounded.Share,
+                        stringResource(R.string.data_shared),
+                        tint = color
+                    )
+                }
+            }
+        }
+        Column(
+            Modifier
+                .padding(5.dp)
+                .weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            if(item.sharedWithMe != null) {
                 val context = LocalContext.current
                 val msg = stringResource(id = R.string.data_shared_toast)
                 IconButton(onClick = {
-                    val text = String.format(msg, item.name, item.share?.displayname_owner)
+                    val text = String.format(msg, item.name, item.sharedWithMe?.displayname_owner)
                     Toast.makeText(context, text, Toast.LENGTH_LONG).show()
                 },
                     colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
@@ -400,7 +492,7 @@ fun DataItem(item: Item, parentItem: Item?, colorBackground: Color, colorForegro
                 .weight(1f),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            if(item.name != ".." && item.share == null) {
+            if(item.name != ".." && item.sharedWithMe == null) {
                 IconButton(onClick = {
                     onSetCutElement(item)
                 },
@@ -438,8 +530,8 @@ fun DataItem(item: Item, parentItem: Item?, colorBackground: Color, colorForegro
             .padding(5.dp)
             .weight(1f)) {
             if(item.name != ".." && canDelete) {
-                if(item.share != null) {
-                    if(item.share!!.can_delete) {
+                if(item.sharedWithMe != null) {
+                    if(item.sharedWithMe!!.can_delete) {
                         IconButton(onClick = { showDeleteDialog = true },
                             colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
                             Icon(Icons.Rounded.Delete, stringResource(R.string.calendar_delete), tint = colorForeground)
@@ -469,6 +561,209 @@ fun DataItem(item: Item, parentItem: Item?, colorBackground: Color, colorForegro
     Row(modifier = Modifier
         .fillMaxWidth()
         .height(1.dp)) {}
+}
+
+@Composable
+fun ShareDialog(
+    showDialog: (Boolean) -> Unit, share: Share?, item: Item,
+    onAutoComplete: (String, Types) -> List<String>,
+    onUpdate: (Int, UpdateShare) -> Unit,
+    onInsert: (InsertShare) -> Unit,
+    onDelete: (Int) -> Unit) {
+
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    var shareType by remember { mutableIntStateOf(share?.share_type ?: 0) }
+    var shareName by remember { mutableStateOf(TextFieldValue(share?.share_with ?: "")) }
+    var isShareNameValid by remember { mutableStateOf(share?.share_with?.isNotEmpty() ?: false) }
+    var permission by remember { mutableIntStateOf(share?.permissions ?: 1) }
+    var publicUpload by remember { mutableStateOf("false") }
+    var password by remember { mutableStateOf(TextFieldValue("")) }
+    var expireDate by remember { mutableStateOf(TextFieldValue(sdf.format(Date()))) }
+    var note by remember { mutableStateOf(TextFieldValue(share?.note ?: "")) }
+    var isNoteValid by remember { mutableStateOf(false) }
+    val isUpdate by remember { mutableStateOf((share?.id ?: 0L) != 0L) }
+    var isExpireDateValid by remember { mutableStateOf(true) }
+    val shareTypes = Types.entries.map { it.name }
+    val permissions = Permissions.entries.map { it.name }
+
+    Dialog(
+        onDismissRequest = { showDialog(false) }) {
+        Surface(
+            Modifier
+                .padding(5.dp)
+                .wrapContentHeight()
+        ) {
+            Column {
+                if(!isUpdate) {
+                    Row(
+                        Modifier
+                            .padding(1.dp)
+                            .height(50.dp)
+                    ) {
+                        DropDown(
+                            items = shareTypes,
+                            initial = Types.fromInt(shareType).name,
+                            label = stringResource(R.string.data_shared_type),
+                            onSelected = {
+                                shareType = Types.toInt(Types.fromString(it))
+                            })
+                    }
+                    Row(
+                        Modifier
+                            .padding(5.dp)
+                            .wrapContentHeight()) {
+                        AutocompleteTextField(
+                            value = shareName,
+                            onValueChange = {
+                                shareName = it
+                                isShareNameValid = Validator.check(false, 1, 255, it.text)
+                            },
+                            label = {Text(stringResource(R.string.data_shared_name))},
+                            onAutoCompleteChange = {
+                                onAutoComplete(it.text, Types.fromInt(shareType))
+                            },
+                            multi = true,
+                            isError = !isShareNameValid
+                        )
+                    }
+                }
+                Row(
+                    Modifier
+                        .padding(1.dp)
+                        .height(50.dp)) {
+                    DropDown(
+                        items = permissions,
+                        initial = Permissions.fromInt(permission).name,
+                        label = stringResource(R.string.data_shared_permission),
+                        onSelected = {
+                            permission = Permissions.toInt(Permissions.fromString(it))
+                    })
+                }
+                Row(
+                    Modifier
+                        .padding(5.dp)
+                        .height(50.dp)) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.End) {
+                        Text(stringResource(id = R.string.data_shared_public))
+                    }
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.Start) {
+                        Checkbox(checked = publicUpload == "true", onCheckedChange = {publicUpload = (if(it) "true" else "false")})
+                    }
+                }
+                Row(
+                    Modifier
+                        .padding(5.dp)
+                        .wrapContentHeight()) {
+                    OutlinedPasswordField(
+                        value = password,
+                        onValueChange = {
+                            password = it
+                        },
+                        label = R.string.data_shared_password
+                    )
+                }
+                Row(
+                    Modifier
+                        .padding(5.dp)
+                        .wrapContentHeight()) {
+                    OutlinedTextField(
+                        value = expireDate,
+                        onValueChange = {
+                            expireDate=it
+                            isExpireDateValid = Validator.checkDate(it.text, "yyyy-MM-dd")
+                        },
+                        label = {Text(stringResource(id = R.string.data_shared_expiredDate))},
+                        isError = !isExpireDateValid
+                    )
+                }
+                Row(
+                    Modifier
+                        .padding(5.dp)
+                        .wrapContentHeight()) {
+                    OutlinedTextField(
+                        value = note,
+                        onValueChange = {
+                            note = it
+                            isNoteValid = Validator.check(false, 2, 500, it.text)
+                        },
+                        label = {Text(stringResource(R.string.data_shared_note))},
+                        isError = !isNoteValid
+                    )
+                }
+                Row(
+                    Modifier
+                        .padding(5.dp)
+                        .wrapContentHeight()) {
+                    Column(Modifier.weight(1f)) {
+                        if(isUpdate) {
+                            IconButton(onClick = {
+                                onDelete(share?.id!!.toInt())
+                                showDialog(false)
+                            }) {
+                                Icon(
+                                    Icons.Filled.Delete,
+                                    stringResource(R.string.data_shared_item_delete),
+                                    Modifier
+                                        .width(50.dp)
+                                        .height(50.dp)
+                                )
+                            }
+                        }
+                    }
+                    Column(Modifier.weight(7f)) {
+
+                    }
+                    Column(Modifier.weight(1f)) {
+                        IconButton(onClick = {
+                            if(isUpdate) {
+                                val updateShare = UpdateShare(permission, password.text, publicUpload, expireDate.text, note.text)
+                                onUpdate(share?.id!!.toInt(), updateShare)
+                            } else {
+                                val path = item.path
+                                val insertShare = InsertShare(
+                                    path, shareType, shareName.text, publicUpload, password.text,
+                                    permission, expireDate.text, note.text
+                                )
+                                onInsert(insertShare)
+                            }
+                            showDialog(false)
+                        }, enabled = isExpireDateValid && isNoteValid && isShareNameValid) {
+                            Icon(
+                                Icons.Filled.Check,
+                                stringResource(R.string.data_shared_item_insert_or_update),
+                                Modifier
+                                    .width(50.dp)
+                                    .height(50.dp)
+                            )
+                        }
+                    }
+                    Column(Modifier.weight(1f)) {
+                        IconButton(onClick = {
+                            showDialog(false)
+                        }) {
+                            Icon(
+                                Icons.Filled.Clear,
+                                stringResource(R.string.data_shared_item_cancel),
+                                Modifier
+                                    .width(50.dp)
+                                    .height(50.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 @Composable
@@ -736,10 +1031,10 @@ fun PdfViewer(path: String) {
     }
 }
 
-@Preview(showBackground = true)
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun DataScreenPreview() {
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+/*fun DataScreenPreview() {
     CloudAppTheme {
         DataScreen(
             listOf(fake(1L), fake(2L), fake(3L)),
@@ -750,35 +1045,62 @@ fun DataScreenPreview() {
             colorBackground = Color.Blue,
             toAuths = {},
             onClick = {_,_->},
-            onPath = {"cxgygf"},
+            onPath = {"test"},
             onExists = {true},
             onDelete = {},
             onCreateFolder = {},
             onSetCutElement = {},
             onMoveFolder = {},
             hasCutElement = {true},
-            getCutElement = {""}) { _, _->}
+            getCutElement = {""},
+            uploadFile = { _, _->},
+            onInsertShare = {},
+            onDeleteShare = {},
+            onUpdateShare = {_,_->})
     }
-}
+}*/
 
-@Preview(showBackground = true)
-@Composable
-fun DataItemPreview() {
+//@Preview(showBackground = true)
+//@Composable
+/*fun DataItemPreview() {
     DataItem(fake(1L), null,
         Color.Blue,
-        Color.White, {_,_->}, {true}, {}, {}, {}, true, "")
-}
+        Color.White, {_,_->}, {true}, {}, {}, {}, true, "",
+        onInsertShare = {},
+        onDeleteShare = {},
+        onUpdateShare = {_,_->})
+}*/
+
+//@Preview(showBackground = true)
+//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+//@Composable
+/*fun CreateFolderDialogPreview() {
+    CloudAppTheme {
+        CreateFolderDialog({}) {}
+    }
+}*/
 
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun CreateFolderDialogPreview() {
+fun ShareDialogPreview() {
     CloudAppTheme {
-        CreateFolderDialog({}) {}
+        ShareDialog(showDialog = {}, share = fakeShare(1), item = fake(1), onAutoComplete = {_,_-> listOf() }, onUpdate = { _, _ ->}, onInsert = {}) {}
     }
 }
 
 
 fun fake(id: Long): Item {
     return Item("Test $id", true, "Test", "")
+}
+
+fun fakeShare(id: Long): Share {
+    return Share(id, id.toInt(), "$id", "$id", id.toInt(),
+        can_edit = false,
+        can_delete = false,
+        path = "",
+        item_type = "",
+        file_target = "",
+        note = ""
+    )
 }

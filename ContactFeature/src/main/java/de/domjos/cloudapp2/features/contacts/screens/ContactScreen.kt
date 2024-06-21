@@ -181,7 +181,7 @@ fun ContactScreen(
             width = Dimension.fillToConstraints
         }) {
             Column {
-                DropDown(addressBooks.values.toList(), all, onSelectedAddressBook)
+                DropDown(addressBooks.values.toList(), all, onSelectedAddressBook, stringResource(R.string.contacts_book))
                 Row(
                     Modifier
                         .fillMaxWidth()

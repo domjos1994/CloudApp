@@ -337,13 +337,17 @@ fun EditDialog(
                     val items = mutableListOf<String>()
                     users.forEach {items.add(it?.displayname?:"")}
 
-                    DropDown(items = items, initial = invite) { selected ->
+                    DropDown(
+                        items = items,
+                        initial = invite,
+                        label = stringResource(R.string.chats_rooms_participant),
+                        onSelected = { selected ->
                         users.forEach {
                             if(it?.displayname == selected) {
                                 invite = it.id
                             }
                         }
-                    }
+                    })
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),

@@ -48,6 +48,7 @@
     <string name="calendar_open">Open Event in Calendar-App</string>
 
     <string name="contacts">Contacts</string>
+    <string name="contacts_book">Contact-Book</string>
     <string name="contacts_all">All Contacts</string>
     <string name="contacts_system">System-Contacts</string>
     <string name="contacts_app">App-Contacts</string>
@@ -88,6 +89,17 @@
     <string name="data_element_add_error">Can\'t add element!</string>
     <string name="data_shared">Item was shared by other User!</string>
     <string name="data_shared_toast">The item "%s" was shared by "%s"!</string>
+    <string name="data_went_wrong">Something went wrong!</string>
+    <string name="data_shared_type">Share-Type</string>
+    <string name="data_shared_name">Name</string>
+    <string name="data_shared_permission">Permission</string>
+    <string name="data_shared_public">Public-Upload</string>
+    <string name="data_shared_password">Password</string>
+    <string name="data_shared_expiredDate">Expire-Date (Year-Month-Day)</string>
+    <string name="data_shared_note">Note</string>
+    <string name="data_shared_item_delete">Delete Share</string>
+    <string name="data_shared_item_insert_or_update">Insert or update Share</string>
+    <string name="data_shared_item_cancel">Cancel Share</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Message</string>
@@ -99,6 +111,7 @@
     <string name="chats_rooms_created">Room was created successfully!</string>
     <string name="chats_rooms_exists">Room already exists!</string>
     <string name="chats_rooms_error">Can\'t create room!</string>
+    <string name="chats_rooms_participant">Participant</string>
 
     <string name="notes">Notes</string>
     <string name="notes_title">Title</string>

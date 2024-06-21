@@ -17,6 +17,9 @@ import java.io.InputStream
 import javax.inject.Inject
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.data.Settings
+import de.domjos.cloudapp2.rest.model.shares.InsertShare
+import de.domjos.cloudapp2.rest.model.shares.Types
+import de.domjos.cloudapp2.rest.model.shares.UpdateShare
 import de.schnettler.datastore.manager.DataStoreManager
 import de.schnettler.datastore.manager.PreferenceRequest
 
@@ -33,6 +36,8 @@ class DataViewModel @Inject constructor(
     val path: StateFlow<String> get() = _path
     var message = MutableLiveData<String?>()
     var resId = MutableLiveData<Int>()
+
+    private val _shareItems = MutableStateFlow<List<String>>(listOf())
 
     fun init() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -192,4 +197,75 @@ class DataViewModel @Inject constructor(
         val manager = DataStoreManager(settings.getStore())
         return manager.getPreference(PreferenceRequest(key, default))
     }
+
+    fun insertShare(share: InsertShare) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataRepository.insertShare(share).collect { state ->
+                    if(!state) {
+                        resId.postValue(R.string.data_went_wrong)
+                    }
+                    _items.value = dataRepository.getList()
+                    _path.value = dataRepository.path
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
+        }
+    }
+
+    fun deleteShare(id: Int) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataRepository.deleteShare(id).collect { state ->
+                    if(!state) {
+                        resId.postValue(R.string.data_went_wrong)
+                    }
+                    _items.value = dataRepository.getList()
+                    _path.value = dataRepository.path
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
+        }
+    }
+
+    fun updateShare(id: Int, share: UpdateShare) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                dataRepository.updateShare(id, share).collect { state ->
+                    if(!state) {
+                        resId.postValue(R.string.data_went_wrong)
+                    }
+                    _items.value = dataRepository.getList()
+                    _path.value = dataRepository.path
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
+        }
+    }
+
+    fun autoComplete(text: String, shareType: Types): List<String> {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if(text!="") {
+                    dataRepository.getAutocompleteItems(text, shareType).collect {
+                        _shareItems.value = it
+                    }
+                } else {
+                    _shareItems.value = listOf()
+                }
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+                _shareItems.value = listOf()
+            }
+        }
+        return _shareItems.value
+    }
+
 }

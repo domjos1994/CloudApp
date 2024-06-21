@@ -10,7 +10,11 @@ import androidx.core.content.FileProvider
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
+import de.domjos.cloudapp2.rest.model.shares.InsertShare
 import de.domjos.cloudapp2.rest.model.shares.Share
+import de.domjos.cloudapp2.rest.model.shares.Types
+import de.domjos.cloudapp2.rest.model.shares.UpdateShare
+import de.domjos.cloudapp2.rest.requests.AutocompleteRequest
 import de.domjos.cloudapp2.rest.requests.ShareRequest
 import de.domjos.cloudapp2.webdav.WebDav
 import de.domjos.cloudapp2.webdav.model.Item
@@ -42,6 +46,13 @@ interface DataRepository {
 
     fun openFile(path: String, item: Item, context: Context)
     fun hasAuthentications(): Boolean
+
+    suspend fun getShares(): Flow<List<Share>>
+    suspend fun insertShare(share: InsertShare): Flow<Boolean>
+    suspend fun deleteShare(id: Int): Flow<Boolean>
+    suspend fun updateShare(id: Int, share: UpdateShare): Flow<Boolean>
+
+    suspend fun getAutocompleteItems(text: String, shareType: Types): Flow<List<String>>
 }
 
 class DefaultDataRepository @Inject constructor(
@@ -54,12 +65,16 @@ class DefaultDataRepository @Inject constructor(
     private val shareRequest: ShareRequest
         get() = ShareRequest(authenticationDAO.getSelectedItem())
     private var shares: Flow<List<Share>>? = null
+    private var sharesByMe: Flow<List<Share>>? = null
+    private val autoRequest: AutocompleteRequest
+        get() = AutocompleteRequest(authenticationDAO.getSelectedItem())
 
     init {
         val publicDoc =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         this.basePath = "$publicDoc/CloudApp/${authenticationDAO.getSelectedItem()?.title}"
-        shares = this.shareRequest.getShares()
+        shares = this.shareRequest.getShares(true)
+        sharesByMe = this.shareRequest.getShares(false)
     }
 
     override fun init() {
@@ -68,10 +83,6 @@ class DefaultDataRepository @Inject constructor(
             path = webDav!!.getPath()
         }
         webDav!!.checkUser()
-    }
-
-    override fun hasAuthentications(): Boolean {
-        return authenticationDAO.selected()!=0L
     }
 
     override suspend fun getList(): List<Item> {
@@ -86,9 +97,17 @@ class DefaultDataRepository @Inject constructor(
                 shares?.collect { shares ->
                     shares.forEach { share ->
                         if(item.path.endsWith(share.file_target)) {
-                            item.share = share
+                            item.sharedWithMe = share
                         }
                     }
+                }
+                sharesByMe?.collect {shares ->
+                    shares.forEach { share ->
+                        if(item.path.endsWith(share.file_target)) {
+                            item.sharedFromMe = share
+                        }
+                    }
+
                 }
             }
         }
@@ -212,5 +231,35 @@ class DefaultDataRepository @Inject constructor(
         }
         intent.setDataAndType(uri, type)
         startActivity(context, intent, Bundle())
+    }
+
+    override fun hasAuthentications(): Boolean {
+        return authenticationDAO.selected()!=0L
+    }
+
+    override suspend fun getShares(): Flow<List<Share>> {
+        return shareRequest.getShares(false)
+    }
+
+    override suspend fun insertShare(share: InsertShare): Flow<Boolean> {
+        val result = shareRequest.addShare(share)
+        sharesByMe = this.getShares()
+        return result
+    }
+
+    override suspend fun deleteShare(id: Int): Flow<Boolean> {
+        val result = shareRequest.deleteShare(id)
+        sharesByMe = this.getShares()
+        return result
+    }
+
+    override suspend fun updateShare(id: Int, share: UpdateShare): Flow<Boolean> {
+        val result = shareRequest.updateShare(id, share)
+        sharesByMe = this.getShares()
+        return result
+    }
+
+    override suspend fun getAutocompleteItems(text: String, shareType: Types): Flow<List<String>> {
+        return autoRequest.getItem(shareType, text)
     }
 }

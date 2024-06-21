@@ -47,6 +47,7 @@
     <string name="calendar_open">Öffne Event in Kalender-App</string>
 
     <string name="contacts">Kontakte</string>
+    <string name="contacts_book">Addressbuch</string>
     <string name="contacts_all">Alle Kontakte</string>
     <string name="contacts_system">System-Kontakte</string>
     <string name="contacts_app">App-Kontakte</string>
@@ -83,6 +84,17 @@
     <string name="data_element_add_error">Element kann nicht hinzugefügt werden!</string>
     <string name="data_shared">Element wurde von anderem Benutzer geteilt!</string>
     <string name="data_shared_toast">Das Element "%s" wurde geteilt von "%s"!</string>
+    <string name="data_went_wrong">Es lief etwas schief!</string>
+    <string name="data_shared_type">Share-Typ</string>
+    <string name="data_shared_name">Name</string>
+    <string name="data_shared_permission">Berechting</string>
+    <string name="data_shared_public">Öffentlicher Upload</string>
+    <string name="data_shared_password">Passwort</string>
+    <string name="data_shared_expiredDate">Ablaufdatum  (Jahr-Monat-Tag)</string>
+    <string name="data_shared_note">Notiz</string>
+    <string name="data_shared_item_delete">Share löschen</string>
+    <string name="data_shared_item_insert_or_update">Share hinzufügen oder aktualisieren</string>
+    <string name="data_shared_item_cancel">Share abbrechen</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Nachricht</string>
@@ -94,6 +106,7 @@
     <string name="chats_rooms_created">Raum wurde erfolgreich erstellt!</string>
     <string name="chats_rooms_exists">Raum existiert bereits!</string>
     <string name="chats_rooms_error">Raum konnte nicht erstellt werden!</string>
+    <string name="chats_rooms_participant">Teilnehmer</string>
 
     <string name="notes">Notizen</string>
     <string name="notes_title">Titel</string>

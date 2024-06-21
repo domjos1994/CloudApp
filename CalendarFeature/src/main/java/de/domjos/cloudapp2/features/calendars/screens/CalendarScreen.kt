@@ -93,7 +93,6 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.LinkedList
 import java.util.Locale
-import java.util.TimeZone
 import java.util.UUID
 
 @Composable
@@ -213,7 +212,7 @@ fun CalendarScreen(
                 end.linkTo(parent.end)
                 width = Dimension.fillToConstraints
             }) {
-                DropDown(calendars, initial, onCalendarSelected)
+                DropDown(calendars, initial, onCalendarSelected, stringResource(R.string.calendars))
                 Separator(colorForeground)
             }
 
@@ -298,7 +297,7 @@ fun CalendarScreen(
                 width = Dimension.percent(0.5f)
             }) {
                 Row {
-                    DropDown(calendars, initial, onCalendarSelected)
+                    DropDown(calendars, initial, onCalendarSelected, stringResource(R.string.calendars))
                     Separator(colorForeground)
                 }
                 Row {
