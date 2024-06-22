@@ -14,9 +14,11 @@ import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -364,6 +366,7 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DataItem(
     item: Item, parentItem: Item?,
@@ -387,6 +390,9 @@ fun DataItem(
     val canDelete = parentItem?.sharedWithMe?.can_delete ?: true
     var share by remember { mutableStateOf<Share?>(null) }
     var shareId by remember { mutableIntStateOf(0) }
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    var msg = stringResource(R.string.data_shared_copied)
 
     if(showDeleteDialog) {
         ShowDeleteDialog(onShowDialog = {showDeleteDialog = it}, {onDelete(item)})
@@ -453,22 +459,26 @@ fun DataItem(
         Column(
             Modifier
                 .padding(5.dp)
-                .weight(1f),
+                .weight(1f)
+                .combinedClickable(
+                    onClick = {
+                        share = item.sharedFromMe
+                        showShareDialog = true
+                    },
+                    onLongClick = {
+                        clipboardManager.setText(AnnotatedString(item.sharedFromMe!!.url))
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    }
+                ),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             val color = if(item.sharedFromMe != null) colorForeground else Color.LightGray
-            IconButton(onClick = {
-                share = item.sharedFromMe
-                showShareDialog = true
-            },
-                colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground)) {
-                if(cutPath != item.path) {
-                    Icon(
-                        Icons.Rounded.Share,
-                        stringResource(R.string.data_shared),
-                        tint = color
-                    )
-                }
+            if(cutPath != item.path) {
+                Icon(
+                    Icons.Rounded.Share,
+                    stringResource(R.string.data_shared),
+                    tint = color
+                )
             }
         }
         Column(
@@ -478,8 +488,7 @@ fun DataItem(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
             if(item.sharedWithMe != null) {
-                val context = LocalContext.current
-                val msg = stringResource(id = R.string.data_shared_toast)
+                msg = stringResource(id = R.string.data_shared_toast)
                 IconButton(onClick = {
                     val text = String.format(msg, item.name, item.sharedWithMe?.displayname_owner)
                     Toast.makeText(context, text, Toast.LENGTH_LONG).show()
@@ -572,6 +581,35 @@ fun DataItem(
         .height(1.dp)) {}
 }
 
+fun intToPermissions(value: Int): String {
+    var currentValue = value
+    var perms = ""
+    Permissions.entries.forEach { perm ->
+        if(currentValue > perm.value) {
+            perms = if(perms == "") {
+                perm.name
+            } else {
+                "$perms, ${perm.name}"
+            }
+            currentValue -= perm.value
+        }
+    }
+    return perms
+}
+
+fun permissionsToInt(value: String): Int {
+    var currentValue = 0
+    val perms = value.split(",")
+    Permissions.entries.forEach { perm ->
+        perms.forEach { p ->
+            if(p.trim() == perm.name) {
+                currentValue += perm.value
+            }
+        }
+    }
+    return currentValue
+}
+
 @Composable
 fun ShareDialog(
     showDialog: (Boolean) -> Unit, share: Share?, item: Item,
@@ -584,7 +622,7 @@ fun ShareDialog(
     var shareType by remember { mutableIntStateOf(share?.share_type ?: 0) }
     var shareName by remember { mutableStateOf(TextFieldValue(share?.share_with ?: "")) }
     var isShareNameValid by remember { mutableStateOf(share?.share_with?.isNotEmpty() ?: false) }
-    var permission by remember { mutableIntStateOf(share?.permissions ?: 1) }
+    var permission by remember { mutableStateOf(intToPermissions(share?.permissions ?: 1)) }
     var publicUpload by remember { mutableStateOf("false") }
     var password by remember { mutableStateOf(TextFieldValue("")) }
     var expireDate by remember { mutableStateOf(TextFieldValue(sdf.format(Date()))) }
@@ -640,14 +678,19 @@ fun ShareDialog(
                 Row(
                     Modifier
                         .padding(1.dp)
-                        .height(50.dp)) {
-                    DropDown(
-                        items = permissions,
-                        initial = Permissions.fromInt(permission).name,
-                        label = stringResource(R.string.data_shared_permission),
-                        onSelected = {
-                            permission = Permissions.toInt(Permissions.fromString(it))
-                    })
+                        .height(60.dp)) {
+                    AutocompleteTextField(
+                        value = TextFieldValue(permission),
+                        onValueChange = {
+                               permission = it.text
+                        },
+                        label = { Text(stringResource(R.string.data_shared_permission)) },
+                        onAutoCompleteChange = {item ->
+                            permissions.filter { it.startsWith(item.text.trim()) }
+                        },
+                        modifier = Modifier.height(60.dp),
+                        multi = true,
+                    )
                 }
                 Row(
                     Modifier
@@ -735,14 +778,15 @@ fun ShareDialog(
                     }
                     Column(Modifier.weight(1f)) {
                         IconButton(onClick = {
+                            val permVal = permissionsToInt(permission)
                             if(isUpdate) {
-                                val updateShare = UpdateShare(permission, password.text, publicUpload, expireDate.text, note.text)
+                                val updateShare = UpdateShare(permVal, password.text, publicUpload, expireDate.text, note.text)
                                 onUpdate(share?.id!!.toInt(), updateShare)
                             } else {
                                 val path = item.path
                                 val insertShare = InsertShare(
                                     path, shareType, shareName.text, publicUpload, password.text,
-                                    permission, expireDate.text, note.text
+                                    permVal, expireDate.text, note.text
                                 )
                                 onInsert(insertShare)
                             }
