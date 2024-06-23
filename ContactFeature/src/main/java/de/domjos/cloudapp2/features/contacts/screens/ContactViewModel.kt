@@ -1,7 +1,10 @@
 package de.domjos.cloudapp2.features.contacts.screens
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +18,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.util.LinkedList
 import javax.inject.Inject
+
+import de.domjos.cloudapp2.appbasics.helper.openEmail as oe
+import de.domjos.cloudapp2.appbasics.helper.openPhone as op
+
 
 @HiltViewModel
 class ContactViewModel @Inject constructor(
@@ -130,5 +137,35 @@ class ContactViewModel @Inject constructor(
 
     fun hasAuthentications(): Boolean {
         return contactRepository.hasAuthentications()
+    }
+
+    fun openPhone(phone: String, context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                op(context, phone)
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+            }
+        }
+    }
+
+    fun hasPhoneFeature(context: Context): Boolean {
+        return hasPermission(Manifest.permission.CALL_PHONE, context)
+    }
+
+    fun openEmail(email: String, context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+
+                oe(context, email)
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+            }
+        }
+    }
+
+    @Suppress("SameParameterValue")
+    private fun hasPermission(permission: String, context: Context): Boolean {
+        return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
     }
 }

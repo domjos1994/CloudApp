@@ -58,9 +58,19 @@ fun openUrl(context: Context, url: String) {
     context.startActivity(callIntent)
 }
 
+@Throws(Exception::class)
 fun openPhone(context: Context, phone: String) {
     val callIntent = Intent(Intent.ACTION_CALL)
     callIntent.setData(Uri.parse("tel:$phone"))
+    callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(callIntent)
+}
+
+@Throws(Exception::class)
+fun openEmail(context: Context, email: String) {
+    val callIntent = Intent(Intent.ACTION_SEND)
+    callIntent.setData(Uri.parse("mailto:"))
+    callIntent.putExtra(Intent.EXTRA_EMAIL, email)
     callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(callIntent)
 }

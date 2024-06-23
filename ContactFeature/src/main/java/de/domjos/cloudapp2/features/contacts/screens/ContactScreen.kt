@@ -38,6 +38,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -90,7 +91,6 @@ import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.appbasics.helper.openContact
-import de.domjos.cloudapp2.appbasics.helper.openPhone
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.database.model.contacts.Address
 import de.domjos.cloudapp2.database.model.contacts.AddressType
@@ -127,17 +127,26 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
         }
     }
 
-    ContactScreen(contacts, colorBackground, colorForeground, addressBooks, viewModel.hasAuthentications(), toAuths, canInsert, onSelectedAddressBook = { book: String ->
-        var key = ""
-        addressBooks.forEach {if(book==it.value) key = it.key}
-        viewModel.selectAddressBook(key)
-    }, onSave = {contact: Contact ->
-        viewModel.addOrUpdateAddress(available, contact)
-        viewModel.loadAddresses()
-    }, onDelete = {contact: Contact ->
-        viewModel.deleteAddress(available, contact)
-        viewModel.loadAddresses()
-    })
+    ContactScreen(
+        contacts, colorBackground, colorForeground, addressBooks,
+        viewModel.hasAuthentications(), toAuths, canInsert,
+        onSelectedAddressBook = { book: String ->
+            var key = ""
+            addressBooks.forEach {if(book==it.value) key = it.key}
+            viewModel.selectAddressBook(key)
+        },
+        onSave = {contact: Contact ->
+            viewModel.addOrUpdateAddress(available, contact)
+            viewModel.loadAddresses()
+        },
+        onDelete = {contact: Contact ->
+            viewModel.deleteAddress(available, contact)
+            viewModel.loadAddresses()
+        },
+        openEmail = {mail: String -> viewModel.openEmail(mail, context)},
+        openPhone = {phone: String -> viewModel.openPhone(phone, context)},
+        hasPhone = {viewModel.hasPhoneFeature(context)}
+    )
 }
 
 @Composable
@@ -157,7 +166,10 @@ fun ContactScreen(
     canInsert: Boolean,
     onSelectedAddressBook: (String) -> Unit,
     onSave: (Contact) -> Unit,
-    onDelete: (Contact) -> Unit) {
+    onDelete: (Contact) -> Unit,
+    openEmail: (String) -> Unit,
+    openPhone: (String) -> Unit,
+    hasPhone: () -> Boolean) {
 
     var showDialog by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
@@ -198,7 +210,7 @@ fun ContactScreen(
                     }, canInsert = canInsert)
                 }
                 if(showBottomSheet) {
-                    BottomSheet(contact = contact!!) {showBottomSheet=it}
+                    BottomSheet(contact = contact!!, {showBottomSheet=it}, openPhone, openEmail, hasPhone)
                 }
 
                 Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -754,7 +766,14 @@ fun TabControl(phones: MutableList<Phone>, mails: MutableList<Email>, addresses:
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
+fun BottomSheet(
+    contact: Contact,
+    setShowBottomSheet: (Boolean) -> Unit,
+    openPhone: (String) -> Unit,
+    openEmail: (String) -> Unit,
+    hasPhone: () -> Boolean) {
+
+
     val name =
         "${contact.suffix} ${contact.givenName} ${contact.familyName} ${contact.prefix}".trim()
 
@@ -950,8 +969,10 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                         Modifier
                             .weight(2f)
                             .padding(5.dp)) {
-                        IconButton(onClick = { openPhone(context, number.value) }) {
-                            Icon(Icons.Filled.Phone, number.value)
+                        if(hasPhone()) {
+                            IconButton(onClick = { openPhone(number.value) }) {
+                                Icon(Icons.Filled.Phone, number.value)
+                            }
                         }
                     }
                 }
@@ -971,7 +992,7 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
                         Modifier
-                            .weight(1f)
+                            .weight(18f)
                             .padding(5.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
@@ -979,6 +1000,14 @@ fun BottomSheet(contact: Contact, setShowBottomSheet: (Boolean) -> Unit) {
                             fontWeight = FontWeight.Normal,
                             fontSize = 18.sp
                         )
+                    }
+                    Column(
+                        Modifier
+                            .weight(2f)
+                            .padding(5.dp)) {
+                        IconButton(onClick = { openEmail(email.value) }) {
+                            Icon(Icons.Filled.Email, email.value)
+                        }
                     }
                 }
             }
@@ -1536,7 +1565,7 @@ fun TabControlPreview() {
 @Composable
 fun BottomSheetPreview() {
     CloudAppTheme {
-        BottomSheet(contact = fakeContact(0)) {}
+        BottomSheet(contact = fakeContact(0), {}, {}, {}, {true})
     }
 }
 
