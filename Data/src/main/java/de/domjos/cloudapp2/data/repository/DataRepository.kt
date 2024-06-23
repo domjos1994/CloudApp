@@ -48,9 +48,9 @@ interface DataRepository {
     fun hasAuthentications(): Boolean
 
     suspend fun getShares(): Flow<List<Share>>
-    suspend fun insertShare(share: InsertShare): Flow<String>
+    suspend fun insertShare(share: InsertShare): Flow<Share?>
     suspend fun deleteShare(id: Int): Flow<String>
-    suspend fun updateShare(id: Int, share: UpdateShare): Flow<String>
+    suspend fun updateShare(id: Int, share: UpdateShare): Flow<Share?>
 
     suspend fun getAutocompleteItems(text: String, shareType: Types): Flow<List<String>>
 }
@@ -73,8 +73,7 @@ class DefaultDataRepository @Inject constructor(
         val publicDoc =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
         this.basePath = "$publicDoc/CloudApp/${authenticationDAO.getSelectedItem()?.title}"
-        shares = this.shareRequest.getShares(true)
-        sharesByMe = this.shareRequest.getShares(false)
+        this.loadShares()
     }
 
     override fun init() {
@@ -241,25 +240,30 @@ class DefaultDataRepository @Inject constructor(
         return shareRequest.getShares(false)
     }
 
-    override suspend fun insertShare(share: InsertShare): Flow<String> {
+    override suspend fun insertShare(share: InsertShare): Flow<Share?> {
         val result = shareRequest.addShare(share)
-        sharesByMe = this.getShares()
+        this.loadShares()
         return result
     }
 
     override suspend fun deleteShare(id: Int): Flow<String> {
         val result = shareRequest.deleteShare(id)
-        sharesByMe = this.getShares()
+        this.loadShares()
         return result
     }
 
-    override suspend fun updateShare(id: Int, share: UpdateShare): Flow<String> {
+    override suspend fun updateShare(id: Int, share: UpdateShare): Flow<Share?> {
         val result = shareRequest.updateShare(id, share)
-        sharesByMe = this.getShares()
+        this.loadShares()
         return result
     }
 
     override suspend fun getAutocompleteItems(text: String, shareType: Types): Flow<List<String>> {
         return autoRequest.getItem(shareType, text)
+    }
+
+    private fun loadShares() {
+        shares = this.shareRequest.getShares(true)
+        sharesByMe = this.shareRequest.getShares(false)
     }
 }

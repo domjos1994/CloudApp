@@ -84,6 +84,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
+import de.domjos.cloudapp2.appbasics.custom.ConfirmationDialog
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
@@ -152,8 +153,6 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
         LoadingDialog { showDialog = it }
     }
 
-    val clipboardManager = LocalClipboardManager.current
-
     DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
     { text: String, type: Types ->
         viewModel.autoComplete(text, type)
@@ -181,14 +180,11 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
             showDialog = true
             viewModel.createFile(name, stream) { showDialog = false }
         },
-        {share: InsertShare -> viewModel.insertShare(share) {
-            clipboardManager.setText(
-                AnnotatedString(it)
-            )
-        }
+        {share: InsertShare, onFinish: (Share?) -> Unit ->
+            viewModel.insertShare(share, onFinish)
         },
         {id: Int -> viewModel.deleteShare(id)},
-        {id: Int, share: UpdateShare -> viewModel.updateShare(id, share)})
+        {id: Int, share: UpdateShare, onFinish: (Share?) -> Unit -> viewModel.updateShare(id, share, onFinish)})
 }
 
 @Composable
@@ -206,9 +202,9 @@ fun DataScreen(
     onMoveFolder: (Item)->Unit,
     hasCutElement: () -> Boolean, getCutElement: () -> String,
     uploadFile: (String, InputStream) -> Unit,
-    onInsertShare: (InsertShare) -> Unit,
+    onInsertShare: (InsertShare, (Share?) -> Unit) -> Unit,
     onDeleteShare: (Int) -> Unit,
-    onUpdateShare: (Int, UpdateShare) -> Unit) {
+    onUpdateShare: (Int, UpdateShare, (Share?) -> Unit) -> Unit) {
 
 
     var showDialog by remember { mutableStateOf(false) }
@@ -378,17 +374,18 @@ fun DataItem(
     onSetCutElement: (Item) -> Unit,
     onMoveFolder: (Item)->Unit,
     hasCutElement: Boolean, cutPath: String,
-    onInsertShare: (InsertShare) -> Unit,
+    onInsertShare: (InsertShare, onFinish: (Share?) -> Unit) -> Unit,
     onDeleteShare: (Int) -> Unit,
-    onUpdateShare: (Int, UpdateShare) -> Unit) {
+    onUpdateShare: (Int, UpdateShare, onFinish: (Share?) -> Unit) -> Unit) {
 
 
     var downloaded by remember { mutableStateOf(item.exists) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showDeleteShareDialog by remember { mutableStateOf(false) }
     var showShareDialog by remember { mutableStateOf(false) }
+    var showPublicShareDialog by remember { mutableStateOf(false) }
     val canDelete = parentItem?.sharedWithMe?.can_delete ?: true
-    var share by remember { mutableStateOf<Share?>(null) }
+    var share by remember { mutableStateOf(item.sharedFromMe) }
     var shareId by remember { mutableIntStateOf(0) }
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
@@ -398,13 +395,40 @@ fun DataItem(
         ShowDeleteDialog(onShowDialog = {showDeleteDialog = it}, {onDelete(item)})
     }
     if(showDeleteShareDialog) {
-        ShowDeleteDialog(onShowDialog = {showDeleteShareDialog = it}, {onDeleteShare(shareId)})
+        ShowDeleteDialog(onShowDialog = {showDeleteShareDialog = it}, {
+            onDeleteShare(shareId)
+            share = null
+        })
     }
     if(showShareDialog) {
-        ShareDialog({showShareDialog = it}, share, item, onAutoComplete, onUpdateShare, onInsertShare, {
+        ShareDialog({showShareDialog = it}, share, item, onAutoComplete, { id: Int, sh: UpdateShare ->
+            onUpdateShare(id, sh) {
+                share = it
+            }
+        }, {sh -> onInsertShare(sh) {
+            share = it
+            if(share != null) {
+                clipboardManager.setText(AnnotatedString(share!!.url))
+            }
+        } }, {
             shareId = it
             showDeleteShareDialog = true
         })
+    }
+    if(showPublicShareDialog) {
+        PublicShareDialog(onShowDialog = {showPublicShareDialog = it}) {
+            val type = Types.Public.value
+            val permission = Permissions.Read.value
+            val path = item.path
+
+            val insertShare = InsertShare(
+                path, type, "", "false",
+                "", permission, "", ""
+            )
+            onInsertShare(insertShare) {
+                share = it
+            }
+        }
     }
 
 
@@ -462,17 +486,28 @@ fun DataItem(
                 .weight(1f)
                 .combinedClickable(
                     onClick = {
-                        share = item.sharedFromMe
                         showShareDialog = true
                     },
                     onLongClick = {
-                        clipboardManager.setText(AnnotatedString(item.sharedFromMe!!.url))
-                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        if (share != null) {
+                            if(item.sharedFromMe != null) {
+                                if(item.sharedFromMe!!.url != "") {
+                                    val url = item.sharedFromMe!!.url
+
+                                    clipboardManager.setText(AnnotatedString(url))
+                                    Toast
+                                        .makeText(context, msg, Toast.LENGTH_LONG)
+                                        .show()
+                                }
+                            }
+                        } else {
+                            showPublicShareDialog = true
+                        }
                     }
                 ),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally) {
-            val color = if(item.sharedFromMe != null) colorForeground else Color.LightGray
+            val color = if(share != null) colorForeground else Color.LightGray
             if(cutPath != item.path) {
                 Icon(
                     Icons.Rounded.Share,
@@ -581,6 +616,17 @@ fun DataItem(
         .height(1.dp)) {}
 }
 
+@Composable
+fun PublicShareDialog(onShowDialog: (Boolean) -> Unit, onOkay: () -> Unit) {
+    ConfirmationDialog(
+        onShowDialog = onShowDialog,
+        action = onOkay,
+        title = stringResource(R.string.data_shared_dialog),
+        cancelText = stringResource(R.string.data_shared_dialog_cancel),
+        okayText = stringResource(R.string.data_shared_dialog_okay)
+    )
+}
+
 fun intToPermissions(value: Int): String {
     var currentValue = value
     var perms = ""
@@ -659,7 +705,7 @@ fun ShareDialog(
                     Row(
                         Modifier
                             .padding(5.dp)
-                            .wrapContentHeight()) {
+                            .height(60.dp)) {
                         AutocompleteTextField(
                             value = shareName,
                             onValueChange = {

@@ -34,7 +34,7 @@ class ShareRequest(private val authentication: Authentication?) : BasicRequest(a
     }
 
     @Throws(Exception::class)
-    fun addShare(share: InsertShare): Flow<String> {
+    fun addShare(share: InsertShare): Flow<Share?> {
         share.path = share.path.split(authentication?.userName ?: "")[1]
         val content = super.json.encodeToString<InsertShare>(share)
         val request = super.buildRequest("shares?format=json", "POST", content)
@@ -45,15 +45,15 @@ class ShareRequest(private val authentication: Authentication?) : BasicRequest(a
                     if(response.code == 200) {
                         val res = response.body!!.string()
                         val ocsObject = super.json.decodeFromString<OCSObject2>(res)
-                        emit(ocsObject.ocs.data.url)
+                        emit(ocsObject.ocs.data)
                     } else {
                         val res = response.body!!.string()
                         val ocsObject = super.json.decodeFromString<OCSObject>(res)
-                        emit(ocsObject.ocs.meta.message)
+                        throw Exception(ocsObject.ocs.meta.message)
                     }
                 }
             } else {
-                emit("")
+                emit(null)
             }
         }
     }
@@ -79,21 +79,23 @@ class ShareRequest(private val authentication: Authentication?) : BasicRequest(a
     }
 
     @Throws(Exception::class)
-    fun updateShare(id: Int, updateShare: UpdateShare): Flow<String> {
+    fun updateShare(id: Int, updateShare: UpdateShare): Flow<Share?> {
         val request = super.buildRequest("shares/${id}?format=json", "PUT", super.json.encodeToString<UpdateShare>(updateShare))
 
         return flow {
             if(request != null) {
                 client.newCall(request).execute().use { response ->
                     if(response.code == 200) {
-                        emit("")
+                        val res = response.body!!.string()
+                        val ocsObject = super.json.decodeFromString<OCSObject2>(res)
+                        emit(ocsObject.ocs.data)
                     } else {
                         val ocsObject = super.json.decodeFromString<OCSObject>(response.body!!.toString())
-                        emit(ocsObject.ocs.meta.message)
+                        throw Exception(ocsObject.ocs.meta.message)
                     }
                 }
             } else {
-                emit("")
+                emit(null)
             }
         }
     }

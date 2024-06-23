@@ -18,6 +18,7 @@ import javax.inject.Inject
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.data.Settings
 import de.domjos.cloudapp2.rest.model.shares.InsertShare
+import de.domjos.cloudapp2.rest.model.shares.Share
 import de.domjos.cloudapp2.rest.model.shares.Types
 import de.domjos.cloudapp2.rest.model.shares.UpdateShare
 import de.schnettler.datastore.manager.DataStoreManager
@@ -198,16 +199,14 @@ class DataViewModel @Inject constructor(
         return manager.getPreference(PreferenceRequest(key, default))
     }
 
-    fun insertShare(share: InsertShare, onUseClipBoard: (String) -> Unit) {
+    fun insertShare(share: InsertShare, onFinish: (Share?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                dataRepository.insertShare(share).collect { state ->
-                    if(state.startsWith("http")) {
-                        onUseClipBoard(state)
-                        resId.postValue(R.string.data_shared_copied)
-                    } else {
-                        if(state != "") {
-                            message.postValue(state)
+                dataRepository.insertShare(share).collect { share ->
+                    if(share != null) {
+                        onFinish(share)
+                        if(share.url != "") {
+                            resId.postValue(R.string.data_shared_copied)
                         }
                     }
                     _items.value = dataRepository.getList()
@@ -237,12 +236,12 @@ class DataViewModel @Inject constructor(
         }
     }
 
-    fun updateShare(id: Int, share: UpdateShare) {
+    fun updateShare(id: Int, share: UpdateShare, onFinish: (Share?) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                dataRepository.updateShare(id, share).collect { state ->
-                    if(state != "") {
-                        message.postValue(state)
+                dataRepository.updateShare(id, share).collect { share ->
+                    if(share != null) {
+                        onFinish(share)
                     }
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path

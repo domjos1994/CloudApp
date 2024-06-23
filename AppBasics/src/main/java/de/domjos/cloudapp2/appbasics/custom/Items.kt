@@ -5,9 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -157,13 +155,24 @@ fun NoAuthenticationItem(colorForeground: Color, colorBackground: Color, toAuths
 
 @Composable
 fun ShowDeleteDialog(onShowDialog: (Boolean) -> Unit, deleteAction: () -> Unit) {
+    ConfirmationDialog(
+        onShowDialog,
+        deleteAction,
+        title = stringResource(R.string.sys_delete_item),
+        cancelText = "Cancel deletion item!",
+        okayText = "Delete item!"
+    )
+}
+
+@Composable
+fun ConfirmationDialog(onShowDialog: (Boolean) -> Unit, action: () -> Unit, title: String, cancelText: String, okayText: String) {
     Dialog(onDismissRequest = { onShowDialog(false) }) {
         Surface(
             shape = RoundedCornerShape(4.dp)
         ) {
             Column(modifier = Modifier.padding(5.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.sys_delete_item), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.weight(14f)) {}
@@ -171,16 +180,16 @@ fun ShowDeleteDialog(onShowDialog: (Boolean) -> Unit, deleteAction: () -> Unit) 
                         IconButton(
                             onClick = { onShowDialog(false) },
                             modifier = Modifier.padding(3.dp)) {
-                            Icon(Icons.Rounded.Clear, contentDescription = "Cancel deletion item!")
+                            Icon(Icons.Rounded.Clear, contentDescription = cancelText)
                         }
                     }
                     Column(modifier = Modifier.weight(3f)) {
                         IconButton(onClick = {
-                            deleteAction()
+                            action()
                             onShowDialog(false)
                         },
                             modifier = Modifier.padding(3.dp)) {
-                            Icon(Icons.Rounded.Check, contentDescription = "Cancel deletion item!")
+                            Icon(Icons.Rounded.Check, contentDescription = okayText)
                         }
                     }
                 }
