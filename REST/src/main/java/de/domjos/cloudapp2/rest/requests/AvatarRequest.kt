@@ -5,11 +5,21 @@ import android.graphics.BitmapFactory
 import de.domjos.cloudapp2.database.model.Authentication
 import java.io.BufferedInputStream
 
-
+/**
+ * Get Avatars from Rooms by Token
+ * @author Dominic Joas
+ */
 class AvatarRequest(authentication: Authentication?) : BasicRequest(authentication, "/ocs/v2.php/apps/spreed/api/v1/") {
 
+    /**
+     * Get The avatar by a room-token
+     * @param token the token of the room
+     * @return the Bitmap of Avatar
+     */
     @Throws(Exception::class)
     fun getAvatar(token: String): Bitmap? {
+
+        // send request
         val request = super.buildRequest("room/$token/avatar", "get", null)
 
         client.newCall(request!!).execute().use { response ->

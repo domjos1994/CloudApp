@@ -1,7 +1,9 @@
 package de.domjos.cloudapp2.rest.requests
 
 import de.domjos.cloudapp2.database.model.Authentication
+import de.domjos.cloudapp2.rest.model.ocs.Meta
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
 import okhttp3.Interceptor
@@ -76,15 +78,34 @@ open class BasicRequest(authentication: Authentication?, urlPart: String) {
                     .patch(body?.toRequestBody(jsonType)!!)
                     .build()
             } else if(method.lowercase()=="put") {
-                return Request.Builder()
-                    .url("${this.url}$endPoint")
-                    .addHeader("OCS-APIRequest", "true")
-                    .put(body?.toRequestBody(jsonType)!!)
-                    .build()
+                if(body != null) {
+                    return Request.Builder()
+                        .url("${this.url}$endPoint")
+                        .addHeader("OCS-APIRequest", "true")
+                        .put(body.toRequestBody(jsonType))
+                        .build()
+                } else {
+                    return Request.Builder()
+                        .url("${this.url}$endPoint")
+                        .addHeader("OCS-APIRequest", "true")
+                        .build()
+                }
             }
         }
         return null
     }
+
+    @Serializable
+    data class JSONResult(val ocs: OCS)
+
+    @Serializable
+    data class JSONResultGeneric<T>(val ocs: OCSGeneric<T>)
+
+    @Serializable
+    data class OCS(val meta: Meta)
+
+    @Serializable
+    data class OCSGeneric<T>(val meta: Meta, val data: T)
 }
 
 
