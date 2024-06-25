@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024 Dominic Joas
+ * This file is part of the CloudApp-Project and licensed under the
+ * General Public License V3.
+ */
+
 package de.domjos.cloudapp2.rest
 
 import android.Manifest
@@ -10,8 +16,13 @@ import org.junit.BeforeClass
 import org.junit.Rule
 import java.util.Properties
 
+/**
+ * Basic-Class to test REST-Classes
+ * @author Dominic Joas
+ */
 open class BasicTest {
 
+    // get rule to get internet permission
     @Rule
     @JvmField
     var runtimePermission: GrantPermissionRule = GrantPermissionRule.grant(Manifest.permission.INTERNET)
@@ -23,6 +34,10 @@ open class BasicTest {
         @JvmStatic
         protected var props: Properties? = null
 
+        /**
+         * Read connection
+         * and initialize authentication
+         */
         @JvmStatic
         @BeforeClass
         fun before() {

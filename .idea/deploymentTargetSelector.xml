@@ -5,7 +5,7 @@
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="All Tests in REST">
+      <SelectionState runConfigName="REST">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
