@@ -13,8 +13,8 @@ import kotlinx.serialization.encodeToString
 class ShareRequest(private val authentication: Authentication?) : BasicRequest(authentication, "/ocs/v2.php/apps/files_sharing/api/v1/") {
 
     @Throws(Exception::class)
-    fun getShares(own: Boolean): Flow<List<Share>> {
-        val request = super.buildRequest("shares?format=json${if(own) "&shared_with_me=true" else ""}", "GET", null)
+    fun getShares(sharedWithMe: Boolean): Flow<List<Share>> {
+        val request = super.buildRequest("shares?format=json${if(sharedWithMe) "&shared_with_me=true" else ""}", "GET", null)
 
         return flow {
             if(request!=null) {
@@ -90,7 +90,7 @@ class ShareRequest(private val authentication: Authentication?) : BasicRequest(a
                         val ocsObject = super.json.decodeFromString<OCSObject2>(res)
                         emit(ocsObject.ocs.data)
                     } else {
-                        val ocsObject = super.json.decodeFromString<OCSObject>(response.body!!.toString())
+                        val ocsObject = super.json.decodeFromString<OCSObject>(response.body!!.string())
                         throw Exception(ocsObject.ocs.meta.message)
                     }
                 }
