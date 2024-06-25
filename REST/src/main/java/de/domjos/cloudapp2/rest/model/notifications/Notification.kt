@@ -1,12 +1,9 @@
-/*
- * Copyright (c) 2024 Dominic Joas
- * This file is part of the CloudApp-Project and licensed under the
- * General Public License V3.
- */
-
 package de.domjos.cloudapp2.rest.model.notifications
 
+import android.annotation.SuppressLint
 import kotlinx.serialization.Serializable
+import java.text.SimpleDateFormat
+import java.util.Date
 
 @Serializable
 data class Notification(
@@ -23,6 +20,11 @@ data class Notification(
     val shouldNotify: Boolean,
     val actions: Array<Action>) {
 
+    @SuppressLint("SimpleDateFormat")
+    fun getDate(): Date? {
+        val format = SimpleDateFormat("yyyy-MM-ddTHH:mm:ss")
+        return format.parse(datetime)
+    }
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
