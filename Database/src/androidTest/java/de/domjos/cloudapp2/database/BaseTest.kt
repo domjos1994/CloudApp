@@ -10,8 +10,7 @@ open class BaseTest {
     protected lateinit var context: Context
     protected lateinit var db: DB
 
-    @Before
-    fun init() {
+    protected fun init() {
         context = ApplicationProvider.getApplicationContext()
         db = Room.inMemoryDatabaseBuilder(context, DB::class.java).build()
     }
