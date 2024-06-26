@@ -50,7 +50,7 @@ class ContactLoaderTest : BasicTest() {
         val uid = UUID.randomUUID().toString()
 
         val contact = Contact(0L, uid,
-            "", "", "Joas", "Dominic2", "", "",
+            "/admin", "", "", "Joas", "Dominic2", "",
             Date(), "", null, addressBooks[0], "",
             0L, 0L, 0L
         )
@@ -88,9 +88,10 @@ class ContactLoaderTest : BasicTest() {
         val addressBooks = loader.getAddressBooks()
         assertNotEquals(0, addressBooks.size)
         val uid = UUID.randomUUID().toString()
+        val path = "/remote.php/dav/addressbooks/users/${authentication?.userName}/${addressBooks[0]}"
 
         val contact = Contact(
-            0L, uid, "", "", "","Joas", "Dominic2", "",
+            0L, uid, path, "", "","Joas", "Dominic2", "",
             Date(), "", null, addressBooks[0], "",
             0L, 0L, 0L
         )
@@ -99,7 +100,7 @@ class ContactLoaderTest : BasicTest() {
         contact.phoneNumbers = LinkedList<Phone>()
         contact.emailAddresses = LinkedList<Email>()
         loader.insertContact(contact)
-        var contacts = loader.loadAddressBook(addressBooks[1])
+        var contacts = loader.loadAddressBook(addressBooks[0])
 
         var c: Contact? = null
         contacts.forEach { item ->

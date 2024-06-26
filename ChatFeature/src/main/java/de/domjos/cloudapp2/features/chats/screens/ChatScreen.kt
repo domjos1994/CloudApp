@@ -56,6 +56,7 @@ fun ChatScreen(
     viewModel.initChats(lookIntoFuture, token)
 
     val context = LocalContext.current
+    val userName = viewModel.getUserName()
 
     viewModel.message.observe(LocalLifecycleOwner.current) {
         if(it != null) {
@@ -64,14 +65,14 @@ fun ChatScreen(
         }
     }
 
-    ChatScreen(messages, colorBackground, colorForeground, token, {viewModel.getDate(it, context)}) {
+    ChatScreen(messages, userName, colorBackground, colorForeground, {viewModel.getDate(it, context)}) {
         viewModel.sendMessage(it)
     }
 }
 
 
 @Composable
-fun ChatScreen(messages: List<Message>, colorBackground: Color, colorForeground: Color, token: String, onDate: (Long) -> String, onSend: (String) -> Unit) {
+fun ChatScreen(messages: List<Message>, userName: String, colorBackground: Color, colorForeground: Color, onDate: (Long) -> String, onSend: (String) -> Unit) {
     var msg by remember { mutableStateOf(TextFieldValue("")) }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -87,7 +88,7 @@ fun ChatScreen(messages: List<Message>, colorBackground: Color, colorForeground:
         }) {
             LazyColumn(Modifier.fillMaxHeight()) {
                 itemsIndexed(messages, {_, item -> item.id}) { _, message ->
-                    ChatItem(token, colorBackground, colorForeground, message, onDate)
+                    ChatItem(userName, colorBackground, colorForeground, message, onDate)
                 }
             }
         }
@@ -138,7 +139,7 @@ fun ChatScreen(messages: List<Message>, colorBackground: Color, colorForeground:
 }
 
 @Composable
-fun ChatItem(token: String, colorBackground: Color, colorForeground: Color, message: Message, onDate: (Long) -> String) {
+fun ChatItem(userName: String, colorBackground: Color, colorForeground: Color, message: Message, onDate: (Long) -> String) {
     Row(modifier = Modifier
         .fillMaxWidth()
         .wrapContentHeight()
@@ -154,7 +155,7 @@ fun ChatItem(token: String, colorBackground: Color, colorForeground: Color, mess
                 MsgItem(message, colorForeground, onDate)
             }
         } else {
-            if(message.token==token) {
+            if(message.actorDisplayName == userName) {
                 Column(modifier =
                 Modifier
                     .weight(2f)
@@ -203,7 +204,7 @@ fun MsgItem(message: Message, colorForeground: Color, onDate: (Long) -> String) 
 @Preview(showBackground = true)
 @Composable
 fun ChatScreenPreview() {
-    ChatScreen(listOf(fakeMessage(1), fakeMessage(2), fakeMessage(3, true)), Color.Blue, Color.White, "Test1", { "2023-03-19 11:24:36" }) {}
+    ChatScreen(listOf(fakeMessage(1), fakeMessage(2), fakeMessage(3, true)), "", Color.Blue, Color.White, { "2023-03-19 11:24:36" }) {}
 }
 
 @Preview(showBackground = true)

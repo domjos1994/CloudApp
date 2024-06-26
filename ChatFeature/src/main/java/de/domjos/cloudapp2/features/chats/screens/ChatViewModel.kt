@@ -63,4 +63,8 @@ class ChatViewModel @Inject constructor(
         val sdf = SimpleDateFormat(context.getString(R.string.sys_format), Locale.ENGLISH)
         return sdf.format(dt)
     }
+
+    fun getUserName(): String {
+        return chatRepository.getUserName()
+    }
 }

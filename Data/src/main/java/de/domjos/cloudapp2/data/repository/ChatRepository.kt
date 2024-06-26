@@ -12,6 +12,7 @@ interface ChatRepository {
 
     fun initChats(): List<Message>
     fun postChat(msg: String): List<Message>
+    fun getUserName(): String
 }
 
 class DefaultChatRepository @Inject constructor(
@@ -28,5 +29,9 @@ class DefaultChatRepository @Inject constructor(
 
     override fun postChat(msg: String): List<Message> {
         return request.insertChats(token, msg)
+    }
+
+    override fun getUserName(): String {
+        return this.authenticationDAO.getSelectedItem()?.userName!!
     }
 }
