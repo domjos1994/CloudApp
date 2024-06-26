@@ -3,11 +3,11 @@ agp = "8.5.0"
 kotlin = "1.9.22"
 coreKtx = "1.13.1"
 junit = "4.13.2"
-junitVersion = "1.1.5"
-espressoCore = "3.5.1"
-lifecycleRuntimeKtx = "2.7.0"
+junitVersion = "1.2.0"
+espressoCore = "3.6.0"
+lifecycleRuntimeKtx = "2.8.2"
 activityCompose = "1.9.0"
-composeBom = "2024.05.00"
+composeBom = "2024.06.00"
 appcompat = "1.7.0"
 material = "1.12.0"
 navigation = "2.7.7"
@@ -17,7 +17,7 @@ hilt = "2.51"
 hilt-compose = "1.2.0"
 okhttp3 = "4.12.0"
 json = "1.6.3"
-rules = "1.5.0"
+rules = "1.6.0"
 coil = "2.6.0"
 sardine = "0.9"
 constraint = "1.0.1"
@@ -26,14 +26,15 @@ ez-vcard = "0.12.1"
 ical4j = "3.2.17"
 preference = "0.1.4"
 prefs = "1.1.1"
-uiTooling = "1.6.7"
+uiTooling = "1.6.8"
 accompanist = "0.31.1-alpha"
 splash = "1.0.1"
-icons = "1.6.7"
+icons = "1.6.8"
 workRuntimeKtx = "2.9.0"
-glance = "1.0.0"
+glance = "1.1.0"
 datastorePreferencesCoreJvm = "1.1.1"
 markdown = "0.16.0"
+runtimeAndroid = "1.6.8"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -85,6 +86,7 @@ glance-material = { group = "androidx.glance", name = "glance-material3", versio
 androidx-datastore-preferences-core-jvm = { group = "androidx.datastore", name = "datastore-preferences-core-jvm", version.ref = "datastorePreferencesCoreJvm" }
 markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer", version.ref = "markdown" }
 markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown" }
+androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

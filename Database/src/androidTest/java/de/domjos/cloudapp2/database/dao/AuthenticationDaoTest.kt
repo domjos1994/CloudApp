@@ -1,10 +1,14 @@
+/*
+ * Copyright (c) 2024 Dominic Joas
+ * This file is part of the CloudApp-Project and licensed under the
+ * General Public License V3.
+ */
+
 package de.domjos.cloudapp2.database.dao
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import de.domjos.cloudapp2.database.BaseTest
 import de.domjos.cloudapp2.database.model.Authentication
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.runBlocking
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,27 +50,25 @@ class AuthenticationDaoTest : BaseTest() {
      */
     @Test
     fun testCreateAndDeletingAuthentication() {
-        runBlocking {
-            // check items are empty
-            var items = authenticationDAO.getAll().toList()
-            assertEquals(0, items.size)
+        // check items are empty
+        var items = authenticationDAO.getAllWithoutFlow()
+        assertEquals(0, items.size)
 
-            // insert object
-            val id = authenticationDAO.insertAuthentication(authentication)
-            assertNotEquals(0, id)
+        // insert object
+        val id = authenticationDAO.insertAuthentication(authentication)
+        assertNotEquals(0, id)
 
-            // items contains object
-            items = authenticationDAO.getAll().toList()
-            assertEquals(1, items.size)
+        // items contains object
+        items = authenticationDAO.getAllWithoutFlow()
+        assertEquals(1, items.size)
 
-            // delete object
-            authentication.id = id
-            authenticationDAO.deleteAuthentication(authentication)
+        // delete object
+        authentication.id = id
+        authenticationDAO.deleteAuthentication(authentication)
 
-            // check items are empty
-            items = authenticationDAO.getAll().toList()
-            assertEquals(0, items.size)
-        }
+        // check items are empty
+        items = authenticationDAO.getAllWithoutFlow()
+        assertEquals(0, items.size)
     }
 
     /**
@@ -74,34 +76,32 @@ class AuthenticationDaoTest : BaseTest() {
      */
     @Test
     fun testCreateAndUpdatingAuthentication() {
-        runBlocking {
-            // check items are empty
-            var items = authenticationDAO.getAll().toList()
-            assertEquals(0, items.size)
+        // check items are empty
+        var items = authenticationDAO.getAllWithoutFlow()
+        assertEquals(0, items.size)
 
-            // insert object
-            val id = authenticationDAO.insertAuthentication(authentication)
-            assertNotEquals(0, id)
+        // insert object
+        val id = authenticationDAO.insertAuthentication(authentication)
+        assertNotEquals(0, id)
 
-            // get object
-            var item = authenticationDAO.getItemByTitle("test")
-            assertNotNull(item)
+        // get object
+        var item = authenticationDAO.getItemByTitle("test")
+        assertNotNull(item)
 
-            // update object
-            item?.title = "test2"
-            authenticationDAO.updateAuthentication(item!!)
+        // update object
+        item?.title = "test2"
+        authenticationDAO.updateAuthentication(item!!)
 
-            // get updated object
-            item = authenticationDAO.getItemByTitle("test2")
-            assertNotNull(item)
+        // get updated object
+        item = authenticationDAO.getItemByTitle("test2")
+        assertNotNull(item)
 
-            // delete object
-            authenticationDAO.deleteAuthentication(item!!)
+        // delete object
+        authenticationDAO.deleteAuthentication(item!!)
 
-            // check items are empty
-            items = authenticationDAO.getAll().toList()
-            assertEquals(0, items.size)
-        }
+        // check items are empty
+        items = authenticationDAO.getAllWithoutFlow()
+        assertEquals(0, items.size)
     }
 
     /**
@@ -109,28 +109,27 @@ class AuthenticationDaoTest : BaseTest() {
      */
     @Test
     fun testSelectingAndDeselectingAuthentication() {
-        runBlocking {
-            // check items are empty
-            val items = authenticationDAO.getAll().toList()
-            assertEquals(0, items.size)
 
-            // insert selected object
-            authentication.selected = true
-            val id = authenticationDAO.insertAuthentication(authentication)
-            authentication.id = id
-            assertNotEquals(0, id)
+        // get data
+        val items = authenticationDAO.getAllWithoutFlow()
+        assertEquals(0, items.count())
 
-            // check selected item
-            var auth = authenticationDAO.getSelectedItem()
-            assertNotNull(auth)
+        // insert selected object
+        authentication.selected = true
+        val id = authenticationDAO.insertAuthentication(authentication)
+        authentication.id = id
+        assertNotEquals(0, id)
 
-            // unselect object
-            authentication.selected = false
-            authenticationDAO.updateAuthentication(authentication)
+        // check selected item
+        var auth = authenticationDAO.getSelectedItem()
+        assertNotNull(auth)
 
-            // check selected item
-            auth = authenticationDAO.getSelectedItem()
-            assertNull(auth)
-        }
+        // unselect object
+        authentication.selected = false
+        authenticationDAO.updateAuthentication(authentication)
+
+        // check selected item
+        auth = authenticationDAO.getSelectedItem()
+        assertNull(auth)
     }
 }

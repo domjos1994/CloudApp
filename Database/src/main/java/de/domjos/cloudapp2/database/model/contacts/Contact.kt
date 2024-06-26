@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024 Dominic Joas
+ * This file is part of the CloudApp-Project and licensed under the
+ * General Public License V3.
+ */
+
 @file:Suppress("unused")
 
 package de.domjos.cloudapp2.database.model.contacts
