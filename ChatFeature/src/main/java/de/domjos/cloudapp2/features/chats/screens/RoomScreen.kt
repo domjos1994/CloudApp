@@ -61,6 +61,7 @@ import de.domjos.cloudapp2.rest.model.msg.Message
 import de.domjos.cloudapp2.rest.model.room.Room
 import de.domjos.cloudapp2.rest.model.room.Type
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
@@ -317,13 +318,21 @@ fun EditDialog(
                         }
                     }
                 }
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
+                Row(modifier = Modifier.fillMaxWidth().height(70.dp)) {
+                    AutocompleteTextField(
                         value = name,
                         onValueChange = {name = it},
-                        label = {Text(stringResource(id = R.string.chats_rooms_name))},
-                        modifier = Modifier.fillMaxWidth(),
-                        maxLines = 5)
+                        label = { Text(stringResource(id = R.string.chats_rooms_name)) },
+                        onAutoCompleteChange = {
+                            val text = it.text
+                            val lst = mutableListOf<String>()
+                            users.filter { u -> u?.displayname?.contains(text)!! }.forEach { item ->
+                                lst.add(item?.displayname!!)
+                            }
+                            lst
+                        },
+                        multi = true
+                    )
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
