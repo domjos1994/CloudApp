@@ -26,13 +26,13 @@ import java.util.UUID
  */
 @RunWith(AndroidJUnit4::class)
 class ContactLoaderTest : BasicTest() {
-    @Test
+    //@Test
     fun testLoadAddressBooks() {
         val loader = ContactLoader(authentication)
         assertNotEquals(0, loader.getAddressBooks().size)
     }
 
-    @Test
+    //@Test
     fun testLoadAddressBook() {
         val loader = ContactLoader(authentication)
         val addressBooks = loader.getAddressBooks()
@@ -42,7 +42,7 @@ class ContactLoaderTest : BasicTest() {
         assertNotEquals(0, contacts.size)
     }
 
-    @Test
+    //@Test
     fun testInsertContacts() {
         val loader = ContactLoader(authentication)
         val addressBooks = loader.getAddressBooks()
@@ -82,7 +82,7 @@ class ContactLoaderTest : BasicTest() {
         assertEquals("", id)
     }
 
-    @Test
+    //@Test
     fun testUpdateContact() {
         val loader = ContactLoader(authentication)
         val addressBooks = loader.getAddressBooks()

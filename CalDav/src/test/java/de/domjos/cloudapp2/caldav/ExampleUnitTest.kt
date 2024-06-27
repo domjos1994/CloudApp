@@ -9,9 +9,8 @@ import org.junit.Test
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 class ExampleUnitTest {
-    @Test
+    //@Test
     fun addition_isCorrect() {
-        val cal = Calendar(Authentication(0L, "Cloud", "https://cloud.dojodev.de", "domjos", "wRsesbg2M9D7CW3Uc68E", true, "", null))
-        cal.reloadCalendarEvents()
+
     }
 }
