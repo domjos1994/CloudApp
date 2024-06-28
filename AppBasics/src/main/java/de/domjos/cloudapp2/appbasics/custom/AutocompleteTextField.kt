@@ -2,8 +2,9 @@ package de.domjos.cloudapp2.appbasics.custom
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
@@ -39,7 +40,7 @@ fun AutocompleteTextField(
     val selectedItem = remember { mutableStateOf(value) }
     var autoCompleteItems by remember { mutableStateOf(listOf<String>()) }
 
-    Row(modifier.height(50.dp)) {
+    Row(modifier.wrapContentHeight()) {
         OutlinedTextField(
             value = selectedItem.value,
             onValueChange = {
@@ -65,7 +66,7 @@ fun AutocompleteTextField(
                 }
             },
             label = label,
-            modifier = modifier,
+            modifier = Modifier.fillMaxSize(),
             trailingIcon = {
                 if(autoCompleteItems.isNotEmpty()) {
                     IconButton(onClick = { expanded = !expanded }) {
