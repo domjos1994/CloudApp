@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("de.domjos.cloudapp.features.data.test", appContext.packageName)
+        assertEquals("de.domjos.cloudapp2.features.data.test", appContext.packageName)
     }
 }
