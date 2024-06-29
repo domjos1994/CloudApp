@@ -385,8 +385,10 @@ fun NotesDialog(
                     )
                     Text(stringResource(R.string.notes_favorite))
                 }
-                Row(modifier = Modifier.fillMaxWidth().height(50.dp)) {
-                    Column(Modifier.weight(1f).height(50.dp)) {
+                Row(modifier = Modifier.fillMaxWidth().height(60.dp)) {
+                    Column(
+                        Modifier.weight(1f).height(60.dp),
+                        verticalArrangement = Arrangement.Center) {
                         if(id != 0) {
                             IconButton(onClick = {
                                 val tmp = Note(id, content, title, category, favorite, 0)
@@ -395,22 +397,26 @@ fun NotesDialog(
                                 Icon(
                                     Icons.Filled.Delete,
                                     "Delete $title",
-                                    Modifier.width(50.dp).height(50.dp))
+                                    Modifier.width(60.dp).height(60.dp))
                             }
                         }
                     }
-                    Column(Modifier.weight(7f).height(50.dp)) {}
-                    Column(Modifier.weight(1f).height(50.dp)) {
+                    Column(Modifier.weight(7f).height(60.dp)) {}
+                    Column(
+                        Modifier.weight(1f).height(60.dp),
+                        verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             setShowDialog(false)
                         }) {
                             Icon(
                                 Icons.Filled.Close,
                                 "Cancel $title",
-                                Modifier.width(50.dp).height(50.dp))
+                                Modifier.width(60.dp).height(60.dp))
                         }
                     }
-                    Column(Modifier.weight(1f).height(50.dp)) {
+                    Column(
+                        Modifier.weight(1f).height(60.dp),
+                        verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             val tmp = Note(id, content, title, category, favorite, 0)
                             onSaveClick(tmp)
@@ -418,7 +424,7 @@ fun NotesDialog(
                             Icon(
                                 Icons.Filled.Done,
                                 "Save $title",
-                                Modifier.width(50.dp).height(50.dp))
+                                Modifier.width(60.dp).height(60.dp))
                         }
                     }
                 }
