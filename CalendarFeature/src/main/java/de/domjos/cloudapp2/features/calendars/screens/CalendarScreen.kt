@@ -540,8 +540,8 @@ fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: C
         val currentCal = Calendar.getInstance()
         currentCal.time = currentDate
         if(
-            cal.get(Calendar.YEAR)==currentCal.get(Calendar.YEAR) &&
-            cal.get(Calendar.MONTH)==currentCal.get(Calendar.MONTH) &&
+            //cal.get(Calendar.YEAR)==currentCal.get(Calendar.YEAR) &&
+            //cal.get(Calendar.MONTH)==currentCal.get(Calendar.MONTH) &&
             day==currentCal.get(Calendar.DAY_OF_MONTH)
         ) {
             borderWidth = 1.dp
@@ -561,9 +561,11 @@ fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: C
             .border(borderWidth, borderColor)
             .combinedClickable(
                 onClick = {
-                    val tmp = cal.clone() as Calendar
-                    tmp.set(Calendar.DAY_OF_MONTH, day)
-                    onSelected(tmp)
+                    if(style != FontStyle.Italic) {
+                        val tmp = cal.clone() as Calendar
+                        tmp.set(Calendar.DAY_OF_MONTH, day)
+                        onSelected(tmp)
+                    }
                 },
                 onLongClick = {
                     val tmp = cal.clone() as Calendar
