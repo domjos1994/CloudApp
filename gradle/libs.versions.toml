@@ -1,23 +1,23 @@
 [versions]
-agp = "8.5.0"
-kotlin = "1.9.22"
+agp = "8.5.1"
+kotlin = "2.0.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
-junitVersion = "1.2.0"
-espressoCore = "3.6.0"
-lifecycleRuntimeKtx = "2.8.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+lifecycleRuntimeKtx = "2.8.3"
 activityCompose = "1.9.0"
 composeBom = "2024.06.00"
 appcompat = "1.7.0"
 material = "1.12.0"
 navigation = "2.7.7"
 room = "2.6.1"
-kapt = "1.9.22-1.0.17"
+kapt = "2.0.0-1.0.22"
 hilt = "2.51"
 hilt-compose = "1.2.0"
 okhttp3 = "4.12.0"
-json = "1.6.3"
-rules = "1.6.0"
+json = "1.7.1"
+rules = "1.6.1"
 coil = "2.6.0"
 sardine = "0.9"
 constraint = "1.0.1"
@@ -91,6 +91,7 @@ androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kaptLibrary = { id = "com.google.devtools.ksp", version.ref = "kapt" }
 hiltLibrary = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

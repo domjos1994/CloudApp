@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.hiltLibrary)
     alias(libs.plugins.kaptLibrary)
+    alias(libs.plugins.compose.compiler)
 }
 
 android {

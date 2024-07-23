@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kaptLibrary) apply false
     alias(libs.plugins.hiltLibrary) apply false
     alias(libs.plugins.serializationLibrary) apply false
+    alias(libs.plugins.compose.compiler) apply false
 }
 
 buildscript {
