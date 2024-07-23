@@ -2,6 +2,7 @@ package de.domjos.cloudapp2.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -55,9 +57,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
@@ -475,9 +480,15 @@ fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Uni
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
+    var height by remember { mutableStateOf(80.dp) }
+    var showText by remember { mutableStateOf(true) }
+    if(LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        height = 45.dp
+        showText = false
+    }
 
     if(visible.value) {
-        NavigationBar {
+        NavigationBar(modifier = Modifier.height(height)) {
             // looping over each tab to generate the views and navigation for each item
             tabBarItems.forEachIndexed { index, tabBarItem ->
                 if((index == 5 && hasSpreed) || index != 5) {
@@ -497,7 +508,14 @@ fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Uni
                                 badgeAmount = tabBarItem.badgeAmount
                             )
                         },
-                        label = {Text(if(tabBarItem.header=="") tabBarItem.title else tabBarItem.header, fontSize = 10.sp)})
+                        label = {
+                            if(showText) {
+                                Text(
+                                    if (tabBarItem.header == "") tabBarItem.title else tabBarItem.header,
+                                    fontSize = 10.sp
+                                )
+                            }
+                        })
                 }
             }
         }
@@ -512,7 +530,8 @@ fun TabBarIconView(
     title: String,
     badgeAmount: Int? = null
 ) {
-    BadgedBox(badge = { TabBarBadgeView(badgeAmount) }) {
+    BadgedBox(
+        badge = { TabBarBadgeView(badgeAmount) }) {
         Icon(
             imageVector = if (isSelected) {selectedIcon} else {unselectedIcon},
             contentDescription = title
@@ -526,5 +545,24 @@ fun TabBarBadgeView(count: Int? = null) {
         Badge {
             Text(count.toString())
         }
+    }
+}
+
+
+@SuppressLint("UnrememberedMutableState")
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@PreviewScreenSizes
+@Composable
+fun TabBarPreview() {
+    val items = mutableListOf<TabBarItem>()
+    items.add(TabBarItem("Test 1", Icons.Filled.Person, Icons.Filled.Person, null, "Test 1"))
+    items.add(TabBarItem("Test 2", Icons.Filled.Person, Icons.Filled.Person, null, "Test 2"))
+    items.add(TabBarItem("Test 3", Icons.Filled.Person, Icons.Filled.Person, null, "Test 3"))
+    items.add(TabBarItem("Test 4", Icons.Filled.Person, Icons.Filled.Person, null, "Test 4"))
+    items.add(TabBarItem("Test 5", Icons.Filled.Person, Icons.Filled.Person, null, "Test 5"))
+
+    CloudAppTheme {
+        TabView(tabBarItems = items, updateTheme = {}, navController = rememberNavController(), visible = mutableStateOf(true), hasSpreed = true)
     }
 }

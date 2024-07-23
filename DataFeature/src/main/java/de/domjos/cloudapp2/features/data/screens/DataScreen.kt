@@ -65,7 +65,9 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -206,24 +208,24 @@ fun DataScreen(
     onDeleteShare: (Int) -> Unit,
     onUpdateShare: (Int, UpdateShare, (Share?) -> Unit) -> Unit) {
 
-
-    var showDialog by remember { mutableStateOf(false) }
     val can_edit = parentItem?.sharedWithMe?.can_edit ?: true
 
     ConstraintLayout(Modifier.fillMaxSize()) {
-        val (breadCrumb, list, controls) = createRefs()
+        val (breadCrumb, list) = createRefs()
 
-        BreadCrumb(onPath, colorBackground, colorForeground, Modifier.constrainAs(breadCrumb) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            width = Dimension.fillToConstraints
-        })
+        BreadCrumb(onPath, colorBackground, colorForeground,
+            Modifier.constrainAs(breadCrumb) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                width = Dimension.fillToConstraints
+            }, isConnected, hasAuths, can_edit, uploadFile, onCreateFolder
+        )
         Row(Modifier.constrainAs(list) {
             top.linkTo(breadCrumb.bottom)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
-            bottom.linkTo(controls.top)
+            bottom.linkTo(parent.bottom)
             width = Dimension.fillToConstraints
             height = Dimension.fillToConstraints
         }) {
@@ -257,50 +259,6 @@ fun DataScreen(
                 }
             }
         }
-        if(showDialog) {
-            CreateFolderDialog(showDialog = {showDialog=it}, onCreateFolder)
-        }
-        Row(Modifier.constrainAs(controls) {
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            bottom.linkTo(parent.bottom)
-            width = Dimension.fillToConstraints
-        }) {
-            val context = LocalContext.current
-            val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {item ->
-                if(item != null) {
-                    val inputStream = context.contentResolver.openInputStream(item)
-                    if(inputStream!=null) {
-                        uploadFile(getFileName(item, context)!!, inputStream)
-                    }
-                }
-            }
-            Column {
-                if(isConnected && hasAuths && can_edit) {
-                    Separator(colorBackground)
-                    Row {
-                        Column(
-                            Modifier.weight(1f),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            IconButton(onClick = {
-                                launcher.launch(arrayOf("text/*", "image/*", "audio/*", "video/*", "application/*"))
-                            }) {
-                                Icon(painterResource(R.drawable.baseline_upload_file_24), stringResource(R.string.data_file_add))
-                            }
-                        }
-                        Column(
-                            Modifier.weight(1f),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            IconButton(onClick = { showDialog = true }) {
-                                Icon(painterResource(R.drawable.baseline_create_new_folder_24), stringResource(R.string.data_folder_add))
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }
 
@@ -328,27 +286,62 @@ fun getFileName(uri: Uri, context: Context): String? {
 }
 
 @Composable
-fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Color, modifier: Modifier = Modifier) {
+fun BreadCrumb(
+    onPath: ()->String,
+    colorBackground: Color,
+    colorForeground: Color,
+    modifier: Modifier = Modifier,
+    isConnected: Boolean,
+    hasAuths: Boolean,
+    can_edit: Boolean,
+    uploadFile: (String, InputStream) -> Unit,
+    onCreateFolder: (String) -> Unit) {
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {item ->
+        if(item != null) {
+            val inputStream = context.contentResolver.openInputStream(item)
+            if(inputStream!=null) {
+                uploadFile(getFileName(item, context)!!, inputStream)
+            }
+        }
+    }
+    if(showDialog) {
+        CreateFolderDialog(showDialog = {showDialog=it}, onCreateFolder)
+    }
+
+    var fullHeight by remember { mutableStateOf(50.dp) }
+    var paddedHeight by remember { mutableStateOf(48.dp) }
+    if(LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        fullHeight = 36.dp
+        paddedHeight = 34.dp
+    }
+
     Column(modifier) {
         Separator(colorForeground)
         Row(
             Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
+                .height(fullHeight)
                 .background(colorBackground)) {
             Icon(
                 Icons.AutoMirrored.Filled.ArrowForward,
                 stringResource(R.string.data_breadcrumb),
                 modifier = Modifier
-                    .padding(5.dp)
+                    .padding(1.dp)
+                    .height(paddedHeight)
                     .weight(1f),
                 tint = colorForeground
             )
 
             Column(
                 Modifier
-                    .padding(5.dp)
-                    .weight(9f)) {
+                    .padding(1.dp)
+                    .height(paddedHeight)
+                    .weight(9f),
+                verticalArrangement = Arrangement.Center) {
                 Text(
                     onPath(),
                     fontSize = 18.sp,
@@ -356,6 +349,29 @@ fun BreadCrumb(onPath: ()->String, colorBackground: Color, colorForeground: Colo
                     fontStyle = FontStyle.Italic,
                     color = colorForeground
                 )
+            }
+            Column(
+                Modifier
+                    .weight(2f)
+                    .height(paddedHeight)
+            ) {
+                if(isConnected && hasAuths && can_edit) {
+                    Separator(colorBackground)
+                    Row {
+                        IconButton(onClick = {
+                            launcher.launch(arrayOf("text/*", "image/*", "audio/*", "video/*", "application/*"))
+                        }, modifier = Modifier
+                            .weight(1f)
+                            .height(paddedHeight)) {
+                            Icon(painterResource(R.drawable.baseline_upload_file_24), stringResource(R.string.data_file_add))
+                        }
+                        IconButton(onClick = { showDialog = true }, modifier = Modifier
+                            .weight(1f)
+                            .height(paddedHeight)) {
+                            Icon(painterResource(R.drawable.baseline_create_new_folder_24), stringResource(R.string.data_folder_add))
+                        }
+                    }
+                }
             }
         }
         Separator(colorForeground)
@@ -490,8 +506,8 @@ fun DataItem(
                     },
                     onLongClick = {
                         if (share != null) {
-                            if(item.sharedFromMe != null) {
-                                if(item.sharedFromMe!!.url != "") {
+                            if (item.sharedFromMe != null) {
+                                if (item.sharedFromMe!!.url != "") {
                                     val url = item.sharedFromMe!!.url
 
                                     clipboardManager.setText(AnnotatedString(url))
@@ -1039,102 +1055,104 @@ fun ImageViewer(path: String) {
 
 @Composable
 fun PdfViewer(path: String) {
-    var currentPage by remember { mutableIntStateOf(0) }
-    var maxPage by remember { mutableIntStateOf(0) }
-    var renderer by remember { mutableStateOf<PdfRenderer?>(null) }
-    var bitmap by remember { mutableStateOf(
-        Bitmap.createBitmap(1920,1080, Bitmap.Config.ARGB_8888)
-    ) }
-    var page by remember { mutableStateOf<PdfRenderer.Page?>(null) }
-    val updatePage = {index: Int ->
-        if(maxPage != 0) {
-            currentPage = index
-        }
-        if(page != null) {
-            page!!.close()
-        }
-        page = renderer!!.openPage(currentPage)
-        bitmap = Bitmap.createBitmap(page!!.width, page!!.height, Bitmap.Config.ARGB_8888)
-        page!!.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-    }
-
-    try {
-        if(path.isNotEmpty()) {
-            val descriptor = ParcelFileDescriptor.open(
-                File(path),
-                ParcelFileDescriptor.MODE_READ_ONLY
-            )
-            renderer = PdfRenderer(descriptor)
-            maxPage = renderer!!.pageCount
-            updatePage(0)
-        }
-    } catch (ex: Exception) {
-        Toast.makeText(LocalContext.current, ex.message, Toast.LENGTH_LONG).show()
-    }
-
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(5.dp)) {
-        Column(
-            Modifier
-                .weight(4f)
-                .wrapContentHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            IconButton(onClick = {
-                if(currentPage - 1 != -1) {
-                    updatePage(currentPage - 1)
-                }
-            }) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, (currentPage - 1).toString())
+    if(!LocalInspectionMode.current) {
+        var currentPage by remember { mutableIntStateOf(0) }
+        var maxPage by remember { mutableIntStateOf(0) }
+        var renderer by remember { mutableStateOf<PdfRenderer?>(null) }
+        var bitmap by remember { mutableStateOf(
+            Bitmap.createBitmap(1920,1080, Bitmap.Config.ARGB_8888)
+        ) }
+        var page by remember { mutableStateOf<PdfRenderer.Page?>(null) }
+        val updatePage = {index: Int ->
+            if(maxPage != 0) {
+                currentPage = index
             }
-        }
-        Column(
-            Modifier
-                .weight(4f)
-                .wrapContentHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            Text("${currentPage + 1} / $maxPage")
-        }
-        Column(
-            Modifier
-                .weight(4f)
-                .wrapContentHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            IconButton(onClick = {
-                if(currentPage != maxPage - 1) {
-                    updatePage(currentPage + 1)
-                }
-            }) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowForward, (currentPage + 1).toString())
+            if(page != null) {
+                page!!.close()
             }
+            page = renderer!!.openPage(currentPage)
+            bitmap = Bitmap.createBitmap(page!!.width, page!!.height, Bitmap.Config.ARGB_8888)
+            page!!.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
         }
-    }
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(5.dp)) {
-        Column(
+
+        try {
+            if(path.isNotEmpty()) {
+                val descriptor = ParcelFileDescriptor.open(
+                    File(path),
+                    ParcelFileDescriptor.MODE_READ_ONLY
+                )
+                renderer = PdfRenderer(descriptor)
+                maxPage = renderer!!.pageCount
+                updatePage(0)
+            }
+        } catch (ex: Exception) {
+            Toast.makeText(LocalContext.current, ex.message, Toast.LENGTH_LONG).show()
+        }
+
+        Row(
             Modifier
                 .fillMaxWidth()
-                .wrapContentHeight(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center) {
-            Image(bitmap.asImageBitmap(), path,
-                modifier = Modifier.fillMaxWidth())
+                .wrapContentHeight()
+                .padding(5.dp)) {
+            Column(
+                Modifier
+                    .weight(4f)
+                    .wrapContentHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center) {
+                IconButton(onClick = {
+                    if(currentPage - 1 != -1) {
+                        updatePage(currentPage - 1)
+                    }
+                }) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, (currentPage - 1).toString())
+                }
+            }
+            Column(
+                Modifier
+                    .weight(4f)
+                    .wrapContentHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center) {
+                Text("${currentPage + 1} / $maxPage")
+            }
+            Column(
+                Modifier
+                    .weight(4f)
+                    .wrapContentHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center) {
+                IconButton(onClick = {
+                    if(currentPage != maxPage - 1) {
+                        updatePage(currentPage + 1)
+                    }
+                }) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowForward, (currentPage + 1).toString())
+                }
+            }
+        }
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .wrapContentHeight()
+                .padding(5.dp)) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center) {
+                Image(bitmap.asImageBitmap(), path,
+                    modifier = Modifier.fillMaxWidth())
+            }
         }
     }
 }
 
-//@Preview(showBackground = true)
-//@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-//@Composable
-/*fun DataScreenPreview() {
+/*@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun DataScreenPreview() {
     CloudAppTheme {
         DataScreen(
             listOf(fake(1L), fake(2L), fake(3L)),
@@ -1160,16 +1178,28 @@ fun PdfViewer(path: String) {
     }
 }*/
 
-//@Preview(showBackground = true)
-//@Composable
-/*fun DataItemPreview() {
-    DataItem(fake(1L), null,
-        Color.Blue,
-        Color.White, {_,_->}, {true}, {}, {}, {}, true, "",
-        onInsertShare = {},
-        onDeleteShare = {},
-        onUpdateShare = {_,_->})
-}*/
+@Preview(showBackground = true)
+@Composable
+fun DataItemPreview() {
+    CloudAppTheme {
+        DataItem(
+            item = fake(0L),
+            parentItem = fake(0L),
+            colorBackground = Color.Red,
+            colorForeground = Color.Blue,
+            onAutoComplete = {_,_-> listOf() },
+            onClick = {_,_ ->},
+            onExists = {_->true},
+            onDelete = {},
+            onSetCutElement = {},
+            onMoveFolder = {},
+            hasCutElement = true,
+            cutPath = "",
+            onInsertShare = {_,_->},
+            onDeleteShare = {_->}
+        ) {_,_,_-> }
+    }
+}
 
 //@Preview(showBackground = true)
 //@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -1180,21 +1210,21 @@ fun PdfViewer(path: String) {
     }
 }*/
 
-@Preview(showBackground = true)
+/*@Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ShareDialogPreview() {
     CloudAppTheme {
         ShareDialog(showDialog = {}, share = fakeShare(1), item = fake(1), onAutoComplete = {_,_-> listOf() }, onUpdate = { _, _ ->}, onInsert = {}) {}
     }
-}
+}*/
 
 
 fun fake(id: Long): Item {
     return Item("Test $id", true, "Test", "")
 }
 
-fun fakeShare(id: Long): Share {
+/*fun fakeShare(id: Long): Share {
     return Share(id, id.toInt(), "$id", "$id", id.toInt(),
         can_edit = false,
         can_delete = false,
@@ -1203,4 +1233,4 @@ fun fakeShare(id: Long): Share {
         file_target = "",
         note = ""
     )
-}
+}*/
