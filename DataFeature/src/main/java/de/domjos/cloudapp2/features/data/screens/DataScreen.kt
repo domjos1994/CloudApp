@@ -150,7 +150,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     }
 
     if(showDialog) {
-        LoadingDialog { showDialog = it }
+        LoadingDialog({ showDialog = it }, colorForeground, colorBackground)
     }
 
     DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,

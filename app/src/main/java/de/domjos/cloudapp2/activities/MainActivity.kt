@@ -2,7 +2,6 @@ package de.domjos.cloudapp2.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -12,10 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.List
@@ -39,7 +35,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -57,19 +52,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -91,6 +81,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ConnectionType
 import de.domjos.cloudapp2.appbasics.helper.Notifications
+import de.domjos.cloudapp2.appbasics.helper.ProgressDialog
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.appbasics.helper.connectivityType
 import de.domjos.cloudapp2.database.model.Authentication
@@ -311,7 +302,9 @@ class MainActivity : ComponentActivity() {
                                 ProgressDialog(
                                     onShowDialog = {showDialog=it},
                                     currentText = currentText,
-                                    currentProgress = currentProgress
+                                    currentProgress = currentProgress,
+                                    foregroundColor = colorForeground,
+                                    backgroundColor = colorBackground
                                 )
                             }
 
@@ -452,46 +445,6 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ProgressDialog(onShowDialog: (Boolean) -> Unit, currentText: String, currentProgress: Float) {
-    Dialog(
-        onDismissRequest = {onShowDialog(false)},
-        properties = DialogProperties(
-            dismissOnBackPress = false,
-            dismissOnClickOutside = false)
-    ) {
-        Surface(
-            shape = RoundedCornerShape(4.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier.padding(5.dp)) {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)) {
-                Row(
-                    Modifier
-                        .height(50.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Text(currentText, fontWeight = FontWeight.Bold)
-                }
-                Row(Modifier.height(150.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    LinearProgressIndicator(
-                        progress = { currentProgress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(20.dp)
-                            .padding(5.dp),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
         DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = {
@@ -575,16 +528,3 @@ fun TabBarBadgeView(count: Int? = null) {
         }
     }
 }
-
-
-@Preview(showBackground = true)
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_MASK)
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_UNDEFINED)
-@Composable
-fun ProgressDialogPreview() {
-    CloudAppTheme {
-        ProgressDialog(onShowDialog = {}, currentText = "Test", currentProgress = 0.5f)
-    }
-}
-
