@@ -194,8 +194,8 @@ fun NotesScreen(
                         bottom.linkTo(parent.bottom)
                         width = Dimension.fillToConstraints
                     }
-                    .padding(5.dp), containerColor = colorBackground) {
-                Icon(Icons.Filled.Add, stringResource(R.string.login_add), tint = colorForeground)
+                    .padding(5.dp), containerColor = colorForeground) {
+                Icon(Icons.Filled.Add, stringResource(R.string.login_add), tint = colorBackground)
             }
         }
     }

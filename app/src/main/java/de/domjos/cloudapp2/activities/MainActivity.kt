@@ -168,6 +168,7 @@ class MainActivity : ComponentActivity() {
             var colorForeground by remember { mutableStateOf(tmpForeground) }
             var icon by remember { mutableStateOf("") }
             var authTitle by remember { mutableStateOf("") }
+            var breadcrumb by remember { mutableStateOf("") }
             val connection by connectivityState()
             val connectionType by connectivityType()
             val isConnected = connection === ConnectionState.Available
@@ -273,8 +274,20 @@ class MainActivity : ComponentActivity() {
                                     Column {
                                         Text(header)
                                     }
-                                    Column(Modifier.padding(2.dp), verticalArrangement = Arrangement.Bottom) {
-                                        Text(authTitle, fontSize = 12.sp)
+                                    if(breadcrumb == "") {
+                                        Column(
+                                            Modifier.padding(2.dp),
+                                            verticalArrangement = Arrangement.Bottom
+                                        ) {
+                                            Text(authTitle, fontSize = 12.sp)
+                                        }
+                                    } else {
+                                        Column(
+                                            Modifier.padding(2.dp),
+                                            verticalArrangement = Arrangement.Bottom
+                                        ) {
+                                            Text("$authTitle ($breadcrumb)", fontSize = 10.sp)
+                                        }
                                     }
                                 }
                             },
@@ -377,7 +390,13 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                             composable(dataTab.title) {
-                                DataScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
+                                DataScreen(
+                                    toAuths = toAuths,
+                                    colorBackground = colorBackground,
+                                    colorForeground = colorForeground,
+                                    onBreadCrumbChange = {text -> breadcrumb = text}
+                                )
+
                                 title = dataTab.title
                                 header = dataTab.title
                                 refreshVisible = false

@@ -35,7 +35,6 @@ glance = "1.1.0"
 datastorePreferencesCoreJvm = "1.1.1"
 markdown = "0.16.0"
 runtimeAndroid = "1.6.8"
-sonar = "5.0.0.4638"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -97,4 +96,3 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kaptLibrary = { id = "com.google.devtools.ksp", version.ref = "kapt" }
 hiltLibrary = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 serializationLibrary = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-sonar = { id = "org.sonarqube", version.ref = "sonar" }

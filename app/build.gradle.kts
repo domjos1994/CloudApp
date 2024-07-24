@@ -5,14 +5,6 @@ plugins {
     alias(libs.plugins.kaptLibrary)
     alias(libs.plugins.serializationLibrary)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.sonar)
-}
-
-sonar {
-    properties {
-        property("sonar.projectKey", "domjos1994_CloudApp_52a316a0-6f9a-4b9b-8d0af6683655")
-        property("sonar.projectName", "CloudApp")
-    }
 }
 
 android {

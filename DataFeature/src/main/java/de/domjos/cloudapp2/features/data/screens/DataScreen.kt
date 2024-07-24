@@ -2,8 +2,8 @@
 
 package de.domjos.cloudapp2.features.data.screens
 
+import android.annotation.SuppressLint
 import android.content.Context
-import android.content.res.Configuration
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.filled.Check
@@ -65,19 +64,16 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
@@ -88,13 +84,14 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ConfirmationDialog
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.FabItem
+import de.domjos.cloudapp2.appbasics.custom.MultiFloatingActionButton
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.OutlinedPasswordField
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.LoadingDialog
-import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
@@ -114,9 +111,17 @@ import java.util.Date
 import java.util.Locale
 
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
+fun DataScreen(
+    viewModel: DataViewModel = hiltViewModel(),
+    colorBackground: Color,
+    colorForeground: Color,
+    toAuths: () -> Unit,
+    onBreadCrumbChange: (String) -> Unit) {
+
+
     val items by viewModel.items.collectAsStateWithLifecycle()
     val parentItem by viewModel.item.collectAsStateWithLifecycle()
 
@@ -154,6 +159,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
     if(showDialog) {
         LoadingDialog({ showDialog = it }, colorForeground, colorBackground)
     }
+    onBreadCrumbChange(viewModel.path.value)
 
     DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
     { text: String, type: Types ->
@@ -162,6 +168,7 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
         {item: Item, o: () -> Unit ->
             showDialog = true
             viewModel.openElement(item) {
+                onBreadCrumbChange(viewModel.path.value)
                 path = it
                 currentItem = item
                 if(!item.directory) {
@@ -171,7 +178,6 @@ fun DataScreen(viewModel: DataViewModel = hiltViewModel(), colorBackground: Colo
                 o()
             }
         },
-        { viewModel.path.value},
         { item: Item -> viewModel.exists(item) },
         { item: Item -> viewModel.deleteFolder(item)},
         { data: String -> viewModel.createFolder(data)},
@@ -196,7 +202,6 @@ fun DataScreen(
     colorBackground: Color, colorForeground: Color,
     onAutoComplete: (String, Types) -> List<String>,
     onClick: (Item, () -> Unit) -> Unit,
-    onPath: ()->String,
     onExists: (Item) -> Boolean,
     onDelete: (Item) -> Unit,
     onCreateFolder: (String) -> Unit,
@@ -209,20 +214,25 @@ fun DataScreen(
     onUpdateShare: (Int, UpdateShare, (Share?) -> Unit) -> Unit) {
 
     val can_edit = parentItem?.sharedWithMe?.can_edit ?: true
+    var showDialog by remember { mutableStateOf(false) }
+    if(showDialog) {
+        CreateFolderDialog(showDialog = {showDialog=it}, onCreateFolder)
+    }
+
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {item ->
+        if(item != null) {
+            val inputStream = context.contentResolver.openInputStream(item)
+            if(inputStream!=null) {
+                uploadFile(getFileName(item, context)!!, inputStream)
+            }
+        }
+    }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
-        val (breadCrumb, list) = createRefs()
-
-        BreadCrumb(onPath, colorBackground, colorForeground,
-            Modifier.constrainAs(breadCrumb) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                width = Dimension.fillToConstraints
-            }, isConnected, hasAuths, can_edit, uploadFile, onCreateFolder
-        )
+        val (list) = createRefs()
         Row(Modifier.constrainAs(list) {
-            top.linkTo(breadCrumb.bottom)
+            top.linkTo(parent.top)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
             bottom.linkTo(parent.bottom)
@@ -259,6 +269,25 @@ fun DataScreen(
                 }
             }
         }
+
+        val mutableList = mutableListOf<FabItem>()
+        mutableList.add(FabItem(
+            painterResource(R.drawable.baseline_upload_file_24),
+            stringResource(R.string.data_file_add)
+        ) { launcher.launch(arrayOf("text/*", "image/*", "audio/*", "video/*", "application/*")) })
+        mutableList.add(FabItem(
+            painterResource(R.drawable.baseline_create_new_folder_24),
+            stringResource(R.string.data_folder_add)
+        ) { showDialog = true })
+
+        if(can_edit) {
+            MultiFloatingActionButton(
+                fabIcon = painterResource(R.drawable.baseline_add_24),
+                items = mutableList,
+                backgroundColor = colorBackground,
+                foregroundColor = colorForeground
+            )
+        }
     }
 }
 
@@ -283,99 +312,6 @@ fun getFileName(uri: Uri, context: Context): String? {
         }
     }
     return result
-}
-
-@Composable
-fun BreadCrumb(
-    onPath: ()->String,
-    colorBackground: Color,
-    colorForeground: Color,
-    modifier: Modifier = Modifier,
-    isConnected: Boolean,
-    hasAuths: Boolean,
-    can_edit: Boolean,
-    uploadFile: (String, InputStream) -> Unit,
-    onCreateFolder: (String) -> Unit) {
-
-    var showDialog by remember { mutableStateOf(false) }
-
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {item ->
-        if(item != null) {
-            val inputStream = context.contentResolver.openInputStream(item)
-            if(inputStream!=null) {
-                uploadFile(getFileName(item, context)!!, inputStream)
-            }
-        }
-    }
-    if(showDialog) {
-        CreateFolderDialog(showDialog = {showDialog=it}, onCreateFolder)
-    }
-
-    var fullHeight by remember { mutableStateOf(50.dp) }
-    var paddedHeight by remember { mutableStateOf(48.dp) }
-    if(LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        fullHeight = 36.dp
-        paddedHeight = 34.dp
-    }
-
-    Column(modifier) {
-        Separator(colorForeground)
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .height(fullHeight)
-                .background(colorBackground)) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward,
-                stringResource(R.string.data_breadcrumb),
-                modifier = Modifier
-                    .padding(1.dp)
-                    .height(paddedHeight)
-                    .weight(1f),
-                tint = colorForeground
-            )
-
-            Column(
-                Modifier
-                    .padding(1.dp)
-                    .height(paddedHeight)
-                    .weight(9f),
-                verticalArrangement = Arrangement.Center) {
-                Text(
-                    onPath(),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontStyle = FontStyle.Italic,
-                    color = colorForeground
-                )
-            }
-            Column(
-                Modifier
-                    .weight(2f)
-                    .height(paddedHeight)
-            ) {
-                if(isConnected && hasAuths && can_edit) {
-                    Separator(colorBackground)
-                    Row {
-                        IconButton(onClick = {
-                            launcher.launch(arrayOf("text/*", "image/*", "audio/*", "video/*", "application/*"))
-                        }, modifier = Modifier
-                            .weight(1f)
-                            .height(paddedHeight)) {
-                            Icon(painterResource(R.drawable.baseline_upload_file_24), stringResource(R.string.data_file_add))
-                        }
-                        IconButton(onClick = { showDialog = true }, modifier = Modifier
-                            .weight(1f)
-                            .height(paddedHeight)) {
-                            Icon(painterResource(R.drawable.baseline_create_new_folder_24), stringResource(R.string.data_folder_add))
-                        }
-                    }
-                }
-            }
-        }
-        Separator(colorForeground)
-    }
 }
 
 @OptIn(ExperimentalFoundationApi::class)

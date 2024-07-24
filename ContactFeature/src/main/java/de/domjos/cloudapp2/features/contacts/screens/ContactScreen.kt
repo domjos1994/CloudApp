@@ -251,8 +251,13 @@ fun ContactScreen(
                         bottom.linkTo(parent.bottom)
                         width = Dimension.fillToConstraints
                     }
-                    .padding(5.dp)) {
-                Icon(Icons.Filled.Add, stringResource(R.string.chats_room))
+                    .padding(5.dp),
+                containerColor = colorForeground) {
+                Icon(
+                    Icons.Filled.Add,
+                    stringResource(R.string.chats_room),
+                    tint = colorBackground
+                )
             }
         }
     }
