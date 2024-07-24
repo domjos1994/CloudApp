@@ -63,6 +63,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -75,6 +76,7 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
+import de.domjos.cloudapp2.appbasics.custom.SplitView
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.openEvent
@@ -224,7 +226,7 @@ fun CalendarScreen(
                 height = Dimension.fillToConstraints
                 width = Dimension.fillToConstraints
             }) {
-                Row {
+                SplitView(topView = {
                     Calendar(
                         colorBackground,
                         colorForeground,
@@ -236,37 +238,38 @@ fun CalendarScreen(
                         event = null
                         showDialog = true
                     }
-                }
-                Row {
-                    DateHeader(colorForeground, currentDate)
-                }
-                Row {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .verticalScroll(rememberScrollState())
-                    ) {
-                        if (hasAuths) {
-                            calendarEvents.forEach {
-                                CalendarEventItem(
-                                    it,
-                                    colorBackground,
-                                    colorForeground,
-                                    { item: CalendarEvent ->
+                }, bottomView = {
+                    Row {
+                        DateHeader(colorForeground, currentDate)
+                    }
+                    Row {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight()
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            if (hasAuths) {
+                                calendarEvents.forEach {
+                                    CalendarEventItem(
+                                        it,
+                                        colorBackground,
+                                        colorForeground,
+                                        { item: CalendarEvent ->
+                                            event = item
+                                            //dt = Date()
+                                            showDialog = true
+                                        }) { item: CalendarEvent ->
                                         event = item
-                                        //dt = Date()
-                                        showDialog = true
-                                    }) { item: CalendarEvent ->
-                                    event = item
-                                    showEventView = true
+                                        showEventView = true
+                                    }
                                 }
+                            } else {
+                                NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                             }
-                        } else {
-                            NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                         }
                     }
-                }
+                })
             }
 
             FloatingActionButton(
@@ -300,7 +303,7 @@ fun CalendarScreen(
                 bottom.linkTo(parent.bottom)
                 height = Dimension.fillToConstraints
                 width = Dimension.percent(0.5f)
-            }) {
+            }.verticalScroll(rememberScrollState())) {
                 Row {
                     DropDown(calendars, initial, onCalendarSelected, stringResource(R.string.calendars))
                     Separator(colorForeground)
@@ -570,7 +573,7 @@ fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: C
             .border(borderWidth, borderColor)
             .combinedClickable(
                 onClick = {
-                    if(style != FontStyle.Italic) {
+                    if (style != FontStyle.Italic) {
                         val tmp = cal.clone() as Calendar
                         tmp.set(Calendar.DAY_OF_MONTH, day)
                         onSelected(tmp)
@@ -1105,11 +1108,7 @@ fun EventViewPreview() {
     }
 }
 
-@Preview(showBackground = true)
-@Preview(
-    showBackground = true,
-    device = "spec:width=411dp,height=891dp,dpi=420,isRound=false,chinSize=0dp,orientation=landscape"
-)
+@PreviewScreenSizes
 @Composable
 fun ScreenPreview() {
     CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), colorBackground = Color.Blue, colorForeground = Color.White, Date(), listOf(), listOf(), true, {}, {_,_->}, {}, {}, {})
