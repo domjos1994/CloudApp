@@ -9,9 +9,9 @@ data class Item(var name: String, var directory: Boolean, val type: String, val 
 
     fun getUrl(url: String): String {
         return if(url.endsWith("/")) {
-            "$url$path-".replace("/-", "")
+            "$url$path-".replace("/-", "") + name
         } else {
-            "$url$path"
+            "$url$path$name"
         }
     }
 }
