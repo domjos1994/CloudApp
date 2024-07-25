@@ -33,7 +33,7 @@ import de.domjos.cloudapp2.database.model.webdav.DataItem
         Contact::class, Address::class, Phone::class, Email::class,
         DataItem::class
    ],
-    version = 11,
+    version = 12,
     autoMigrations = [
         AutoMigration(1, 2),
         AutoMigration(2, 3),
@@ -44,7 +44,8 @@ import de.domjos.cloudapp2.database.model.webdav.DataItem
         AutoMigration(7, 8),
         AutoMigration(8, 9),
         AutoMigration(9, 10),
-        AutoMigration(10, 11)
+        AutoMigration(10, 11),
+        AutoMigration(11, 12)
     ]
 )
 @TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class)

@@ -21,17 +21,18 @@ import androidx.room.PrimaryKey
 )
 data class DataItem(
     @PrimaryKey(autoGenerate = true)
+    @ColumnInfo(name = "id", index = true, defaultValue = "0")
     var id: Long,
-    @ColumnInfo(name = "name")
+    @ColumnInfo(name = "name", index = true, defaultValue = "")
     var name: String,
-    @ColumnInfo(name = "path")
+    @ColumnInfo(name = "path", index = true, defaultValue = "")
     var path: String,
-    @ColumnInfo(name = "type")
+    @ColumnInfo(name = "type", defaultValue = "")
     var type: String,
-    @ColumnInfo(name = "directory")
+    @ColumnInfo(name = "directory", defaultValue = "false")
     var directory: Boolean = false,
-    @ColumnInfo(name = "exists")
+    @ColumnInfo(name = "exists", defaultValue = "false")
     var exists: Boolean = false,
-    @ColumnInfo(name = "authId")
+    @ColumnInfo(name = "authId", defaultValue = "0")
     var authId: Long
 )

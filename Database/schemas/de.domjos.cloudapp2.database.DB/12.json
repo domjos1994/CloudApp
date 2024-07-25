@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 11,
-    "identityHash": "fb71498af69f6587da37dba88f3cf041",
+    "version": 12,
+    "identityHash": "9f197d5153110b9127bc04b4ee85fb9b",
     "entities": [
       {
         "tableName": "authentications",
@@ -600,6 +600,33 @@
               "ASC"
             ],
             "createSql": "CREATE INDEX IF NOT EXISTS `data_path_index` ON `${TABLE_NAME}` (`path` ASC)"
+          },
+          {
+            "name": "index_dataItems_id",
+            "unique": false,
+            "columnNames": [
+              "id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dataItems_id` ON `${TABLE_NAME}` (`id`)"
+          },
+          {
+            "name": "index_dataItems_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dataItems_name` ON `${TABLE_NAME}` (`name`)"
+          },
+          {
+            "name": "index_dataItems_path",
+            "unique": false,
+            "columnNames": [
+              "path"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_dataItems_path` ON `${TABLE_NAME}` (`path`)"
           }
         ],
         "foreignKeys": []
@@ -608,7 +635,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'fb71498af69f6587da37dba88f3cf041')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9f197d5153110b9127bc04b4ee85fb9b')"
     ]
   }
 }

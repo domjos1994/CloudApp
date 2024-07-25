@@ -135,6 +135,8 @@
     <string name="login.pwd.show">Show Password</string>
     <string name="login.pwd.hide">Hide Password</string>
     <string name="login.description">Description</string>
+    <string name="login.safe" translatable="false">Https</string>
+    <string name="login.connect" translatable="false">Connect</string>
     <string name="login.close">Close</string>
     <string name="login.add">Add</string>
     <string name="login.delete">Delete</string>
@@ -142,6 +144,7 @@
     <string name="login.check.user">Invalid username or password!</string>
     <string name="login.check.success">Connection successfully!</string>
     <string name="login.check.not.success">Connection not successfully!</string>
+    <string name="login.check_descr">Press the right icon to check the connection!</string>
 
     <string name="validation.notEmpty">Field shouldn\'t be empty!</string>
     <string name="validation.notEmpty.min">Field should be longer than %d characters!</string>

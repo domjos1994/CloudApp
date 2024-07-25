@@ -25,9 +25,11 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.Power
+import androidx.compose.material.icons.filled.PowerOff
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -112,11 +114,16 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
     if (
         authentications is AuthenticationUiState.Success) {
         val msg = stringResource(id = R.string.validate_auth)
+        val auths = (authentications as AuthenticationUiState.Success).data
 
         AuthenticationScreen(
             onSaveClick = {auth ->
                 if(auth.id == 0L) {
                     viewModel.insertAuthentication(auth, msg)
+                    if(auths.isEmpty()) {
+                        viewModel.checkAuthentications(auth)
+                        onSelectedChange(auth)
+                    }
                 } else {
                     viewModel.updateAuthentication(auth, msg)
                 }
@@ -128,7 +135,7 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
                 viewModel.checkConnection(auth, onSuccess) },
             select = { auth -> viewModel.checkAuthentications(auth)
                 onSelectedChange(auth)},
-            (authentications as AuthenticationUiState.Success).data,
+            auths,
             colorBackground, colorForeground
         )
     }
@@ -316,6 +323,7 @@ private fun EditDialog(
     var description by remember { mutableStateOf(TextFieldValue("")) }
     var isValidDescription by remember { mutableStateOf(true) }
     var color by remember { mutableStateOf(Color.Red) }
+    var showProgress by remember { mutableStateOf(false) }
 
 
     if(authentication != null) {
@@ -345,6 +353,7 @@ private fun EditDialog(
                     )
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
+                    var show by remember { mutableStateOf(false) }
                     OutlinedTextField(
                         value = url,
                         onValueChange = {
@@ -352,10 +361,59 @@ private fun EditDialog(
                             isValidUrl = Validator.checkUrl(it.text)
                             isConnectionValid = false
                             color = Color.Red
+                            show = it.text.trim().lowercase().startsWith("https")
                         },
                         label = {Text(stringResource(id = R.string.login_url))},
                         modifier = Modifier.fillMaxWidth(),
-                        isError = !isValidUrl
+                        isError = !isValidUrl || !isConnectionValid || showProgress,
+                        supportingText = {Text(stringResource(R.string.login_check_descr))},
+                        leadingIcon = {
+                            if(show) {
+                                Icon(
+                                    Icons.Filled.Lock,
+                                    contentDescription = stringResource(R.string.login_safe)
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Filled.LockOpen,
+                                    contentDescription = stringResource(R.string.login_safe) + " - not"
+                                )
+                            }
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                showProgress = true
+                                val auth = Authentication(
+                                    0L, title.text, url.text, user.text,
+                                    pwd.text, false, "", null
+                                )
+
+                                onConnectionCheck(auth) { state:Boolean ->
+                                    isConnectionValid = state && isValidTitle && isValidUrl && isValidDescription
+                                    color = if(state) Color.Green else Color.Red
+                                    showProgress = false
+                                }
+                            }) {
+                                if(showProgress) {
+                                    Icon(
+                                        Icons.Filled.Refresh,
+                                        contentDescription = stringResource(R.string.login_check_url)
+                                    )
+                                } else {
+                                    if(isConnectionValid) {
+                                        Icon(
+                                            Icons.Filled.Power,
+                                            contentDescription = stringResource(R.string.login_connect)
+                                        )
+                                    } else {
+                                        Icon(
+                                            Icons.Filled.PowerOff,
+                                            contentDescription = stringResource(R.string.login_connect)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     )
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -378,42 +436,6 @@ private fun EditDialog(
                         },
                         label = R.string.login_pwd
                     )
-                }
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 5.dp)) {
-                    var showProgress by remember { mutableStateOf(false) }
-                    Button(modifier = Modifier
-                        .weight(18f)
-                        .height(55.dp),
-                        onClick = {
-                            showProgress = true
-                            val auth = Authentication(
-                                0L, title.text, url.text, user.text,
-                                pwd.text, false, "", null
-                            )
-
-                            onConnectionCheck(auth) { state:Boolean ->
-                                isConnectionValid = state && isValidTitle && isValidUrl && isValidDescription
-                                color = if(state) Color.Green else Color.Red
-                                showProgress = false
-                            }
-                        }, colors = ButtonDefaults.buttonColors(containerColor = color)
-                    ) {
-                        Text(stringResource(R.string.auth_test))
-                    }
-
-                    if(showProgress) {
-                        Column(
-                            Modifier
-                                .weight(2f)
-                                .padding(5.dp)
-                                .height(40.dp),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
-                        }
-                    }
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(

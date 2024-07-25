@@ -137,6 +137,7 @@
     <string name="login.check.user">Falscher Benutzername oder Passwort</string>
     <string name="login.check.success">Verbindung erfolgreich</string>
     <string name="login.check.not.success">Verbindung nicht erfolgreich</string>
+    <string name="login.check_descr">Klicke auf das rechte Icon, um die Verbindung zu testen!</string>
 
     <string name="validation.notEmpty">Feld sollte nicht leers ein!</string>
     <string name="validation.notEmpty.min">Feld sollte mehr als %d Buchstaben enthalten!</string>
