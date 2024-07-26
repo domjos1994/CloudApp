@@ -14,6 +14,7 @@ import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -57,6 +58,38 @@ fun NoEntryItem(colorForeground: Color, colorBackground: Color) {
 
             Text(
                 stringResource(id = R.string.sys_no_entry),
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = colorForeground
+            )
+        }
+    }
+}
+
+@Composable
+fun LoadingItem(colorForeground: Color, colorBackground: Color) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(5.dp)
+            .background(colorBackground)) {
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(5.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Icon(Icons.Rounded.Refresh, stringResource(R.string.sys_loading), tint = colorForeground)
+        }
+        Column(
+            Modifier
+                .weight(9f)
+                .padding(5.dp),
+            verticalArrangement = Arrangement.Center) {
+
+            Text(
+                stringResource(R.string.sys_loading),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 color = colorForeground

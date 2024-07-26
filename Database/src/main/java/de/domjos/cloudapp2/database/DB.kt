@@ -9,31 +9,30 @@ package de.domjos.cloudapp2.database
 import android.content.Context
 import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteTable
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import de.domjos.cloudapp2.database.converters.AddressTypeConverter
 import de.domjos.cloudapp2.database.converters.DateConverter
 import de.domjos.cloudapp2.database.converters.PhoneTypeConverter
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
-import de.domjos.cloudapp2.database.dao.DataItemDAO
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp2.database.model.contacts.Address
 import de.domjos.cloudapp2.database.model.contacts.Contact
 import de.domjos.cloudapp2.database.model.contacts.Email
 import de.domjos.cloudapp2.database.model.contacts.Phone
-import de.domjos.cloudapp2.database.model.webdav.DataItem
 
 @Database(
     entities = [
         Authentication::class, CalendarEvent::class,
-        Contact::class, Address::class, Phone::class, Email::class,
-        DataItem::class
+        Contact::class, Address::class, Phone::class, Email::class
    ],
-    version = 12,
+    version = 13,
     autoMigrations = [
         AutoMigration(1, 2),
         AutoMigration(2, 3),
@@ -45,7 +44,8 @@ import de.domjos.cloudapp2.database.model.webdav.DataItem
         AutoMigration(8, 9),
         AutoMigration(9, 10),
         AutoMigration(10, 11),
-        AutoMigration(11, 12)
+        AutoMigration(11, 12),
+        AutoMigration(12, 13, DeleteDataItem::class),
     ]
 )
 @TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class)
@@ -53,7 +53,6 @@ abstract class DB : RoomDatabase() {
     abstract fun authenticationDao(): AuthenticationDAO
     abstract fun calendarEventDao(): CalendarEventDAO
     abstract fun contactDao(): ContactDAO
-    abstract fun dataItemDao(): DataItemDAO
 
     companion object {
         fun newInstance(context: Context): DB {
@@ -65,3 +64,6 @@ abstract class DB : RoomDatabase() {
         }
     }
 }
+
+@DeleteTable("dataItems")
+class DeleteDataItem : AutoMigrationSpec

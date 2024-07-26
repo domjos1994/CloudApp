@@ -41,6 +41,7 @@ dependencies {
 
     implementation(libs.sardine)
     implementation(project(":REST"))
+    implementation(libs.androidx.rules)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

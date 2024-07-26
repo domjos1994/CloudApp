@@ -44,7 +44,6 @@ class DataViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataRepository.init()
-                _items.value = dataRepository.getFromDatabase()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
@@ -72,15 +71,11 @@ class DataViewModel @Inject constructor(
                 if(item.directory) {
                     if(item.name == "..") {
                         dataRepository.back()
-                        _items.value = dataRepository.getFromDatabase()
-                        _items.value = dataRepository.getList()
-                        _path.value = dataRepository.path
                     } else {
                         dataRepository.openFolder(item)
-                        _items.value = dataRepository.getFromDatabase()
-                        _items.value = dataRepository.getList()
-                        _path.value = dataRepository.path
                     }
+                    _items.value = dataRepository.getList()
+                    _path.value = dataRepository.path
                 } else {
                     val dir = dataRepository.createDirs()
                     if(!exists(item)) {
@@ -126,7 +121,6 @@ class DataViewModel @Inject constructor(
             try {
                 dataRepository.setToMove(item)
                 dataRepository.reload()
-                _items.value = dataRepository.getFromDatabase()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
@@ -141,7 +135,6 @@ class DataViewModel @Inject constructor(
             try {
                 dataRepository.move(item)
                 dataRepository.reload()
-                _items.value = dataRepository.getFromDatabase()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
@@ -156,7 +149,6 @@ class DataViewModel @Inject constructor(
             try {
                 dataRepository.createFolder(name)
                 dataRepository.reload()
-                _items.value = dataRepository.getFromDatabase()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
@@ -172,7 +164,6 @@ class DataViewModel @Inject constructor(
             try {
                 dataRepository.delete(item)
                 dataRepository.reload()
-                _items.value = dataRepository.getFromDatabase()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
@@ -187,7 +178,6 @@ class DataViewModel @Inject constructor(
             try {
                 dataRepository.createFile(name, stream)
                 dataRepository.reload()
-                _items.value = dataRepository.getFromDatabase()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
                 onFinish()
@@ -217,7 +207,6 @@ class DataViewModel @Inject constructor(
                             resId.postValue(R.string.data_shared_copied)
                         }
                     }
-                    _items.value = dataRepository.getFromDatabase()
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path
                 }
@@ -235,7 +224,6 @@ class DataViewModel @Inject constructor(
                     if(state != "") {
                         message.postValue(state)
                     }
-                    _items.value = dataRepository.getFromDatabase()
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path
                 }
@@ -253,7 +241,6 @@ class DataViewModel @Inject constructor(
                     if(share != null) {
                         onFinish(share)
                     }
-                    _items.value = dataRepository.getFromDatabase()
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path
                 }
@@ -282,5 +269,4 @@ class DataViewModel @Inject constructor(
         }
         return _shareItems.value
     }
-
 }

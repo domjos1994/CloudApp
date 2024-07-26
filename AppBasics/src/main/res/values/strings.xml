@@ -159,6 +159,7 @@
     <string name="sys_no_connection">No Authentication exists</string>
     <string name="sys_no_connection_description">Please go to the Authentications and add an Account or select it!</string>
     <string name="sys_no_connection_button">To the Accounts</string>
+    <string name="sys_loading">Entries are loading!</string>
     <string name="sys_delete_item">Are you sure, you want to delete the Item?</string>
 
     <string name="permissions">Permissions</string>

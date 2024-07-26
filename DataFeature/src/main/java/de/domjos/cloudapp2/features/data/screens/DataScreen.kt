@@ -85,6 +85,7 @@ import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ConfirmationDialog
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.FabItem
+import de.domjos.cloudapp2.appbasics.custom.LoadingItem
 import de.domjos.cloudapp2.appbasics.custom.MultiFloatingActionButton
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
@@ -133,10 +134,6 @@ fun DataScreen(
     var path by remember { mutableStateOf("") }
     var currentItem by remember { mutableStateOf<Item?>(null) }
 
-    if(isConnected) {
-        viewModel.init()
-    }
-
     viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
         msg?.let {
             Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
@@ -160,6 +157,10 @@ fun DataScreen(
         LoadingDialog({ showDialog = it }, colorForeground, colorBackground)
     }
     onBreadCrumbChange(viewModel.path.value)
+
+    if(isConnected) {
+        viewModel.init()
+    }
 
     DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
     { text: String, type: Types ->
@@ -248,19 +249,22 @@ fun DataScreen(
 
                 if(hasAuths) {
                     if(isConnected) {
-
-                        items.forEach { item -> DataItem(item, parentItem, colorBackground, colorForeground, onAutoComplete, onClick, {
-                            download = onExists(it)
-                            download
-                        }, onDelete, {
-                            onSetCutElement(it)
-                            hasCut = true
-                            getCut = it.path
-                        }, {
-                            onMoveFolder(it)
-                            hasCut = false
-                            getCut = ""
-                        }, hasCut, getCut, onInsertShare, onDeleteShare, onUpdateShare)}
+                        if(items.isEmpty()) {
+                            LoadingItem(colorForeground, colorBackground)
+                        } else {
+                            items.forEach { item -> DataItem(item, parentItem, colorBackground, colorForeground, onAutoComplete, onClick, {
+                                download = onExists(it)
+                                download
+                            }, onDelete, {
+                                onSetCutElement(it)
+                                hasCut = true
+                                getCut = it.path
+                            }, {
+                                onMoveFolder(it)
+                                hasCut = false
+                                getCut = ""
+                            }, hasCut, getCut, onInsertShare, onDeleteShare, onUpdateShare)}
+                        }
                     } else {
                         NoInternetItem(colorForeground, colorBackground)
                     }

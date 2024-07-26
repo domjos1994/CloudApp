@@ -152,6 +152,7 @@
     <string name="sys_no_connection">Keine Zugangsdaten existieren</string>
     <string name="sys_no_connection_description">Bitte geh zu den Zugangsdaten und füge eine Verbindung hinzu.</string>
     <string name="sys_no_connection_button">Zu den Accounts</string>
+    <string name="sys_loading">Einträge werden geladen!</string>
     <string name="sys_delete_item">Sind Sie sicher, dass Sie den Eintrag löschen möchten?</string>
 
     <string name="permissions">Berechtigungen</string>

@@ -10,8 +10,6 @@ import androidx.core.content.FileProvider
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
-import de.domjos.cloudapp2.database.dao.DataItemDAO
-import de.domjos.cloudapp2.database.model.webdav.DataItem
 import de.domjos.cloudapp2.rest.model.shares.InsertShare
 import de.domjos.cloudapp2.rest.model.shares.Share
 import de.domjos.cloudapp2.rest.model.shares.Types
@@ -23,7 +21,6 @@ import de.domjos.cloudapp2.webdav.model.Item
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.io.InputStream
-import java.util.LinkedList
 import javax.inject.Inject
 
 
@@ -32,7 +29,6 @@ interface DataRepository {
 
     fun init()
     suspend fun getList(): List<Item>
-    suspend fun getFromDatabase(): List<Item>
     fun openFolder(item: Item)
     fun reload()
     fun hasFolderToMove(): Boolean
@@ -59,8 +55,7 @@ interface DataRepository {
 }
 
 class DefaultDataRepository @Inject constructor(
-    private val authenticationDAO: AuthenticationDAO,
-    private val dataItemDAO: DataItemDAO
+    private val authenticationDAO: AuthenticationDAO
 ) : DataRepository {
     private var webDav: WebDav? = null
     private var source: Item? = null
@@ -82,44 +77,15 @@ class DefaultDataRepository @Inject constructor(
 
     override fun init() {
         if(webDav == null) {
-            webDav = WebDav((authenticationDAO))
-            path = webDav!!.getPath()
+            webDav = WebDav(authenticationDAO.getSelectedItem()!!)
+            path = webDav!!.getSimplePath()
         }
         webDav!!.checkUser()
     }
 
     override suspend fun getList(): List<Item> {
-        path = webDav!!.getPath()
-        val auth = authenticationDAO.getSelectedItem()
-        var tmp = "/remote.php/dav/files/${auth!!.userName}$path%"
-        if(path == "/")  {
-            tmp = "/remote.php/dav/files/${auth.userName}$path"
-        }
-        val authId = auth.id
-        val items = LinkedList<Item>()
-        dataItemDAO.getDataItemsByPath(authId, path).forEach {
-            val item = Item(it.name, it.directory, it.type, it.path)
-            item.exists = it.exists
-            items.add(item)
-        }
-        val lst = dataItemDAO.getDataItemsByPath(authId, "$tmp%")
-        webDav?.getList()!!.forEach {
-            it.exists = exists(it)
-            if(it.name != "" && it.path != "") {
-                val filteredItem = lst.find { item -> it.path.split(it.name)[0]==item.path && it.name == item.name }
-                if(filteredItem != null) {
-                    filteredItem.path = it.path.split(it.name)[0]
-                    filteredItem.name = it.name
-                    filteredItem.exists = it.exists
-                    filteredItem.type = it.type
-                    filteredItem.directory = it.directory
-                    dataItemDAO.updateDataItem(filteredItem)
-                } else {
-                    dataItemDAO.insertDataItem(DataItem(0L, it.name, it.path.split(it.name)[0], it.type, it.directory, it.exists, authId))
-                }
-            }
-            items.add(it)
-        }
+        path = webDav!!.getSimplePath()
+        val items = webDav!!.getList()
         if(shares != null) {
             items.forEach { item ->
                 shares?.collect { shares ->
@@ -137,26 +103,6 @@ class DefaultDataRepository @Inject constructor(
                     }
 
                 }
-            }
-        }
-        return items
-    }
-
-    override suspend fun getFromDatabase(): List<Item> {
-        val tmpPath  = webDav?.getPath()!!
-        val auth = authenticationDAO.getSelectedItem()
-        var tmp = "/remote.php/dav/files/${auth!!.userName}$tmpPath%"
-        val items = LinkedList<Item>()
-         if(tmpPath != "/") {
-            items.add(Item("..", true, "", ""))
-        } else {
-            tmp = "/remote.php/dav/files/${auth.userName}$tmpPath"
-        }
-        dataItemDAO.getDataItemsByPath(auth.id, tmp).forEach {
-            val item = Item(it.name, it.directory, it.type, it.path)
-            item.exists = it.exists
-            if(items.find { inside -> inside.name == item.name && inside.path == item.path } == null) {
-                items.add(item)
             }
         }
         return items

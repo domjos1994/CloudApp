@@ -2,110 +2,71 @@ package de.domjos.cloudapp2.webdav
 
 import com.thegrizzlylabs.sardineandroid.DavResource
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
-import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.webdav.model.Item
 import java.io.File
 import java.io.InputStream
 import java.util.LinkedList
+import java.util.Stack
 
 
-class WebDav(private val authenticationDAO: AuthenticationDAO) {
-    private var sardine: OkHttpSardine
+class WebDav(private val authentication: Authentication) {
+    private lateinit var sardine: OkHttpSardine
     private var list: List<DavResource>
-    private var url = ""
     private var currentUrl = ""
-    private var lastUrl = ""
+    private var lastUrls = Stack<String>()
     private var basePath = ""
-    private var authentication: Authentication?
 
     init {
         this.list = LinkedList()
-        this.authentication = authenticationDAO.getSelectedItem()
-        this.sardine = OkHttpSardine()
-        if(authentication != null) {
-            this.sardine.setCredentials(authentication!!.userName, authentication!!.password)
-            this.basePath = "/remote.php/dav/files/${authentication!!.userName}"
-            this.list = this.sardine.list("${authentication!!.url}${this.basePath}")
-            this.url = authentication!!.url
-            this.currentUrl = "$url$basePath"
-        }
+        this.connect()
     }
 
     fun checkUser() {
-        if(this.authentication != null) {
-            if(this.authentication!!.id != authenticationDAO.getSelectedItem()!!.id) {
-                this.authentication = authenticationDAO.getSelectedItem()
-                this.sardine = OkHttpSardine()
-                this.sardine.setCredentials(authentication!!.userName, authentication!!.password)
-                this.basePath = "/remote.php/dav/files/${authentication!!.userName}"
-                this.list = this.sardine.list("${authentication!!.url}${this.basePath}")
-                this.url = authentication!!.url
-                this.currentUrl = "$url$basePath"
-            }
-        }
+        this.connect()
     }
 
     fun getPath(): String {
-        var tmp = this.currentUrl
-        tmp = tmp.replace("$url$basePath", "")
-        if(tmp.endsWith("/")) {
-            tmp = "$tmp-".replace("/-", "")
-        }
-        if(tmp == "") {
-            tmp = "/"
-        }
-        return tmp
+        return currentUrl
+    }
+
+    fun getSimplePath(): String {
+        return currentUrl.replace("${authentication.url}${basePath}", "")
     }
 
     fun getList(): List<Item> {
+        val lst = LinkedList<Item>()
         try {
-            val items = LinkedList<Item>()
-            if(currentUrl != "${authentication?.url}${basePath}") {
-                items.add(Item("..", true, "", ""))
+            if(this.currentUrl != "${authentication.url}${basePath}/") {
+                lst.add(Item("..", true, "", ""))
             }
-            list.forEach {
-                val path: String
-                var name: String?
-                val pathPart: String?
-                if(it.isDirectory) {
-                    path = "${it.path}-".replace("/-", "")
-                    name = it.displayName
-                    if(name == null) {
-                        name = path.split("/")[path.split("/").size-1]
+            list.forEach { resource ->
+                if(!this.currentUrl.endsWith(resource.path)) {
+                    val directory = resource.isDirectory
+                    val type = resource.contentType
+
+                    if(directory) {
+                        if(!currentUrl.endsWith(resource.path)) {
+                            val name = resource.path.split("/")[resource.path.split("/").size - 2]
+                            val path = "${currentUrl}${name}/"
+                            lst.add(Item(name, true, type, path))
+                        }
+                    } else {
+                        val name = resource.path.split("/")[resource.path.split("/").size - 1]
+                        val path = "${currentUrl}${name}"
+                        lst.add(Item(name, false, type, path))
                     }
-                    pathPart = path.replace(basePath, "")
-                } else {
-                    path = it.path
-                    name = it.displayName
-                    if(name == null) {
-                        name = path.split("/")[path.split("/").size-1]
-                    }
-                    pathPart = path.replace(basePath, "")
-                }
-
-
-                val item = Item(name, it.isDirectory, it.contentType, path)
-
-                var tmp = currentUrl
-                if(tmp.endsWith("/")) {
-                    tmp = "$tmp-".replace("/-", "")
-                }
-                if(!("${authentication?.url}${basePath}${pathPart}" == tmp && it.isDirectory)) {
-                    items.add(item)
                 }
             }
-            return items
-        } catch(ex: Exception) {
-            return mutableListOf()
-        }
+        } catch (_: Exception) {}
+        return lst
     }
 
     fun openFolder(item: Item) {
         if(item.directory) {
-            if(this.currentUrl != item.getUrl(this.url)) {
-                this.lastUrl = this.currentUrl
-                this.currentUrl = item.getUrl(url)
+            if(this.currentUrl != item.path) {
+                this.lastUrls.push(this.currentUrl)
+                this.currentUrl = item.path
                 this.list = this.sardine.list(this.currentUrl)
             }
         }
@@ -116,24 +77,13 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
     }
 
     fun back() {
-        try {
-            if(this.lastUrl.endsWith("/")) {
-                this.lastUrl = "$lastUrl-".replace("/-","")
-            }
-
-            this.currentUrl = this.lastUrl
-            this.lastUrl = this.lastUrl.replace(this.lastUrl.split("/")[this.lastUrl.split("/").size-1], "")
-            this.list = this.sardine.list(this.currentUrl)
-        } catch (ex: Exception) {
-            this.currentUrl = "$url$basePath"
-            this.lastUrl = ""
-            this.list = this.sardine.list(this.currentUrl)
-        }
+        this.currentUrl = this.lastUrls.pop()
+        this.list = this.sardine.list(currentUrl)
     }
 
     fun openResource(item: Item, path: String) {
         if(!item.directory) {
-            this.sardine.get(item.getUrl(this.url)).use { input ->
+            this.sardine.get(item.getUrl(this.currentUrl)).use { input ->
                 val file = File("$path/${item.name.replace(" ", "_")}")
                 file.outputStream().use { output ->
                     input.copyTo(output)
@@ -143,7 +93,7 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
     }
 
     fun delete(item: Item) {
-        this.sardine.delete(item.getUrl(this.url))
+        this.sardine.delete(item.getUrl(this.currentUrl))
     }
 
     fun createFolder(name: String) {
@@ -152,12 +102,22 @@ class WebDav(private val authenticationDAO: AuthenticationDAO) {
 
     fun move(source: Item, target: Item) {
         if(target.directory) {
-            this.sardine.move(source.getUrl(this.url), "${target.getUrl(this.url)}/${source.name}")
+            this.sardine.move(source.getUrl(this.currentUrl), "${target.getUrl(this.currentUrl)}/${source.name}")
         }
     }
 
     fun uploadFile(name: String, stream: InputStream) {
         this.sardine.put("${this.currentUrl}/$name", stream.readBytes())
         stream.close()
+    }
+
+    private fun connect() {
+        this.sardine = OkHttpSardine()
+        this.sardine.setCredentials(authentication.userName, authentication.password)
+        if(this.currentUrl.isEmpty()) {
+            this.basePath = "/remote.php/dav/files/${authentication.userName}"
+            this.currentUrl = "${authentication.url}$basePath/"
+        }
+        this.list = this.sardine.list(currentUrl)
     }
 }
