@@ -42,12 +42,13 @@ class DefaultAuthenticationRepository @Inject constructor(
 
     override suspend fun insert(authentication: Authentication, msg: String): String {
         val auth = this.authenticationDAO.getItemByTitle(authentication.title)
+        val id: Long
         if(auth == null) {
-            this.authenticationDAO.insertAuthentication(authentication)
+            id = this.authenticationDAO.insertAuthentication(authentication)
         } else {
             return msg
         }
-        return ""
+        return "$id"
     }
 
     override suspend fun update(authentication: Authentication, msg: String): String {

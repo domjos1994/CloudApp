@@ -119,10 +119,12 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
         AuthenticationScreen(
             onSaveClick = {auth ->
                 if(auth.id == 0L) {
-                    viewModel.insertAuthentication(auth, msg)
-                    if(auths.isEmpty()) {
-                        viewModel.checkAuthentications(auth)
-                        onSelectedChange(auth)
+                    viewModel.insertAuthentication(auth, msg) {
+                        if(auths.isEmpty()) {
+                            auth.id = it
+                            viewModel.checkAuthentications(auth)
+                            onSelectedChange(auth)
+                        }
                     }
                 } else {
                     viewModel.updateAuthentication(auth, msg)

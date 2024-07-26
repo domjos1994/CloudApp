@@ -38,15 +38,17 @@ class AuthenticationViewModel @Inject constructor(
         }
     }
 
-    fun insertAuthentication(authentication: Authentication, msg: String) {
+    fun insertAuthentication(authentication: Authentication, msg: String, onFinish: (Long) -> Unit) {
         viewModelScope.launch {
             try {
                 if(!authenticationRepository.hasAuthentications()) {
                     authentication.selected = true
                 }
                 val result = authenticationRepository.insert(authentication, msg)
-                if(result != "") {
+                if(result != "" && result.toLongOrNull() == null) {
                     message.postValue(result)
+                } else if(result.toLongOrNull() != null) {
+                    onFinish(result.toLong())
                 }
             } catch (ex: Exception) {
                 message.postValue(ex.message)
