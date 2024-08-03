@@ -45,6 +45,7 @@ dependencies {
     implementation(project(":AppBasics"))
     implementation(project(":Database"))
     implementation(project(":Data"))
+    implementation(project(":CalDav"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.constraint)

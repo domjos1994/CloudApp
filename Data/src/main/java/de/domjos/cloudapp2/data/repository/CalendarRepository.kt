@@ -1,6 +1,7 @@
 package de.domjos.cloudapp2.data.repository
 
-import de.domjos.cloudapp2.caldav.Calendar
+import de.domjos.cloudapp2.caldav.CalDav
+import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
@@ -9,10 +10,11 @@ import javax.inject.Inject
 
 interface CalendarRepository {
     fun loadData(calendar: String, startTime: Long, endTime:Long): List<CalendarEvent>
-    fun getCalendars(): List<String>
+    fun getCalendars(): List<CalendarModel>
     fun countData(calendar: String, event: java.util.Calendar): LinkedList<Int>
     fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
-    fun insert(calendarEvent: CalendarEvent)
+    fun reloadCalendar(name: String, updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
+    fun insert(name: String, calendarEvent: CalendarEvent)
     fun update(calendarEvent: CalendarEvent)
     fun delete(calendarEvent: CalendarEvent)
     fun hasAuthentications(): Boolean
@@ -22,7 +24,7 @@ class DefaultCalendarRepository @Inject constructor(
     private val authenticationDAO: AuthenticationDAO,
     private val calendarEventDAO: CalendarEventDAO
 ) : CalendarRepository {
-    private val calendar = Calendar(authenticationDAO.getSelectedItem())
+    private val calDav = CalDav(authenticationDAO.getSelectedItem())
 
     override fun loadData(calendar: String, startTime: Long, endTime: Long): List<CalendarEvent> {
         return if(authenticationDAO.getSelectedItem()!=null) {
@@ -40,13 +42,10 @@ class DefaultCalendarRepository @Inject constructor(
         return authenticationDAO.selected()!=0L
     }
 
-    override fun getCalendars(): List<String> {
-        val lst = LinkedList<String>()
-        val auth = authenticationDAO.getSelectedItem()
-        if(auth != null) {
-            lst.add("")
-            lst.addAll(calendarEventDAO.getCalendars(auth.id))
-        }
+    override fun getCalendars(): List<CalendarModel> {
+        val lst = mutableListOf<CalendarModel>()
+        lst.add(CalendarModel("", "", ""))
+        lst.addAll(calDav.getCalendars())
         return lst
     }
 
@@ -82,9 +81,7 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String) {
-        this.calendar.reloadCalendarEvents(updateProgress, progressLabel)
-        val data = this.calendar.calendars
-
+        val data = this.calDav.reloadCalendarEvents(updateProgress, progressLabel)
         data.keys.forEach { key ->
             var progress = 0L
             val max = data[key]?.size!! / 100.0f
@@ -110,20 +107,60 @@ class DefaultCalendarRepository @Inject constructor(
         }
     }
 
-    override fun insert(calendarEvent: CalendarEvent) {
-        calendarEvent.authId = authenticationDAO.getSelectedItem()!!.id
-        this.calendarEventDAO.insertCalendarEvent(calendarEvent)
-        this.calendar.newCalendarEvent(calendarEvent)
+    override fun reloadCalendar(
+        name: String,
+        updateProgress: (Float, String) -> Unit,
+        progressLabel: String,
+        saveLabel: String
+    ) {
+        val calendars = this.calDav.getCalendars()
+        val calendar = calendars.find { it.name == name }
+        var progress = 0L
+
+        if(calendar != null) {
+            val data = this.calDav.loadCalendarEvents(calendar, updateProgress, progressLabel)
+            data.forEach { event ->
+                val max = data.size / 100.0f
+
+                val uid = event.uid
+                try {
+                    if(this.authenticationDAO.getSelectedItem() != null) {
+                        val id = this.authenticationDAO.getSelectedItem()!!.id
+                        val tmp = this.calendarEventDAO.getAll(id, uid)
+                        if(tmp != null) {
+                            event.eventId = tmp.eventId
+                            event.lastUpdatedEventPhone = tmp.lastUpdatedEventPhone
+                        }
+                        this.calendarEventDAO.clear(id, uid)
+                    }
+                } catch (_: Exception) {}
+
+                event.authId = authenticationDAO.getSelectedItem()!!.id
+                calendarEventDAO.insertCalendarEvent(event)
+                progress += 1L
+                updateProgress(progress*max/100.0f, String.format(saveLabel, name))
+            }
+        }
+    }
+
+    override fun insert(name: String, calendarEvent: CalendarEvent) {
+        val item = this.calDav.getCalendars().find { it.name == name }
+
+        if(item != null) {
+            calendarEvent.authId = authenticationDAO.getSelectedItem()!!.id
+            this.calendarEventDAO.insertCalendarEvent(calendarEvent)
+            this.calDav.newCalendarEvent(item, calendarEvent)
+        }
     }
 
     override fun update(calendarEvent: CalendarEvent) {
         this.calendarEventDAO.updateCalendarEvent(calendarEvent)
-        this.calendar.updateCalendarEvent(calendarEvent)
+        this.calDav.updateCalendarEvent(calendarEvent)
     }
 
     override fun delete(calendarEvent: CalendarEvent) {
         this.calendarEventDAO.deleteCalendarEvent(calendarEvent)
-        this.calendar.deleteCalendarEvent(calendarEvent)
+        this.calDav.deleteCalendarEvent(calendarEvent)
     }
 
 }

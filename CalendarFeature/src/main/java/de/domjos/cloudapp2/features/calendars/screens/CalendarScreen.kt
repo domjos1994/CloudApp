@@ -81,6 +81,7 @@ import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.openEvent
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
+import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -140,7 +141,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
         end = calEnd.time.time
         viewModel.load(selectedCalendar, start, end)
         viewModel.count(selectedCalendar, calStart)
-    }, { item: CalendarEvent -> viewModel.insertCalendar(item) },
+    }, { item: CalendarEvent -> viewModel.insertCalendar(selectedCalendar, item) },
         { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> selectedCalendar = selected})
 }
 
@@ -165,7 +166,7 @@ fun CalendarScreen(
     colorBackground: Color,
     colorForeground: Color,
     currentDate: Date,
-    calendars: List<String>,
+    calendars: List<CalendarModel>,
     countDays: List<Int>,
     hasAuths: Boolean, toAuths: () -> Unit,
     onChange: (Int, Calendar) -> Unit,
@@ -214,7 +215,11 @@ fun CalendarScreen(
                 end.linkTo(parent.end)
                 width = Dimension.fillToConstraints
             }) {
-                DropDown(calendars, initial, onCalendarSelected, stringResource(R.string.calendars))
+                DropDown(
+                    calendars.map { it.label }, initial,
+                    {onCalendarSelected(calendars.find { elem -> elem.label == it }!!.name)},
+                    stringResource(R.string.calendars)
+                )
                 Separator(colorForeground)
             }
 
@@ -305,7 +310,7 @@ fun CalendarScreen(
                 width = Dimension.percent(0.5f)
             }.verticalScroll(rememberScrollState())) {
                 Row {
-                    DropDown(calendars, initial, onCalendarSelected, stringResource(R.string.calendars))
+                    DropDown(calendars.map { it.name }, initial, onCalendarSelected, stringResource(R.string.calendars))
                     Separator(colorForeground)
                 }
                 Row {
@@ -840,7 +845,7 @@ private fun getFormattedDate(ts: Long): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onShowItem: (Boolean) -> Unit, onSave: (CalendarEvent) -> Unit, onDelete: (CalendarEvent) -> Unit) {
+fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel>, onShowItem: (Boolean) -> Unit, onSave: (CalendarEvent) -> Unit, onDelete: (CalendarEvent) -> Unit) {
     val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
     val inDay = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
     var def = date
@@ -1000,9 +1005,9 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<String>, onSh
                             ) {
                                 calendars.forEach { item ->
                                     DropdownMenuItem(
-                                        text = { Text(text = item) },
+                                        text = { Text(text = item.label) },
                                         onClick = {
-                                            calendar = item
+                                            calendar = item.name
                                             expanded = false
                                         }
                                     )
@@ -1118,7 +1123,12 @@ fun ScreenPreview() {
 @Composable
 fun EditDialogPreview() {
     CloudAppTheme {
-        EditDialog(event = fakeEvent(0L), date = Date(), onShowItem = {}, onSave = {}, calendars = listOf("Test1", "Test2")) {
+        EditDialog(event = fakeEvent(0L), date = Date(), onShowItem = {}, onSave = {}, calendars =
+            listOf(
+                CalendarModel("Test1", "", ""),
+                CalendarModel("Test2", "", "")
+            )
+        ) {
 
         }
     }

@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.sardine)
 
     implementation(libs.material)
+    implementation(libs.androidx.rules)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

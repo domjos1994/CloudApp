@@ -76,6 +76,7 @@ dependencies {
     implementation(project(":DataFeature"))
     implementation(project(":NotificationFeature"))
     implementation(project(":NotesFeature"))
+    implementation(project(":CalDav"))
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.datastore.preferences.core.jvm)

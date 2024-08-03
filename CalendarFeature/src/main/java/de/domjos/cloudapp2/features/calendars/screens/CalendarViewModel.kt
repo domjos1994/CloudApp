@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.data.repository.CalendarRepository
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +24,8 @@ class CalendarViewModel @Inject constructor(
     val events: StateFlow<List<CalendarEvent>> get() = _events
     private val _days = MutableStateFlow(listOf<Int>())
     val days: StateFlow<List<Int>> get() = _days
-    private val _calendars = MutableStateFlow(listOf<String>())
-    val calendars: StateFlow<List<String>> get() = _calendars
+    private val _calendars = MutableStateFlow(listOf<CalendarModel>())
+    val calendars: StateFlow<List<CalendarModel>> get() = _calendars
     val message = MutableLiveData<String?>()
 
     private val _date = MutableStateFlow(Date())
@@ -76,10 +77,10 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun insertCalendar(calendarEvent: CalendarEvent) {
+    fun insertCalendar(calendar: String, calendarEvent: CalendarEvent) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                calendarRepository.insert(calendarEvent)
+                calendarRepository.insert(calendar, calendarEvent)
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)
