@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 14,
-    "identityHash": "51cfff624a244575af5b3eb87914fe2a",
+    "version": 15,
+    "identityHash": "497f799c57ab0aac24df1664f4920a9b",
     "entities": [
       {
         "tableName": "authentications",
@@ -208,7 +208,7 @@
       },
       {
         "tableName": "contacts",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT DEFAULT 0, `uid` TEXT, `path` TEXT DEFAULT '', `suffix` TEXT, `prefix` TEXT, `familyName` TEXT, `givenName` TEXT NOT NULL, `additional` TEXT, `birthDay` INTEGER, `organization` TEXT, `photo` BLOB, `addressBook` TEXT NOT NULL, `contactId` TEXT DEFAULT '', `lastUpdatedContactPhone` INTEGER DEFAULT -1, `lastUpdatedContactServer` INTEGER DEFAULT -1, `authId` INTEGER NOT NULL DEFAULT 0)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT DEFAULT 0, `uid` TEXT DEFAULT '', `path` TEXT DEFAULT '', `suffix` TEXT DEFAULT '', `prefix` TEXT DEFAULT '', `familyName` TEXT DEFAULT '', `givenName` TEXT NOT NULL, `additional` TEXT DEFAULT '', `birthDay` INTEGER DEFAULT null, `organization` TEXT DEFAULT '', `photo` BLOB DEFAULT null, `addressBook` TEXT NOT NULL, `contactId` TEXT DEFAULT '', `lastUpdatedContactPhone` INTEGER DEFAULT -1, `lastUpdatedContactServer` INTEGER DEFAULT -1, `authId` INTEGER NOT NULL DEFAULT 0)",
         "fields": [
           {
             "fieldPath": "id",
@@ -221,7 +221,8 @@
             "fieldPath": "uid",
             "columnName": "uid",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "path",
@@ -234,19 +235,22 @@
             "fieldPath": "suffix",
             "columnName": "suffix",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "prefix",
             "columnName": "prefix",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "familyName",
             "columnName": "familyName",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "givenName",
@@ -258,25 +262,29 @@
             "fieldPath": "additional",
             "columnName": "additional",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "birthDay",
             "columnName": "birthDay",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "null"
           },
           {
             "fieldPath": "organization",
             "columnName": "organization",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "photo",
             "columnName": "photo",
             "affinity": "BLOB",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "null"
           },
           {
             "fieldPath": "addressBook",
@@ -336,19 +344,21 @@
       },
       {
         "tableName": "addresses",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `contactId` TEXT, `types` TEXT NOT NULL, `postOfficeAddress` TEXT, `extendedAddress` TEXT, `street` TEXT NOT NULL, `locality` TEXT, `region` TEXT, `postalCode` TEXT, `country` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL DEFAULT 0, `contactId` TEXT DEFAULT '', `types` TEXT NOT NULL, `postOfficeAddress` TEXT DEFAULT '', `extendedAddress` TEXT DEFAULT '', `street` TEXT NOT NULL, `locality` TEXT DEFAULT '', `region` TEXT, `postalCode` TEXT DEFAULT '', `country` TEXT)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": true,
+            "defaultValue": "0"
           },
           {
             "fieldPath": "contactId",
             "columnName": "contactId",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "types",
@@ -360,13 +370,15 @@
             "fieldPath": "postOfficeAddress",
             "columnName": "postOfficeAddress",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "extendedAddress",
             "columnName": "extendedAddress",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "street",
@@ -378,7 +390,8 @@
             "fieldPath": "locality",
             "columnName": "locality",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "region",
@@ -390,7 +403,8 @@
             "fieldPath": "postalCode",
             "columnName": "postalCode",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "country",
@@ -422,19 +436,21 @@
       },
       {
         "tableName": "phones",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `contactId` TEXT, `value` TEXT NOT NULL, `types` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT DEFAULT 0, `contactId` TEXT DEFAULT '', `value` TEXT NOT NULL, `types` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "0"
           },
           {
             "fieldPath": "contactId",
             "columnName": "contactId",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "value",
@@ -472,19 +488,21 @@
       },
       {
         "tableName": "emails",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `contactId` TEXT, `value` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT DEFAULT 0, `contactId` TEXT DEFAULT '', `value` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "INTEGER",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "0"
           },
           {
             "fieldPath": "contactId",
             "columnName": "contactId",
             "affinity": "TEXT",
-            "notNull": false
+            "notNull": false,
+            "defaultValue": "''"
           },
           {
             "fieldPath": "value",
@@ -518,7 +536,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '51cfff624a244575af5b3eb87914fe2a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '497f799c57ab0aac24df1664f4920a9b')"
     ]
   }
 }

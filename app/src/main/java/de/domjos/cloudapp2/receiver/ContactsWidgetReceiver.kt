@@ -25,13 +25,11 @@ class ContactsWidgetReceiver : AbstractWidgetReceiver(ContactsWidget()) {
                 GlanceAppWidgetManager(context).getGlanceIds(ContactsWidget::class.java).firstOrNull()
 
             val items = mutableListOf<WidgetContact>()
-            contactsRepository.loadAddressBooks().forEach {
-                contactsRepository.loadContacts(it).forEach {contact ->
+            contactsRepository.loadAddressBooks(false).forEach {
+                contactsRepository.loadContacts(it.name).forEach {contact ->
                     var phone = ""
-                    if(contact.phoneNumbers != null) {
-                        if(!contact.phoneNumbers!!.isEmpty()) {
-                            phone = contact.phoneNumbers!![0].value
-                        }
+                    if(contact.phoneNumbers.isNotEmpty()) {
+                        phone = contact.phoneNumbers[0].value
                     }
                     items.add(WidgetContact("${contact.givenName} ${contact.familyName}".trim(), phone, contact.addressBook, contact.photo))
                 }

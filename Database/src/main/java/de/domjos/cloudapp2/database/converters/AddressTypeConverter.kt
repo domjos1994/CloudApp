@@ -12,8 +12,8 @@ import java.util.LinkedList
 
 class AddressTypeConverter {
     @TypeConverter
-    fun fromString(value: String): LinkedList<AddressType> {
-        val lst = LinkedList<AddressType>()
+    fun fromString(value: String): MutableList<AddressType> {
+        val lst = mutableListOf<AddressType>()
         try {
             value.split(",").forEach { type ->
                 lst.add(AddressType.valueOf(type))
@@ -24,7 +24,7 @@ class AddressTypeConverter {
     }
 
     @TypeConverter
-    fun addressTypeToString(types: LinkedList<AddressType>): String {
+    fun addressTypeToString(types: MutableList<AddressType>): String {
         val lst = LinkedList<String>()
         types.forEach { type ->
             lst.add(type.name)

@@ -6,12 +6,12 @@
 
 package de.domjos.cloudapp2.database.model.contacts
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import java.util.LinkedList
 
 @Entity(
     tableName = "phones",
@@ -21,10 +21,13 @@ import java.util.LinkedList
 )
 data class Phone(
     @PrimaryKey(autoGenerate = true)
-    var id: Long,
-    var contactId: String,
+    @ColumnInfo("id")
+    var id: Long = 0L,
+    @ColumnInfo("contactId", defaultValue = "")
+    var contactId: String? = "",
     var value: String,
-    var types: LinkedList<PhoneType>) {
+    var types: MutableList<PhoneType> = mutableListOf(PhoneType.HOME)
+) {
     override fun toString(): String {
         return this.value
     }

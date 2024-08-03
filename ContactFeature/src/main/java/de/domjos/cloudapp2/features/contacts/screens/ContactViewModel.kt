@@ -36,18 +36,12 @@ class ContactViewModel @Inject constructor(
     val canInsert: StateFlow<Boolean> get() = _canInsert
     val message = MutableLiveData<String?>()
 
-    fun getAddressBooks(context: Context) {
+    fun getAddressBooks(hasInternet: Boolean, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val lst = LinkedHashMap<String, String>()
-                contactRepository.loadAddressBooks().forEach {
-                    if(it.startsWith("z-server")) {
-                        lst[it] = context.getString(R.string.contacts_system)
-                    } else if(it.startsWith("z-app")) {
-                        lst[it] = context.getString(R.string.contacts_app)
-                    } else {
-                        lst[it] = it.replaceFirstChar(Char::titlecase)
-                    }
+                contactRepository.loadAddressBooks(hasInternet).forEach {
+                    lst[it.name] = if(it.label != null) it.label!! else it.name
                 }
                 lst[""] = context.getString(R.string.contacts_all)
                 _addressBooks.value = lst
@@ -70,7 +64,7 @@ class ContactViewModel @Inject constructor(
         }
     }
 
-    fun selectAddressBook(addressBook: String = "") {
+    fun selectAddressBook(hasInternet: Boolean, addressBook: String = "") {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _addressBook.value = addressBook
@@ -81,7 +75,7 @@ class ContactViewModel @Inject constructor(
                 } else {
                     _canInsert.value = true
                 }
-                loadAddresses()
+                loadAddresses(hasInternet)
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)
@@ -89,13 +83,13 @@ class ContactViewModel @Inject constructor(
         }
     }
 
-    fun loadAddresses() {
+    fun loadAddresses(hasInternet: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if (_addressBook.value.isEmpty()) {
                     val list = LinkedList<Contact>()
-                    contactRepository.loadAddressBooks().forEach { address ->
-                        list.addAll(contactRepository.loadContacts(address))
+                    contactRepository.loadAddressBooks(hasInternet).forEach { address ->
+                        list.addAll(contactRepository.loadContacts(address.name))
                     }
                     _contacts.value = list
                 } else {
@@ -112,6 +106,7 @@ class ContactViewModel @Inject constructor(
     fun addOrUpdateAddress(hasInternet: Boolean, contact: Contact) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                contact.addressBook = _addressBook.value
                 contactRepository.insertOrUpdateContact(hasInternet, contact)
                 contactRepository.loadContacts(_addressBook.value)
                 _contacts.value = contactRepository.contacts
@@ -125,6 +120,7 @@ class ContactViewModel @Inject constructor(
     fun deleteAddress(hasInternet: Boolean, contact: Contact) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                contact.addressBook = _addressBook.value
                 contactRepository.deleteContact(hasInternet, contact)
                 contactRepository.loadContacts(_addressBook.value)
                 _contacts.value = contactRepository.contacts

@@ -117,8 +117,8 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
     val canInsert by viewModel.canInsert.collectAsStateWithLifecycle()
     val connectivity by connectivityState()
     val available = connectivity === ConnectionState.Available
-    viewModel.getAddressBooks(LocalContext.current)
-    viewModel.loadAddresses()
+    viewModel.getAddressBooks(available, LocalContext.current)
+    viewModel.loadAddresses(available)
 
     viewModel.message.observe(LocalLifecycleOwner.current) {
         if(it != null) {
@@ -133,15 +133,15 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
         onSelectedAddressBook = { book: String ->
             var key = ""
             addressBooks.forEach {if(book==it.value) key = it.key}
-            viewModel.selectAddressBook(key)
+            viewModel.selectAddressBook(available, key)
         },
         onSave = {contact: Contact ->
             viewModel.addOrUpdateAddress(available, contact)
-            viewModel.loadAddresses()
+            viewModel.loadAddresses(available)
         },
         onDelete = {contact: Contact ->
             viewModel.deleteAddress(available, contact)
-            viewModel.loadAddresses()
+            viewModel.loadAddresses(available)
         },
         openEmail = {mail: String -> viewModel.openEmail(mail, context)},
         openPhone = {phone: String -> viewModel.openPhone(phone, context)},
@@ -382,7 +382,7 @@ fun EditDialog(
     val img = remember { mutableStateOf<ByteArray?>(null) }
 
     if(contact != null) {
-        uid = contact.uid
+        uid = contact.uid!!
         suffix = TextFieldValue(contact.suffix!!)
         prefix = TextFieldValue(contact.prefix!!)
         firstName = TextFieldValue(contact.givenName)
@@ -391,12 +391,12 @@ fun EditDialog(
             if(contact.birthDay!=null) fullDay.format(contact.birthDay!!) else fullDay.format(Date())
         )
         additional = TextFieldValue(contact.additional!!)
-        organization = TextFieldValue(contact.organization)
+        organization = TextFieldValue(contact.organization!!)
         img.value = contact.photo
 
-        if(contact.phoneNumbers != null) contact.phoneNumbers?.forEach { phones.add(it) }
-        if(contact.addresses != null) contact.addresses?.forEach { addresses.add(it) }
-        if(contact.emailAddresses != null) contact.emailAddresses?.forEach { mails.add(it) }
+        contact.phoneNumbers.forEach { phones.add(it) }
+        contact.addresses.forEach { addresses.add(it) }
+        contact.emailAddresses.forEach { mails.add(it) }
     }
 
     Dialog(
@@ -895,7 +895,7 @@ fun BottomSheet(
                         .padding(5.dp),
                     horizontalAlignment = Alignment.Start) {
                     Text(
-                        contact.organization,
+                        contact.organization!!,
                         fontWeight = FontWeight.Normal,
                         fontSize = 18.sp
                     )
@@ -934,99 +934,125 @@ fun BottomSheet(
             }
         }
         Separator(Color.Black)
-        if(contact.phoneNumbers != null) {
-            contact.phoneNumbers!!.forEach { number ->
-                var types = ""
-                number.types.forEach { type ->
-                    types += "${type.name} "
-                }
-                types = types.trim()
+        contact.phoneNumbers.forEach { number ->
+            var types = ""
+            number.types.forEach { type ->
+                types += "${type.name} "
+            }
+            types = types.trim()
 
-                Row(
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(
                     Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
+                        .weight(5f)
                         .padding(5.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Column(
-                        Modifier
-                            .weight(5f)
-                            .padding(5.dp),
-                        horizontalAlignment = Alignment.End) {
-                        Text(
-                            types,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp)
-                    }
-                    Column(
-                        Modifier
-                            .weight(14f)
-                            .padding(5.dp),
-                        horizontalAlignment = Alignment.Start) {
-                        Text(
-                            number.value,
-                            fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp
-                        )
-                    }
-                    Column(
-                        Modifier
-                            .weight(2f)
-                            .padding(5.dp)) {
-                        if(hasPhone()) {
-                            IconButton(onClick = { openPhone(number.value) }) {
-                                Icon(Icons.Filled.Phone, number.value)
-                            }
+                    horizontalAlignment = Alignment.End) {
+                    Text(
+                        types,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp)
+                }
+                Column(
+                    Modifier
+                        .weight(14f)
+                        .padding(5.dp),
+                    horizontalAlignment = Alignment.Start) {
+                    Text(
+                        number.value,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 18.sp
+                    )
+                }
+                Column(
+                    Modifier
+                        .weight(2f)
+                        .padding(5.dp)) {
+                    if(hasPhone()) {
+                        IconButton(onClick = { openPhone(number.value) }) {
+                            Icon(Icons.Filled.Phone, number.value)
                         }
                     }
                 }
             }
-
-            Separator(Color.Black)
         }
-        if(contact.emailAddresses != null) {
-            contact.emailAddresses!!.forEach { email ->
 
-                Row(
+        Separator(Color.Black)
+        contact.emailAddresses.forEach { email ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(
                     Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
+                        .weight(18f)
                         .padding(5.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
+                    horizontalAlignment = Alignment.Start) {
+                    Text(
+                        email.value,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 18.sp
+                    )
+                }
+                Column(
+                    Modifier
+                        .weight(2f)
+                        .padding(5.dp)) {
+                    IconButton(onClick = { openEmail(email.value) }) {
+                        Icon(Icons.Filled.Email, email.value)
+                    }
+                }
+            }
+        }
+
+        Separator(Color.Black)
+        contact.addresses.forEach { address ->
+            var types = ""
+            address.types.forEach { type ->
+                types += "${type.name} "
+            }
+            types = types.trim()
+
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(5.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) {
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .padding(5.dp),
+                    horizontalAlignment = Alignment.End) {
+                    Text(
+                        types,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp)
+                }
+                if(address.postOfficeAddress != null) {
                     Column(
                         Modifier
-                            .weight(18f)
+                            .weight(1f)
                             .padding(5.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
-                            email.value,
+                            address.postOfficeAddress!!,
                             fontWeight = FontWeight.Normal,
                             fontSize = 18.sp
                         )
                     }
-                    Column(
-                        Modifier
-                            .weight(2f)
-                            .padding(5.dp)) {
-                        IconButton(onClick = { openEmail(email.value) }) {
-                            Icon(Icons.Filled.Email, email.value)
-                        }
-                    }
                 }
             }
-
-            Separator(Color.Black)
-        }
-        if(contact.addresses != null) {
-            contact.addresses!!.forEach { address ->
-                var types = ""
-                address.types.forEach { type ->
-                    types += "${type.name} "
-                }
-                types = types.trim()
-
+            if(address.street != "") {
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -1040,183 +1066,150 @@ fun BottomSheet(
                             .padding(5.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
-                            types,
+                            stringResource(id = R.string.contact_addresses_street),
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp)
                     }
-                    if(address.postOfficeAddress != null) {
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.Start) {
-                            Text(
-                                address.postOfficeAddress!!,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                }
-                if(address.street != "") {
-                    Row(
+                    Column(
                         Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
+                            .weight(1f)
                             .padding(5.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.End) {
-                            Text(
-                                stringResource(id = R.string.contact_addresses_street),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp)
-                        }
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.Start) {
-                            Text(
-                                address.street,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                }
-                if(address.locality != "") {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .padding(5.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.End) {
-                            Text(
-                                stringResource(id = R.string.contact_addresses_locality),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp)
-                        }
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.Start) {
-                            Text(
-                                "${address.postalCode} ${address.locality}",
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                }
-                if(address.region != null && address.region != "") {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .padding(5.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.End) {
-                            Text(
-                                stringResource(id = R.string.contact_addresses_region),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp)
-                        }
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.Start) {
-                            Text(
-                                address.region!!,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                }
-                if(address.country != null && address.country != "") {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .padding(5.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.End) {
-                            Text(
-                                stringResource(id = R.string.contact_addresses_country),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp)
-                        }
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.Start) {
-                            Text(
-                                address.country!!,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp
-                            )
-                        }
-                    }
-                }
-                if(address.extendedAddress != null && address.extendedAddress != "") {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .padding(5.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically) {
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.End) {
-                            Text(
-                                stringResource(id = R.string.contact_addresses_extended),
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp)
-                        }
-                        Column(
-                            Modifier
-                                .weight(1f)
-                                .padding(5.dp),
-                            horizontalAlignment = Alignment.Start) {
-                            Text(
-                                address.extendedAddress!!,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 18.sp
-                            )
-                        }
+                        horizontalAlignment = Alignment.Start) {
+                        Text(
+                            address.street,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp
+                        )
                     }
                 }
             }
-
-            Separator(Color.Black)
+            if(address.locality != "") {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(5.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.End) {
+                        Text(
+                            stringResource(id = R.string.contact_addresses_locality),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp)
+                    }
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.Start) {
+                        Text(
+                            "${address.postalCode} ${address.locality}",
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+            }
+            if(address.region != null && address.region != "") {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(5.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.End) {
+                        Text(
+                            stringResource(id = R.string.contact_addresses_region),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp)
+                    }
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.Start) {
+                        Text(
+                            address.region!!,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+            }
+            if(address.country != null && address.country != "") {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(5.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.End) {
+                        Text(
+                            stringResource(id = R.string.contact_addresses_country),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp)
+                    }
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.Start) {
+                        Text(
+                            address.country!!,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+            }
+            if(address.extendedAddress != null && address.extendedAddress != "") {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(5.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.End) {
+                        Text(
+                            stringResource(id = R.string.contact_addresses_extended),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp)
+                    }
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(5.dp),
+                        horizontalAlignment = Alignment.Start) {
+                        Text(
+                            address.extendedAddress!!,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 18.sp
+                        )
+                    }
+                }
+            }
         }
+
+        Separator(Color.Black)
         if(contact.contactId != "") {
             Row(
                 Modifier
@@ -1224,7 +1217,7 @@ fun BottomSheet(
                     .wrapContentHeight()
                     .padding(5.dp),
                 horizontalArrangement = Arrangement.Center) {
-                Button(onClick = { openContact(context, contact.contactId) }, Modifier.height(50.dp)) {
+                Button(onClick = { openContact(context, contact.contactId!!) }, Modifier.height(50.dp)) {
                     Text(stringResource(R.string.contact_open))
                 }
             }

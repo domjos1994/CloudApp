@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":CarDav"))
     implementation(project(":AppBasics"))
     implementation(project(":Database"))
     implementation(project(":Data"))

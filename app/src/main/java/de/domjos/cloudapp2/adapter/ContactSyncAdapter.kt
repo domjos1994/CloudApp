@@ -72,7 +72,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         lastUpdated = this.getLastUpdateTimestampForContact(contentResolver, cid)
                         cid
                     } else {
-                        contact.contactId.toLong()
+                        contact.contactId!!.toLong()
                     }
 
                     // create content-values from the name
@@ -92,7 +92,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                     if(insert) {
                         provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                     } else {
-                        if(lastUpdated>contact.lastUpdatedContactPhone) {
+                        if(lastUpdated>contact.lastUpdatedContactPhone!!) {
                             // ToDo
                         } else {
                             val uri = Uri.withAppendedPath(
@@ -118,7 +118,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         values.put(ContactsContract.CommonDataKinds.Photo.IS_SUPER_PRIMARY, 1)
                         values.put(ContactsContract.CommonDataKinds.Photo.PHOTO, contact.photo)
                         val uri = Uri.withAppendedPath(ContactsContract.Data.CONTENT_URI, "$contactId")
-                        if(lastUpdated>contact.lastUpdatedContactPhone) {
+                        if(lastUpdated>contact.lastUpdatedContactPhone!!) {
                             // ToDo
                         } else {
                             provider.delete(
@@ -152,7 +152,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         if(insert) {
                             provider.insert(asSyncAdapter(ContactsContract.Data.CONTENT_URI), values)
                         } else {
-                            if(lastUpdated>contact.lastUpdatedContactPhone) {
+                            if(lastUpdated>contact.lastUpdatedContactPhone!!) {
                                 // todo
                             } else {
                                 val selectionClause = "${Phone.NUMBER}=?"

@@ -2,6 +2,8 @@ package de.domjos.cloudapp2.cardav
 
 import android.os.Build
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
+import de.domjos.cloudapp2.cardav.utils.Converter
+import de.domjos.cloudapp2.cardav.model.AddressBook
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.database.model.contacts.Address
 import de.domjos.cloudapp2.database.model.contacts.AddressType
@@ -25,8 +27,10 @@ import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
+import java.util.UUID
+import kotlin.jvm.Throws
 
-class ContactLoader(private val authentication: Authentication?) {
+class CarDav(private val authentication: Authentication?) {
     private var sardine: OkHttpSardine? = null
     private var basePath = ""
 
@@ -38,45 +42,38 @@ class ContactLoader(private val authentication: Authentication?) {
         }
     }
 
-    fun getAddressBooks() : List<String> {
-        val addressBooks = LinkedList<String>()
+    @Throws(Exception::class)
+    fun getAddressBooks() : List<AddressBook> {
+        val addressBooks = LinkedList<AddressBook>()
         if(this.sardine != null) {
-            var header = true
-            this.sardine?.list(this.basePath)?.forEach { davResource ->
-                if(header) {
-                    header = false
-                } else {
-                    addressBooks.add(this.getName(davResource.path))
-                }
+            this.sardine?.list(this.basePath)?.drop(1)?.forEach { resource ->
+                val name = resource.name
+                val label = resource.displayName
+                val path = "${authentication?.url}${resource.path}"
+                addressBooks.add(AddressBook(name, label, path))
             }
         }
         return addressBooks
     }
 
-    fun loadAddressBook(name: String): LinkedList<Contact> {
+    @Throws(Exception::class)
+    fun getContacts(addressBook: AddressBook): LinkedList<Contact> {
         val lst = LinkedList<Contact>()
 
         if(this.sardine != null) {
-            val path = "$basePath/$name"
-
             try {
-                var header = true
-                this.sardine?.list(path)?.forEach {  davResource ->
-                    if(header) {
-                        header = false
-                    } else {
-                        try {
-                            val cardPath = "${authentication?.url}${davResource.path}"
-                            val headers = this.buildHeaders()
+                this.sardine?.list(addressBook.path)?.drop(1)?.forEach {  davResource ->
+                    try {
+                        val cardPath = "${authentication?.url}${davResource.path}"
+                        val headers = this.buildHeaders()
 
-                            val inputStream = this.sardine?.get(cardPath, headers)
-                            val tmp = Ezvcard.parse(inputStream).all()
-                            tmp.forEach { vCard ->
-                                lst.add(this.vcardToContact(vCard, davResource.path, name))
-                            }
-                        } catch (ex: Exception) {
-                            println(ex.message)
+                        val inputStream = this.sardine?.get(cardPath, headers)
+                        val tmp = Ezvcard.parse(inputStream).all()
+                        tmp.forEach { vCard ->
+                            lst.add(this.vcardToContact(vCard, cardPath, addressBook))
                         }
+                    } catch (ex: Exception) {
+                        println(ex.message)
                     }
                 }
             } catch (_: Exception) {}
@@ -85,27 +82,31 @@ class ContactLoader(private val authentication: Authentication?) {
         return lst
     }
 
-    fun insertContact(contact: Contact) {
-        if(this.sardine != null) {
-            val cardPath = "${authentication?.url}${contact.path}"
-            this.sardine?.put(cardPath, Ezvcard.write(this.contactToVCard(contact)).go().toByteArray())
-        }
+    @Throws(Exception::class)
+    fun insertContact(contact: Contact): String {
+        val cardPath = "${basePath}/${contact.addressBook}/${UUID.randomUUID()}.vcf"
+        this.uploadData(cardPath, contact)
+        return cardPath
     }
 
+    @Throws(Exception::class)
+    fun updateContact(contact: Contact) {
+        this.uploadData(contact.path!!, contact)
+    }
+
+    @Throws(Exception::class)
     fun deleteContact(contact: Contact) {
         if(this.sardine != null) {
-            val cardPath = "${authentication?.url}${contact.path}"
-            this.sardine?.delete(cardPath)
+            this.sardine?.delete(contact.path)
         }
     }
 
-    private fun getName(path: String): String {
-        var name = path
-        if(name.endsWith("/")) {
-            name = name.substring(0, path.length - 1)
+    @Throws(Exception::class)
+    private fun uploadData(path: String, contact: Contact) {
+        if(this.sardine != null) {
+            val data = Ezvcard.write(this.contactToVCard(contact)).go().toByteArray()
+            this.sardine?.put(path, data)
         }
-
-        return name.split("/")[name.split("/").size - 1]
     }
 
     private fun buildHeaders(): Map<String, String> {
@@ -115,7 +116,7 @@ class ContactLoader(private val authentication: Authentication?) {
         return headers
     }
 
-    private fun vcardToContact(vCard: VCard, path: String, name: String): Contact {
+    private fun vcardToContact(vCard: VCard, path: String, addressBook: AddressBook): Contact {
         val addresses = LinkedList<Address>()
         if(vCard.addresses != null) {
             vCard.addresses.forEach { address ->
@@ -181,7 +182,7 @@ class ContactLoader(private val authentication: Authentication?) {
         val contact = Contact(0L,
             vCard.uid.value, path, suffix, prefix,
             family, given, additional,
-            birthday, organization, photo, name, "", 0L, Date().time, authentication?.id!!)
+            birthday, organization, photo, addressBook.name, "", 0L, Date().time, authentication?.id!!)
         contact.categories = lst
         contact.addresses = addresses
         contact.phoneNumbers = phones
@@ -199,22 +200,22 @@ class ContactLoader(private val authentication: Authentication?) {
 
     private fun contactToVCard(contact: Contact): VCard {
         val addresses = LinkedList<ezvcard.property.Address>()
-        contact.addresses?.forEach { address ->
+        contact.addresses.forEach { address ->
             addresses.add(this.addressToProperty(address))
         }
 
         val mails = LinkedList<ezvcard.property.Email>()
-        contact.emailAddresses?.forEach { mail ->
+        contact.emailAddresses.forEach { mail ->
             mails.add(this.mailToProperty(mail))
         }
 
         val phones = LinkedList<Telephone>()
-        contact.phoneNumbers?.forEach { phone ->
+        contact.phoneNumbers.forEach { phone ->
             phones.add(this.phoneToProperty(phone))
         }
 
         val categories = LinkedList<Categories>()
-        contact.categories?.forEach {
+        contact.categories.forEach {
             val category = Categories()
             it.split(",").forEach { item ->
                 category.values.add(item)
@@ -228,18 +229,14 @@ class ContactLoader(private val authentication: Authentication?) {
                 Birthday(LocalDate.ofInstant(contact.birthDay?.toInstant(), ZoneId.systemDefault()))
             } else {
                 val cal = Calendar.Builder().setInstant(contact.birthDay!!).build()
-                val year = cal.get(Calendar.YEAR)
-                val month = cal.get(Calendar.MONTH)
-                val day = cal.get(Calendar.DAY_OF_MONTH)
-
                 Birthday(
-                    LocalDate.of(year, month, day)
+                    Converter.calendarToLocalDate(cal)
                 )
             }
         }
         val photo = ezvcard.property.Photo(contact.photo, ImageType.PNG)
         val organization = Organization()
-        organization.values.addAll(contact.organization.split(",").toList())
+        contact.organization?.split(",")?.toList()?.let { organization.values.addAll(it) }
 
         val vCard = VCard()
         vCard.uid = Uid(contact.uid)

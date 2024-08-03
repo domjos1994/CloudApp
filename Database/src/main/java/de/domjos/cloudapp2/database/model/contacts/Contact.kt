@@ -16,7 +16,6 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import java.util.Date
-import java.util.LinkedList
 
 @Entity(
     tableName = "contacts",
@@ -25,27 +24,42 @@ import java.util.LinkedList
     ]
 )
 data class Contact(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("id", defaultValue = "0") var id: Long,
-    var uid: String,
-    @ColumnInfo("path", defaultValue = "") var path: String,
-    var suffix: String?,
-    var prefix: String?,
-    var familyName: String?,
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo("id")
+    var id: Long = 0L,
+    @ColumnInfo("uid", defaultValue = "")
+    var uid: String? = "",
+    @ColumnInfo("path", defaultValue = "")
+    var path: String? = "",
+    @ColumnInfo("suffix", defaultValue = "")
+    var suffix: String? = "",
+    @ColumnInfo("prefix", defaultValue = "")
+    var prefix: String? = "",
+    @ColumnInfo("familyName", defaultValue = "")
+    var familyName: String? = "",
     var givenName: String,
-    var additional: String?,
-    var birthDay: Date?,
-    var organization: String,
-    var photo: ByteArray?,
+    @ColumnInfo("additional", defaultValue = "")
+    var additional: String? = "",
+    @ColumnInfo("birthDay", defaultValue = "null")
+    var birthDay: Date? = null,
+    @ColumnInfo("organization", defaultValue = "")
+    var organization: String? = "",
+    @ColumnInfo("photo", defaultValue = "null")
+    var photo: ByteArray? = null,
     var addressBook: String,
-    @ColumnInfo("contactId", defaultValue = "") var contactId: String,
-    @ColumnInfo("lastUpdatedContactPhone", defaultValue = "-1") var lastUpdatedContactPhone: Long,
-    @ColumnInfo("lastUpdatedContactServer", defaultValue = "-1") var lastUpdatedContactServer: Long,
-    @ColumnInfo("authId", defaultValue = "0") var authId: Long
+    @ColumnInfo("contactId", defaultValue = "")
+    var contactId: String? = "",
+    @ColumnInfo("lastUpdatedContactPhone", defaultValue = "-1")
+    var lastUpdatedContactPhone: Long? = -1,
+    @ColumnInfo("lastUpdatedContactServer", defaultValue = "-1")
+    var lastUpdatedContactServer: Long? = -1,
+    @ColumnInfo("authId", defaultValue = "0")
+    var authId: Long
 ) {
-    @Ignore var addresses: LinkedList<Address>? = null
-    @Ignore var phoneNumbers: LinkedList<Phone>? = null
-    @Ignore var emailAddresses: LinkedList<Email>? = null
-    @Ignore var categories: LinkedList<String>? = null
+    @Ignore var addresses: MutableList<Address> = mutableListOf()
+    @Ignore var phoneNumbers: MutableList<Phone> = mutableListOf()
+    @Ignore var emailAddresses: MutableList<Email> = mutableListOf()
+    @Ignore var categories: MutableList<String> = mutableListOf()
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

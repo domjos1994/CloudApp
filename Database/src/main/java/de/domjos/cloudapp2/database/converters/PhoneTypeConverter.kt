@@ -12,8 +12,8 @@ import java.util.LinkedList
 
 class PhoneTypeConverter {
     @TypeConverter
-    fun fromString(value: String): LinkedList<PhoneType> {
-        val lst = LinkedList<PhoneType>()
+    fun fromString(value: String): MutableList<PhoneType> {
+        val lst = mutableListOf<PhoneType>()
         try {
             value.split(",").forEach { type ->
                 lst.add(PhoneType.valueOf(type))
@@ -24,7 +24,7 @@ class PhoneTypeConverter {
     }
 
     @TypeConverter
-    fun phoneTypeToString(types: LinkedList<PhoneType>): String {
+    fun phoneTypeToString(types: MutableList<PhoneType>): String {
         val lst = LinkedList<String>()
         return try {
             types.forEach { type ->

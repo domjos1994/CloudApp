@@ -6,6 +6,7 @@
 
 package de.domjos.cloudapp2.database.model.contacts
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
@@ -20,8 +21,10 @@ import androidx.room.Relation
 )
 data class Email(
     @PrimaryKey(autoGenerate = true)
-    var id: Long,
-    var contactId: String,
+    @ColumnInfo("id")
+    var id: Long = 0L,
+    @ColumnInfo("contactId", defaultValue = "")
+    var contactId: String? = "",
     var value: String) {
 
     override fun toString(): String {

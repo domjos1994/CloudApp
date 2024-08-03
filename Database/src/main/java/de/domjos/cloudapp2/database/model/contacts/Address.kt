@@ -6,12 +6,12 @@
 
 package de.domjos.cloudapp2.database.model.contacts
 
+import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
-import java.util.LinkedList
 
 @Entity(
     tableName = "addresses",
@@ -21,16 +21,22 @@ import java.util.LinkedList
 )
 data class Address(
     @PrimaryKey(autoGenerate = true)
-    var id: Long,
-    var contactId: String,
-    val types: LinkedList<AddressType>,
-    var postOfficeAddress: String?,
-    var extendedAddress: String?,
+    @ColumnInfo("id")
+    var id: Long = 0L,
+    @ColumnInfo("contactId", defaultValue = "")
+    var contactId: String? = "",
+    val types: MutableList<AddressType> = mutableListOf(AddressType.home),
+    @ColumnInfo("postOfficeAddress", defaultValue = "")
+    var postOfficeAddress: String? = "",
+    @ColumnInfo("extendedAddress", defaultValue = "")
+    var extendedAddress: String? = "",
     var street: String,
-    var locality: String?,
-    var region: String?,
-    var postalCode: String?,
-    var country: String?) {
+    @ColumnInfo("locality", defaultValue = "")
+    var locality: String? = "",
+    var region: String? = "",
+    @ColumnInfo("postalCode", defaultValue = "")
+    var postalCode: String? = "",
+    var country: String? = "") {
 }
 
 enum class AddressType {
