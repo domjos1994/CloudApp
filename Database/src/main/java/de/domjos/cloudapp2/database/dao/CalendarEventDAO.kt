@@ -129,6 +129,9 @@ interface CalendarEventDAO {
     @Query("UPDATE calendarEvents SET eventId=:eventId, lastUpdatedEventPhone=:lastUpdated WHERE id=:id")
     fun updateEventSync(eventId: String, lastUpdated: Long, id: Long)
 
+    @Query("SELECT count(id) FROM calendarEvents WHERE calendar=:calendar and `to`=:startTime and `from`=:endTime and authId=:authId and (:id=0 or id!=:id)")
+    fun validate(calendar: String, startTime: Long, endTime: Long, authId: Long, id: Long): Int
+
     /**
      * Insert new Event
      * @param calendarEvent event

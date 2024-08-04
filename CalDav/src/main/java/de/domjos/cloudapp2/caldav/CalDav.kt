@@ -184,14 +184,11 @@ class CalDav(private val authentication: Authentication?) {
 
     fun newCalendarEvent(calendarModel: CalendarModel, calendarEvent: CalendarEvent) {
         if(this.sardine != null) {
-            this.sardine?.list(calendarModel.path)?.drop(1)!!.forEach { davResource ->
-                if(!davResource.isDirectory) {
-                    val calendar = this.modelToICal(calendarEvent)
-                    if(calendar != null) {
-                        this.sardine?.put("${calendarModel.path}${UUID.randomUUID()}.ics", this.getData(calendar))
-                    }
-                    return
-                }
+            val uid = UUID.randomUUID().toString()
+            calendarEvent.uid = uid
+            val calendar = this.modelToICal(calendarEvent)
+            if(calendar != null) {
+                this.sardine?.put("${calendarModel.path}$uid.ics", this.getData(calendar))
             }
         }
     }

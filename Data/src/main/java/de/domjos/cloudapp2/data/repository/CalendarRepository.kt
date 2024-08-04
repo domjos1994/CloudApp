@@ -14,7 +14,7 @@ interface CalendarRepository {
     fun countData(calendar: String, event: java.util.Calendar): LinkedList<Int>
     fun reload(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
     fun reloadCalendar(name: String, updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
-    fun insert(name: String, calendarEvent: CalendarEvent)
+    fun insert(calendarEvent: CalendarEvent)
     fun update(calendarEvent: CalendarEvent)
     fun delete(calendarEvent: CalendarEvent)
     fun hasAuthentications(): Boolean
@@ -143,10 +143,10 @@ class DefaultCalendarRepository @Inject constructor(
         }
     }
 
-    override fun insert(name: String, calendarEvent: CalendarEvent) {
-        val item = this.calDav.getCalendars().find { it.name == name }
+    override fun insert(calendarEvent: CalendarEvent) {
+        val item = this.calDav.getCalendars().find { it.name == calendarEvent.calendar }
 
-        if(item != null) {
+        if(item != null && validate(calendarEvent)) {
             calendarEvent.authId = authenticationDAO.getSelectedItem()!!.id
             this.calendarEventDAO.insertCalendarEvent(calendarEvent)
             this.calDav.newCalendarEvent(item, calendarEvent)
@@ -154,8 +154,12 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun update(calendarEvent: CalendarEvent) {
-        this.calendarEventDAO.updateCalendarEvent(calendarEvent)
-        this.calDav.updateCalendarEvent(calendarEvent)
+        val item = this.calDav.getCalendars().find { it.name == calendarEvent.calendar }
+
+        if(item != null && validate(calendarEvent)) {
+            this.calendarEventDAO.updateCalendarEvent(calendarEvent)
+            this.calDav.updateCalendarEvent(calendarEvent)
+        }
     }
 
     override fun delete(calendarEvent: CalendarEvent) {
@@ -163,4 +167,11 @@ class DefaultCalendarRepository @Inject constructor(
         this.calDav.deleteCalendarEvent(calendarEvent)
     }
 
+    private fun validate(calendarEvent: CalendarEvent): Boolean {
+        val calendar = calendarEvent.calendar
+        val authId = authenticationDAO.getSelectedItem()?.id!!
+        val start = calendarEvent.from
+        val end = calendarEvent.to
+        return this.calendarEventDAO.validate(calendar, start, end, authId, calendarEvent.id) == 0
+    }
 }

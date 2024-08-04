@@ -77,10 +77,10 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun insertCalendar(calendar: String, calendarEvent: CalendarEvent) {
+    fun insertCalendar(calendarEvent: CalendarEvent) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                calendarRepository.insert(calendar, calendarEvent)
+                calendarRepository.insert(calendarEvent)
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)

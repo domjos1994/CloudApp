@@ -141,7 +141,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
         end = calEnd.time.time
         viewModel.load(selectedCalendar, start, end)
         viewModel.count(selectedCalendar, calStart)
-    }, { item: CalendarEvent -> viewModel.insertCalendar(selectedCalendar, item) },
+    }, { item: CalendarEvent -> viewModel.insertCalendar(item) },
         { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> selectedCalendar = selected})
 }
 
@@ -854,11 +854,9 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
     }
 
     var from by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
-    var isFromValid by remember { mutableStateOf(true) }
     var to by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
-    var isToValid by remember { mutableStateOf(true) }
     var title by remember {mutableStateOf(TextFieldValue(""))}
-    var isTitleValid by remember { mutableStateOf(false) }
+    var isTitleValid by remember { mutableStateOf(event?.title?.isNotEmpty() ?: false ) }
     var location by remember {mutableStateOf(TextFieldValue(""))}
     var description by remember {mutableStateOf(TextFieldValue(""))}
     var confirmation by remember {mutableStateOf(TextFieldValue(""))}
@@ -875,11 +873,8 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
             from = TextFieldValue(inDay.format(calFrom.time))
             to = TextFieldValue(inDay.format(calTo.time))
         }
-        isFromValid = from.text.isNotEmpty()
-        isToValid = to.text.isNotEmpty()
 
         title = TextFieldValue(event.title)
-        isTitleValid = title.text.isNotEmpty()
         location = TextFieldValue(event.location)
         description = TextFieldValue(event.description)
         confirmation = TextFieldValue(event.confirmation)
@@ -919,10 +914,8 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                             value = from,
                             onValueChange = {
                                 from=it
-                                isFromValid = Validator.checkDate(it.text, "dd.MM.yyyy")
                             },
-                            label = {Text(stringResource(id = R.string.calendar_from))},
-                            isError = !isFromValid
+                            label = {Text(stringResource(id = R.string.calendar_from))}
                         )
                     }
                 }
@@ -935,10 +928,8 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                             value = to,
                             onValueChange = {
                                 to=it
-                                isToValid = Validator.checkDate(it.text, "dd.MM.yyyy")
                             },
-                            label = {Text(stringResource(id = R.string.calendar_to))},
-                            isError = !isToValid
+                            label = {Text(stringResource(id = R.string.calendar_to))}
                         )
                     }
                 }
@@ -1027,14 +1018,9 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                         Column(Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = {
-                                var fromDate = isDate(inDay, from.text)
-                                if(fromDate != null) {
-                                    fromDate = isDate(fullDay, from.text)
-                                }
-                                var toDate = isDate(inDay, to.text)
-                                if(toDate != null) {
-                                    toDate = isDate(fullDay, to.text)
-                                }
+                                val fromDate = getDate(from.text)
+                                val toDate = getDate(to.text)
+
                                 event.from = fromDate?.time ?: 0L
                                 event.to = toDate?.time ?: 0L
                                 event.title = title.text
@@ -1045,7 +1031,7 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                                 event.calendar = calendar
 
                                 onSave(event)
-                            }, enabled = isTitleValid && isFromValid && isToValid) {
+                            }, enabled = isTitleValid) {
                                 Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
                             }
                         }
@@ -1053,23 +1039,23 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                         Column(Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally) {
                             IconButton(onClick = {
-                                var fromDate = isDate(inDay, from.text)
-                                if(fromDate != null) {
-                                    fromDate = isDate(fullDay, from.text)
-                                }
-                                var toDate = isDate(inDay, to.text)
-                                if(toDate != null) {
-                                    toDate = isDate(fullDay, to.text)
-                                }
+                                val fromDate = getDate(from.text)
+                                val toDate = getDate(to.text)
 
-                                val nEvent = CalendarEvent(
-                                    0L, UUID.randomUUID().toString(),
-                                    fromDate?.time ?: 0L, toDate?.time ?: 0L,
-                                    title.text, location.text, description.text,
-                                    confirmation.text, categories.text, "", calendar, "", -1L, -1L, 0L)
+                                val newEvent = CalendarEvent(
+                                    from = fromDate?.time ?: 0L,
+                                    to = toDate?.time ?: 0L,
+                                    title = title.text,
+                                    calendar = calendar
+                                )
 
-                                onSave(nEvent)
-                            }, enabled = isTitleValid && isFromValid && isToValid) {
+                                newEvent.description = description.text
+                                newEvent.confirmation = confirmation.text
+                                newEvent.location = location.text
+                                newEvent.categories = categories.text
+
+                                onSave(newEvent)
+                            }, enabled = isTitleValid) {
                                 Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
                             }
                         }
@@ -1086,6 +1072,17 @@ private fun isDate(sdf: SimpleDateFormat, dt: String): Date? {
         return sdf.parse(dt)
     } catch (_: Exception) {}
     return null
+}
+
+private fun getDate(dt: String): Date? {
+    val inDay = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+    val date = isDate(inDay, dt)
+    if(date != null) {
+        return date
+    } else {
+        val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        return isDate(fullDay, dt)
+    }
 }
 
 @Preview(showBackground = true)

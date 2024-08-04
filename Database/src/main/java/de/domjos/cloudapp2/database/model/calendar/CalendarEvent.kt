@@ -19,15 +19,33 @@ import java.util.UUID
     ]
 )
 class CalendarEvent(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo("id", defaultValue = "0") var id: Long,
-    var uid: String = UUID.randomUUID().toString(),
-    var from: Long, var to: Long, var title: String,
-    var location: String = "", var description: String = "",
-    var confirmation: String = "", var categories: String = "",
-    var color: String = "", var calendar: String,
-    @ColumnInfo("eventId", defaultValue = "") var eventId: String = "",
-    @ColumnInfo("lastUpdatedEventPhone", defaultValue = "-1") var lastUpdatedEventPhone: Long = -1L,
-    @ColumnInfo("lastUpdatedEventServer", defaultValue = "-1") var lastUpdatedEventServer: Long = -1L,
-    @ColumnInfo("authId", defaultValue = "0") var authId: Long = 0L,
-    @ColumnInfo("path", defaultValue = "") var path: String = "") {
+    @PrimaryKey(autoGenerate = true)
+    @ColumnInfo("id")
+    var id: Long = 0L,
+    @ColumnInfo("uid", defaultValue = "")
+    var uid: String = "",
+    var from: Long,
+    var to: Long,
+    var title: String,
+    @ColumnInfo("location", defaultValue = "")
+    var location: String = "",
+    @ColumnInfo("description", defaultValue = "")
+    var description: String = "",
+    @ColumnInfo("confirmation", defaultValue = "")
+    var confirmation: String = "",
+    @ColumnInfo("categories", defaultValue = "")
+    var categories: String = "",
+    @ColumnInfo("color", defaultValue = "")
+    var color: String = "",
+    var calendar: String,
+    @ColumnInfo("eventId", defaultValue = "")
+    var eventId: String = "",
+    @ColumnInfo("lastUpdatedEventPhone", defaultValue = "-1")
+    var lastUpdatedEventPhone: Long = -1L,
+    @ColumnInfo("lastUpdatedEventServer", defaultValue = "-1")
+    var lastUpdatedEventServer: Long = -1L,
+    @ColumnInfo("authId", defaultValue = "0")
+    var authId: Long = 0L,
+    @ColumnInfo("path", defaultValue = "")
+    var path: String = "") {
 }
