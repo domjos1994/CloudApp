@@ -45,6 +45,9 @@
     <string name="calendar_save">Element speichern</string>
     <string name="calendar_delete">Element löschen</string>
     <string name="calendar_open">Öffne Event in Kalender-App</string>
+    <string name="date_picker_date">Datum auswählen!</string>
+    <string name="date_picker_time">Zeit auswählen!</string>
+    <string name="calendar_whole_day">ganzer Tag</string>
 
     <string name="contacts">Kontakte</string>
     <string name="contacts_book">Addressbuch</string>
@@ -154,6 +157,7 @@
     <string name="sys_no_connection_button">Zu den Accounts</string>
     <string name="sys_loading">Einträge werden geladen!</string>
     <string name="sys_delete_item">Sind Sie sicher, dass Sie den Eintrag löschen möchten?</string>
+    <string name="sys_clear_text">Text löschen</string>
 
     <string name="permissions">Berechtigungen</string>
     <string name="permissions_grant">Berechtigung gewähren</string>

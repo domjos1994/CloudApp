@@ -34,6 +34,11 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @Composable
 fun DropDown(items: List<String>, initial: String, onSelected: (String) -> Unit, label: String) {
+    DropDown(items, initial, onSelected, {it}, label)
+}
+
+@Composable
+fun <T> DropDown(items: List<T>, initial: T, onSelected: (T) -> Unit, propertyLabel: (T) -> String, label: String) {
     var expanded by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf(initial) }
     val color = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor
@@ -69,7 +74,7 @@ fun DropDown(items: List<String>, initial: String, onSelected: (String) -> Unit,
                         Modifier.weight(8f),
                         horizontalAlignment = Alignment.End) {
                         Text(
-                            selectedItem,
+                            propertyLabel(selectedItem),
                             fontWeight = FontWeight.Normal,
                             color = color
                         )
@@ -101,7 +106,7 @@ fun DropDown(items: List<String>, initial: String, onSelected: (String) -> Unit,
         ) {
             items.forEach {
                 DropdownMenuItem(
-                    text = { Text(it) },
+                    text = { Text(propertyLabel(it)) },
                     onClick = {
                         onSelected(it)
                         selectedItem = if(it=="") initial else it

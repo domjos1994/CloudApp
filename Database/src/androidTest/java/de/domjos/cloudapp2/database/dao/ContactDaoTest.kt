@@ -81,7 +81,7 @@ class ContactDaoTest : BaseTest() {
         // update and check data
         dummy.familyName = "Test2"
         this.contactDAO.updateContact(dummy)
-        dummy = this.contactDAO.getAll(0L, dummy.uid)!!
+        dummy = dummy.uid?.let { this.contactDAO.getAll(0L, it) }!!
         assertEquals("Test2", dummy.familyName)
 
         this.testDelete()
@@ -253,7 +253,7 @@ class ContactDaoTest : BaseTest() {
 
         // insert contact
         contactDAO.insertContact(dummy)
-        dummy = contactDAO.getAll(0L, dummy.uid)!!
+        dummy = dummy.uid?.let { contactDAO.getAll(0L, it) }!!
 
         // check contact exist
         contacts = contactDAO.getAll(0L)

@@ -177,7 +177,7 @@ class CalDav(private val authentication: Authentication?) {
         if(this.sardine != null) {
             val calendar = this.modelToICal(calendarEvent)
             if(calendar != null) {
-                this.sardine?.put("${authentication?.url}/${calendarEvent.path}", this.getData(calendar))
+                this.sardine?.put("${basePath}/${calendarEvent.calendar}/${calendarEvent.uid}.ics", this.getData(calendar))
             }
         }
     }
@@ -188,7 +188,7 @@ class CalDav(private val authentication: Authentication?) {
             calendarEvent.uid = uid
             val calendar = this.modelToICal(calendarEvent)
             if(calendar != null) {
-                this.sardine?.put("${calendarModel.path}$uid.ics", this.getData(calendar))
+                this.sardine?.put("${basePath}/${calendarModel.name}/$uid.ics", this.getData(calendar))
             }
         }
     }
@@ -256,8 +256,8 @@ class CalDav(private val authentication: Authentication?) {
         try {
             val vEvent =
                 VEvent(
-                    net.fortuna.ical4j.model.Date(event.from),
-                    net.fortuna.ical4j.model.Date(event.from),
+                    net.fortuna.ical4j.model.DateTime(event.from),
+                    net.fortuna.ical4j.model.DateTime(event.to),
                     event.title
                 )
 

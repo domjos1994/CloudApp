@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.features.calendars.screens
 
+import android.content.Context
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -7,11 +8,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -23,25 +26,28 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -52,10 +58,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -68,6 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -96,7 +105,6 @@ import java.util.Date
 import java.util.GregorianCalendar
 import java.util.LinkedList
 import java.util.Locale
-import java.util.UUID
 
 @Composable
 fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
@@ -185,9 +193,11 @@ fun CalendarScreen(
 
 
     if(showDialog) {
-        EditDialog(
-            event = event, date = dt, calendars = calendars,
-            onShowItem = {showDialog=it},
+        NewEditDialog(
+            {showDialog=it},
+            event = event,
+            date = dt,
+            calendars = calendars,
             onSave = {
                 onSave(it)
                 showDialog = false
@@ -302,13 +312,16 @@ fun CalendarScreen(
         ConstraintLayout(Modifier.fillMaxSize()) {
             val (dropdown, list, control) = createRefs()
 
-            Column(Modifier.constrainAs(dropdown) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                bottom.linkTo(parent.bottom)
-                height = Dimension.fillToConstraints
-                width = Dimension.percent(0.5f)
-            }.verticalScroll(rememberScrollState())) {
+            Column(
+                Modifier
+                    .constrainAs(dropdown) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        bottom.linkTo(parent.bottom)
+                        height = Dimension.fillToConstraints
+                        width = Dimension.percent(0.5f)
+                    }
+                    .verticalScroll(rememberScrollState())) {
                 Row {
                     DropDown(calendars.map { it.name }, initial, onCalendarSelected, stringResource(R.string.calendars))
                     Separator(colorForeground)
@@ -843,64 +856,69 @@ private fun getFormattedDate(ts: Long): String {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel>, onShowItem: (Boolean) -> Unit, onSave: (CalendarEvent) -> Unit, onDelete: (CalendarEvent) -> Unit) {
-    val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    val inDay = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-    var def = date
-    if(def == null) {
-        def = Date()
-    }
+fun NewEditDialog(
+    onShowDialog: (Boolean) -> Unit,
+    event: CalendarEvent?,
+    date: Date = Date(),
+    calendars: List<CalendarModel>,
+    onSave: (CalendarEvent) -> Unit,
+    onDelete: (CalendarEvent) -> Unit) {
 
-    var from by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
-    var to by remember {mutableStateOf(TextFieldValue(fullDay.format(def)))}
-    var title by remember {mutableStateOf(TextFieldValue(""))}
+    val id = event?.id ?: 0L
+    val uid = event?.uid ?: ""
+    val path = event?.path ?: ""
+
+    var title by remember { mutableStateOf(TextFieldValue(event?.title ?: "")) }
     var isTitleValid by remember { mutableStateOf(event?.title?.isNotEmpty() ?: false ) }
-    var location by remember {mutableStateOf(TextFieldValue(""))}
-    var description by remember {mutableStateOf(TextFieldValue(""))}
-    var confirmation by remember {mutableStateOf(TextFieldValue(""))}
-    var categories by remember {mutableStateOf(TextFieldValue(""))}
-    var calendar by remember { mutableStateOf("") }
 
-    if(event != null) {
-        val calFrom = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.from), ZoneId.systemDefault()))
-        val calTo = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(event.to), ZoneId.systemDefault()))
-        if(calFrom.get(Calendar.HOUR) == 0 && calFrom.get(Calendar.MINUTE)==0 && calTo.get(Calendar.HOUR) == 0 && calTo.get(Calendar.MINUTE) == 0) {
-            from = TextFieldValue(fullDay.format(calFrom.time))
-            to = TextFieldValue(fullDay.format(calTo.time))
-        } else {
-            from = TextFieldValue(inDay.format(calFrom.time))
-            to = TextFieldValue(inDay.format(calTo.time))
-        }
+    var wholeDay by remember { mutableStateOf(false) }
+    var from by remember { mutableStateOf(Date(event?.from ?: date.time)) }
+    var isFromValid by remember { mutableStateOf(event?.from?.toInt() != 0) }
 
-        title = TextFieldValue(event.title)
-        location = TextFieldValue(event.location)
-        description = TextFieldValue(event.description)
-        confirmation = TextFieldValue(event.confirmation)
-        categories = TextFieldValue(event.categories)
-        calendar = event.calendar
+    var to by remember { mutableStateOf(Date(event?.to ?: (date.time + 1000L * 60L * 60L))) }
+    var isToValid by remember { mutableStateOf(to.time != 0L && to.time > from.time && !wholeDay) }
+
+    var description by remember { mutableStateOf(TextFieldValue(event?.description ?: "")) }
+    var location by remember { mutableStateOf(TextFieldValue(event?.location ?: "")) }
+    var confirmation by remember { mutableStateOf(TextFieldValue(event?.confirmation ?: "")) }
+    var categories by remember { mutableStateOf(TextFieldValue(event?.categories ?: "")) }
+    var calendar by remember {
+        mutableStateOf(
+            calendars.find { it.name == (event?.calendar ?: "") } ?:
+            CalendarModel("", "", "")
+        )
     }
 
-    Dialog(onDismissRequest = {onShowItem(false)},
-        DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false)) {
+    Dialog(
+        onDismissRequest = {onShowDialog(false)},
+        DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)) {
         Surface(
             Modifier
                 .padding(5.dp)
                 .verticalScroll(rememberScrollState())) {
+
             Column {
                 Row {
                     Column(
                         Modifier
                             .fillMaxWidth()
-                            .padding(5.dp)) {
+                            .padding(5.dp)
+                    ) {
                         OutlinedTextField(
                             value = title,
+                            trailingIcon = {
+                                IconButton(onClick = { title = TextFieldValue("") }) {
+                                    Icon(Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.sys_clear_text)
+                                    )
+                                }
+                            },
                             onValueChange = {
-                                title=it
+                                title = it
                                 isTitleValid = Validator.check(false, 3, 255, it.text)
                             },
-                            label = {Text(stringResource(id = R.string.calendar_title))},
+                            label = { Text(stringResource(id = R.string.calendar_title)) },
                             isError = !isTitleValid
                         )
                     }
@@ -909,13 +927,20 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                     Column(
                         Modifier
                             .fillMaxWidth()
-                            .padding(5.dp)) {
-                        OutlinedTextField(
-                            value = from,
+                            .padding(5.dp)
+                    ) {
+                        DatePickerDocked(
+                            date = from,
                             onValueChange = {
-                                from=it
+                                from = it
+                                if(!wholeDay) {
+                                    isFromValid = from.before(to)
+                                } else {
+                                    isFromValid = true
+                                }
                             },
-                            label = {Text(stringResource(id = R.string.calendar_from))}
+                            {Text(stringResource(R.string.calendar_from))},
+                            !isFromValid
                         )
                     }
                 }
@@ -923,13 +948,37 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                     Column(
                         Modifier
                             .fillMaxWidth()
+                            .padding(5.dp)
+                    ) {
+                        if(!wholeDay) {
+                            DatePickerDocked(
+                                date = to,
+                                onValueChange = {
+                                    to = it
+                                    isToValid = to.after(from)
+                                },
+                                { Text(stringResource(R.string.calendar_to)) },
+                                !isToValid
+                            )
+                        } else {
+                            isToValid = true
+                        }
+                    }
+                }
+                Row {
+                    Column(Modifier
+                            .weight(8f)
                             .padding(5.dp)) {
-                        OutlinedTextField(
-                            value = to,
-                            onValueChange = {
-                                to=it
-                            },
-                            label = {Text(stringResource(id = R.string.calendar_to))}
+                        Text(stringResource(R.string.calendar_whole_day))
+                    }
+                    Column(
+                        Modifier
+                            .weight(2f)
+                            .padding(5.dp)
+                    ) {
+                        Switch(
+                            checked = wholeDay,
+                            onCheckedChange = {wholeDay = it}
                         )
                     }
                 }
@@ -937,127 +986,157 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
                     Column(
                         Modifier
                             .fillMaxWidth()
-                            .padding(5.dp)) {
+                            .padding(5.dp)
+                    ) {
                         OutlinedTextField(
                             value = description,
-                            onValueChange = {description=it},
-                            label = {Text(stringResource(id = R.string.calendar_description))}
-                        )
-                    }
-                }
-                Row {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)) {
-                        OutlinedTextField(
-                            value = confirmation,
-                            onValueChange = {confirmation=it},
-                            label = {Text(stringResource(id = R.string.calendar_confirmation))}
-                        )
-                    }
-                }
-                Row {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)) {
-                        OutlinedTextField(
-                            value = categories,
-                            onValueChange = {categories=it},
-                            label = {Text(stringResource(id = R.string.calendar_categories))}
-                        )
-                    }
-                }
-                var expanded by remember { mutableStateOf(false) }
-
-                Row {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)) {
-                        ExposedDropdownMenuBox(
-                            expanded = expanded,
-                            onExpandedChange = {
-                                expanded = !expanded
-                            }
-                        ) {
-                            TextField(
-                                value = calendar,
-                                onValueChange = {},
-                                readOnly = true,
-                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                                modifier = Modifier.menuAnchor()
-                            )
-
-                            ExposedDropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false }
-                            ) {
-                                calendars.forEach { item ->
-                                    DropdownMenuItem(
-                                        text = { Text(text = item.label) },
-                                        onClick = {
-                                            calendar = item.name
-                                            expanded = false
-                                        }
+                            trailingIcon = {
+                                IconButton(onClick = { description = TextFieldValue("") }) {
+                                    Icon(Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.sys_clear_text)
                                     )
                                 }
-                            }
-                        }
+                            },
+                            onValueChange = {
+                                description = it
+                            },
+                            label = { Text(stringResource(id = R.string.calendar_description)) },
+                        )
                     }
                 }
                 Row {
-                    if(event != null) {
-                        Column(Modifier.weight(1f),
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            IconButton(onClick = { onDelete(event) }) {
-                                Icon(Icons.Default.Delete, stringResource(id = R.string.calendar_delete))
-                            }
-                        }
-                        Column(Modifier.weight(1f),
-                            horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = location,
+                            trailingIcon = {
+                                IconButton(onClick = { location = TextFieldValue("") }) {
+                                    Icon(Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.sys_clear_text)
+                                    )
+                                }
+                            },
+                            onValueChange = {
+                                location = it
+                            },
+                            label = { Text(stringResource(id = R.string.calendar_location)) },
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = confirmation,
+                            trailingIcon = {
+                                IconButton(onClick = { confirmation = TextFieldValue("") }) {
+                                    Icon(Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.sys_clear_text)
+                                    )
+                                }
+                            },
+                            onValueChange = {
+                                confirmation = it
+                            },
+                            label = { Text(stringResource(id = R.string.calendar_confirmation)) },
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = categories,
+                            trailingIcon = {
+                                IconButton(onClick = { categories = TextFieldValue("") }) {
+                                    Icon(Icons.Default.Clear,
+                                        contentDescription = stringResource(R.string.sys_clear_text)
+                                    )
+                                }
+                            },
+                            onValueChange = {
+                                categories = it
+                            },
+                            label = { Text(stringResource(id = R.string.calendar_categories)) },
+                        )
+                    }
+                }
+                Row {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp)
+                    ) {
+                        DropDown(
+                            items = calendars,
+                            initial = calendar,
+                            onSelected = {
+                                if(it.name.isNotEmpty()) {
+                                    calendar = it
+                                }
+                            },
+                            propertyLabel = {it.label},
+                            label = stringResource(id = R.string.calendars)
+                        )
+                    }
+                }
+                HorizontalDivider()
+                Row {
+                    Column(Modifier.weight(1f)) {
+                        if(id != 0L && uid.isNotEmpty() && isTitleValid && isFromValid && isToValid) {
                             IconButton(onClick = {
-                                val fromDate = getDate(from.text)
-                                val toDate = getDate(to.text)
-
-                                event.from = fromDate?.time ?: 0L
-                                event.to = toDate?.time ?: 0L
-                                event.title = title.text
-                                event.description = description.text
-                                event.confirmation = confirmation.text
-                                event.location = location.text
-                                event.categories = categories.text
-                                event.calendar = calendar
-
-                                onSave(event)
-                            }, enabled = isTitleValid) {
-                                Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
-                            }
-                        }
-                    } else {
-                        Column(Modifier.weight(1f),
-                            horizontalAlignment = Alignment.CenterHorizontally) {
-                            IconButton(onClick = {
-                                val fromDate = getDate(from.text)
-                                val toDate = getDate(to.text)
-
-                                val newEvent = CalendarEvent(
-                                    from = fromDate?.time ?: 0L,
-                                    to = toDate?.time ?: 0L,
-                                    title = title.text,
-                                    calendar = calendar
+                                val calendarEvent = CalendarEvent(
+                                    id, uid, from.time, to.time, title.text,
+                                    location.text, description.text, confirmation.text,
+                                    categories.text, "", calendar.name, "", -1L, -1L,
+                                    0L, path
                                 )
 
-                                newEvent.description = description.text
-                                newEvent.confirmation = confirmation.text
-                                newEvent.location = location.text
-                                newEvent.categories = categories.text
-
-                                onSave(newEvent)
-                            }, enabled = isTitleValid) {
-                                Icon(Icons.Default.Check, stringResource(id = R.string.calendar_save))
+                                onDelete(calendarEvent)
+                                onShowDialog(false)
+                            }) {
+                                Icon(Icons.Default.Delete, stringResource(R.string.sys_delete_item))
                             }
+                        }
+                    }
+                    Column(Modifier.weight(7f)) {}
+                    Column(Modifier.weight(1f)) {
+                        IconButton(onClick = {
+                            onShowDialog(false)
+                        }) {
+                            Icon(Icons.Default.Clear, stringResource(R.string.sys_delete_item))
+                        }
+                    }
+                    Column(Modifier.weight(1f)) {
+                        IconButton(onClick = {
+                            if(wholeDay) {
+                                val cal = Calendar.getInstance(Locale.getDefault())
+                                cal.timeInMillis = from.time
+                                cal.set(Calendar.HOUR, 0)
+                                cal.set(Calendar.MINUTE, 0)
+                                from = cal.time
+                                to  = cal.time
+                            }
+                            val calendarEvent = CalendarEvent(
+                                id, uid, from.time, to.time, title.text,
+                                location.text, description.text, confirmation.text,
+                                categories.text, "", calendar.name, "", -1L, -1L,
+                                0L, path
+                            )
+
+                            onSave(calendarEvent)
+                            onShowDialog(false)
+                        }, enabled = isTitleValid && isFromValid && isToValid) {
+                            Icon(Icons.Default.Check, stringResource(R.string.sys_delete_item))
                         }
                     }
                 }
@@ -1066,23 +1145,104 @@ fun EditDialog(event: CalendarEvent?, date: Date?, calendars: List<CalendarModel
     }
 }
 
-private fun isDate(sdf: SimpleDateFormat, dt: String): Date? {
-    try {
-        sdf.isLenient = false
-        return sdf.parse(dt)
-    } catch (_: Exception) {}
-    return null
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, label: @Composable (() -> Unit)? = null, isError: Boolean = false) {
+    val cal = Calendar.getInstance(Locale.getDefault())
+    cal.time = date
+    val context = LocalContext.current
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(date.time)
+    val timePickerState = rememberTimePickerState(cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE), true)
+    val selectedDate = datePickerState.selectedDateMillis?.let {
+        val dateTime = it + (1000L * 60L * 60L * timePickerState.hour) + (1000L * 60L * timePickerState.minute)
+        onValueChange(Date(dateTime))
+        convertMillisToDate(context, dateTime)
+    } ?: ""
+
+    Box(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = selectedDate,
+            onValueChange = {
+                onValueChange(convertStringToDate(context, it))
+            },
+            label = label,
+            readOnly = true,
+            trailingIcon = {
+                IconButton(onClick = { showTimePicker = !showTimePicker }) {
+                    Icon(
+                        painterResource(id = R.drawable.ic_time),
+                        contentDescription = stringResource(R.string.date_picker_time)
+                    )
+                }
+            },
+            leadingIcon = {
+                IconButton(onClick = { showDatePicker = !showDatePicker }) {
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = stringResource(R.string.date_picker_date)
+                    )
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(64.dp),
+            isError = isError
+        )
+
+        if (showDatePicker) {
+            Popup(
+                onDismissRequest = { showDatePicker = false },
+                alignment = Alignment.TopStart
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = 64.dp)
+                        .shadow(elevation = 4.dp)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(16.dp)
+                ) {
+                    DatePicker(
+                        state = datePickerState,
+                        showModeToggle = true
+                    )
+                }
+            }
+        }
+        if (showTimePicker) {
+            Popup(
+                onDismissRequest = { showTimePicker = false },
+                alignment = Alignment.TopStart
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = 64.dp)
+                        .shadow(elevation = 4.dp)
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(16.dp)
+                ) {
+                    TimePicker(
+                        state = timePickerState
+                    )
+                }
+            }
+        }
+    }
 }
 
-private fun getDate(dt: String): Date? {
-    val inDay = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-    val date = isDate(inDay, dt)
-    if(date != null) {
-        return date
-    } else {
-        val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        return isDate(fullDay, dt)
-    }
+fun convertMillisToDate(context: Context, millis: Long): String {
+    val formatter = SimpleDateFormat(context.getString(R.string.sys_format), Locale.getDefault())
+    return formatter.format(Date(millis))
+}
+
+fun convertStringToDate(context: Context, date: String): Date {
+    val formatter = SimpleDateFormat(context.getString(R.string.sys_format), Locale.getDefault())
+    return formatter.parse(date) ?: Date()
 }
 
 @Preview(showBackground = true)
@@ -1120,7 +1280,9 @@ fun ScreenPreview() {
 @Composable
 fun EditDialogPreview() {
     CloudAppTheme {
-        EditDialog(event = fakeEvent(0L), date = Date(), onShowItem = {}, onSave = {}, calendars =
+        NewEditDialog(
+            onShowDialog = {},
+            event = fakeEvent(0L), date = Date(), onSave = {}, calendars =
             listOf(
                 CalendarModel("Test1", "", ""),
                 CalendarModel("Test2", "", "")

@@ -144,6 +144,7 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun insert(calendarEvent: CalendarEvent) {
+        calendarEvent.authId = authenticationDAO.getSelectedItem()?.id!!
         val item = this.calDav.getCalendars().find { it.name == calendarEvent.calendar }
 
         if(item != null && validate(calendarEvent)) {
@@ -154,6 +155,7 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun update(calendarEvent: CalendarEvent) {
+        calendarEvent.authId = authenticationDAO.getSelectedItem()?.id!!
         val item = this.calDav.getCalendars().find { it.name == calendarEvent.calendar }
 
         if(item != null && validate(calendarEvent)) {

@@ -37,8 +37,8 @@
     <string name="calendar_import_calendar">Import %s …</string>
     <string name="calendar_save_calendar">Save %s …</string>
     <string name="calendar_title">Title</string>
-    <string name="calendar_from">From (day.Month.Year [Hour:Minute])</string>
-    <string name="calendar_to">To (day.Month.Year [Hour:Minute])</string>
+    <string name="calendar_from">From (year-Month-day [Hour:Minute])</string>
+    <string name="calendar_to">To (year-Month-day [Hour:Minute])</string>
     <string name="calendar_description">Description</string>
     <string name="calendar_location">Location</string>
     <string name="calendar_confirmation">Confirmation</string>
@@ -46,6 +46,7 @@
     <string name="calendar_save">Save Item</string>
     <string name="calendar_delete">Delete Item</string>
     <string name="calendar_open">Open Event in Calendar-App</string>
+    <string name="calendar_whole_day">Whole day</string>
 
     <string name="contacts">Contacts</string>
     <string name="contacts_book">Contact-Book</string>
@@ -104,6 +105,8 @@
     <string name="data_shared_dialog">Share this item by Link readonly?</string>
     <string name="data_shared_dialog_cancel">Cancel share item</string>
     <string name="data_shared_dialog_okay">Share Item</string>
+    <string name="date_picker_date">Select a Date!</string>
+    <string name="date_picker_time">Select a Time!</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Message</string>
@@ -151,7 +154,7 @@
     <string name="validation.notEmpty.max">Field should be less than %d characters!</string>
     <string name="validation.notEmpty.min_max">Field should be between %d and %d characters!</string>
 
-    <string name="sys_format">yyyy-MM-dd HH:mm:ss</string>
+    <string name="sys_format">yyyy-MM-dd HH:mm</string>
     <string name="sys_format_date">yyyy-MM-dd</string>
 
     <string name="sys_no_entry">No Entry available!</string>
@@ -161,6 +164,7 @@
     <string name="sys_no_connection_button">To the Accounts</string>
     <string name="sys_loading">Entries are loading!</string>
     <string name="sys_delete_item">Are you sure, you want to delete the Item?</string>
+    <string name="sys_clear_text">Clear text</string>
 
     <string name="permissions">Permissions</string>
     <string name="permissions_grant">Grant Permission</string>
