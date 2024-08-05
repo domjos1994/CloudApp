@@ -254,10 +254,10 @@ fun CalendarScreen(
                         showDialog = true
                     }
                 }, bottomView = {
-                    Row {
+                    Row(Modifier.padding(5.dp)) {
                         DateHeader(colorForeground, currentDate)
                     }
-                    Row {
+                    Row(Modifier.padding(5.dp)) {
                         Column(
                             Modifier
                                 .fillMaxWidth()
