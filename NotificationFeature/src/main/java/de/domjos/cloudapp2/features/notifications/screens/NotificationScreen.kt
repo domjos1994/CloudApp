@@ -4,7 +4,6 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +22,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,7 +58,7 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
+fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
     val allTypes by viewModel.allTypes.collectAsStateWithLifecycle()
 
@@ -81,11 +79,11 @@ fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), color
 
     NotificationScreen(notifications, allTypes, {
         viewModel.getFullIconLink(it)
-    }, isConnected, viewModel.hasAuthentications(), colorBackground, colorForeground, toAuths)
+    }, isConnected, viewModel.hasAuthentications(), colorBackground, colorForeground, toAuths, onChatScreen)
 }
 
 @Composable
-fun NotificationScreen(rooms: List<NotificationItem>, allTypes: Boolean, onIconLoad: (Notification) -> String, isConnected: Boolean, hasAuthentications: Boolean, colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
+fun NotificationScreen(rooms: List<NotificationItem>, allTypes: Boolean, onIconLoad: (Notification) -> String, isConnected: Boolean, hasAuthentications: Boolean, colorBackground: Color, colorForeground: Color, toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
     Column(modifier = Modifier
         .fillMaxSize()) {
 
@@ -104,7 +102,9 @@ fun NotificationScreen(rooms: List<NotificationItem>, allTypes: Boolean, onIconL
                         } else {
                             rooms.forEach { notification ->
                                 if(notification.notification != null) {
-                                    if(server) NotificationItem(notification.notification, colorBackground, colorForeground, onIconLoad)
+                                    if(server) {
+                                        NotificationItem(notification.notification, colorBackground, colorForeground, onIconLoad, onChatScreen)
+                                    }
                                 } else {
                                     if(app) NotificationItem(notification, colorBackground, colorForeground)
                                 }
@@ -200,7 +200,7 @@ fun Header(
 }
 
 @Composable
-fun NotificationItem(notification: Notification, colorBackground: Color, colorForeground: Color, onIconLoad: (Notification) -> String) {
+fun NotificationItem(notification: Notification, colorBackground: Color, colorForeground: Color, onIconLoad: (Notification) -> String, onChatScreen: (Int, String) -> Unit) {
     val uriHandler = LocalUriHandler.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -256,9 +256,19 @@ fun NotificationItem(notification: Notification, colorBackground: Color, colorFo
             .fillMaxWidth()
             .wrapContentHeight()
             .background(colorBackground)) {
+
         notification.actions.forEach { action ->
+            val actionProcess = if(notification.app == "spreed" && notification.object_type == "chat") {
+                {
+                    val id = notification.object_id
+                    onChatScreen(1, if(id.contains("/")) id.split("/")[0] else id)
+                }
+            } else {
+                {uriHandler.openUri(action.link)}
+            }
+
             Button(
-                onClick = { uriHandler.openUri(action.link) },
+                onClick = { actionProcess() },
                 modifier = Modifier.padding(2.dp), colors = ButtonDefaults.buttonColors(containerColor = colorForeground, contentColor = colorBackground)) {
                 Text(action.label, fontWeight = if(action.primary) FontWeight.Bold else FontWeight.Normal, color = colorBackground)
             }
@@ -298,13 +308,13 @@ fun NotificationItem(notification: NotificationItem, colorBackground: Color, col
 @Composable
 fun NotificationScreenPreview() {
     NotificationScreen(listOf(fake(1), fake(2), fake(3)), true, { "" },
-        isConnected = true, hasAuthentications = true, colorBackground = Color.Blue, colorForeground = Color.White) {}
+        isConnected = true, hasAuthentications = true, colorBackground = Color.Blue, colorForeground = Color.White, {}) {_,_->}
 }
 
 @Preview(showBackground = true)
 @Composable
 fun NotificationItemPreview() {
-    NotificationItem(fake(1).notification!!, colorBackground = Color.Blue, colorForeground = Color.White) { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
+    NotificationItem(fake(1).notification!!, colorBackground = Color.Blue, colorForeground = Color.White, { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }) {_,_->}
 }
 
 @Preview(showBackground = true)

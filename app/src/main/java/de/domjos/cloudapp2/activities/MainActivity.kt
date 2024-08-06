@@ -384,7 +384,9 @@ class MainActivity : ComponentActivity() {
                                     tabBarVisible.value = false
                                     breadcrumb = ""
                                 } else {
-                                    NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
+                                    NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground, onChatScreen = { x, y ->
+                                        navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
+                                    })
                                     title = notificationsTab.title
                                     header = notificationsTab.title
                                     refreshVisible = false

@@ -16,7 +16,6 @@ import de.domjos.cloudapp2.data.repository.NotificationsRepository
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
-import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp2.features.notifications.screens.model.NotificationItem
 import de.domjos.cloudapp2.rest.model.notifications.Notification
 import kotlinx.coroutines.Dispatchers
