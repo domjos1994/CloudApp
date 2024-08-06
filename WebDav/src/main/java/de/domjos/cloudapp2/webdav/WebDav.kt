@@ -83,7 +83,7 @@ class WebDav(private val authentication: Authentication) {
 
     fun openResource(item: Item, path: String) {
         if(!item.directory) {
-            this.sardine.get(item.getUrl(this.currentUrl)).use { input ->
+            this.sardine.get(item.path).use { input ->
                 val file = File("$path/${item.name.replace(" ", "_")}")
                 file.outputStream().use { output ->
                     input.copyTo(output)
@@ -93,7 +93,7 @@ class WebDav(private val authentication: Authentication) {
     }
 
     fun delete(item: Item) {
-        this.sardine.delete(item.getUrl(this.currentUrl))
+        this.sardine.delete(item.path)
     }
 
     fun createFolder(name: String) {
@@ -102,7 +102,7 @@ class WebDav(private val authentication: Authentication) {
 
     fun move(source: Item, target: Item) {
         if(target.directory) {
-            this.sardine.move(source.getUrl(this.currentUrl), "${target.getUrl(this.currentUrl)}/${source.name}")
+            this.sardine.move(source.path, "${target.path}/${source.name}")
         }
     }
 

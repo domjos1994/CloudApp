@@ -65,9 +65,9 @@ class DataViewModel @Inject constructor(
 
     fun openElement(item: Item, onFinish: (String) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
+            var path = ""
             try {
                 _item.value = item
-                var path = ""
                 if(item.directory) {
                     if(item.name == "..") {
                         dataRepository.back()
@@ -83,10 +83,11 @@ class DataViewModel @Inject constructor(
                     }
                     path = "$dir/${item.name.trim().replace(" ", "_")}"
                 }
-                onFinish(path)
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)
+            } finally {
+                onFinish(path)
             }
         }
     }
