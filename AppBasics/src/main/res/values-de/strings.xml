@@ -36,6 +36,7 @@
     <string name="settings_notifications_time_title">Ändere die Zeit, in den Benachrichtigungen angezeigt werden</string>
     <string name="settings_notifications_time_header">Ändere die Zeit (in Tage) in den App-Benachrichtigungen für Kalender und Kontakt-Geburtstage angezeigt werden!</string>
 
+    <string name="notification_whole">Gesamt</string>
 
     <string name="calendars">Kalender</string>
     <string name="calendars_all">Alle Kalender</string>

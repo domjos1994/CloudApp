@@ -59,7 +59,7 @@ interface CalendarEventDAO {
      * @return flow with a list of Events
      */
     @Query("SELECT * FROM calendarEvents WHERE authId=:authId")
-    fun getAll(authId: Long): Flow<List<CalendarEvent>>
+    fun getAll(authId: Long): List<CalendarEvent>
 
     /**
      * Get CalendarEvents auf authentication

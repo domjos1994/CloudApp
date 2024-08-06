@@ -38,6 +38,10 @@
     <string name="settings_notifications_time_title">Change the time of showing Notifications</string>
     <string name="settings_notifications_time_header">Chane the time (in days) of showing the App-Notifications (Calendar, Contact-Birthday)!</string>
 
+    <string name="notification_app" translatable="false">App</string>
+    <string name="notification_server" translatable="false">Server</string>
+    <string name="notification_whole">Whole</string>
+
     <string name="calendars">Calendar</string>
     <string name="calendars_all">All Calendars</string>
     <string name="calendar_import">Import</string>

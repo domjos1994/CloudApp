@@ -44,11 +44,13 @@ android {
 dependencies {
     implementation(project(":AppBasics"))
     implementation(project(":Data"))
+    implementation(project(":Database"))
     implementation(project(":REST"))
 
     implementation(libs.androidx.core.ktx)
 
     // compose
+    implementation(libs.androidx.preference)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
