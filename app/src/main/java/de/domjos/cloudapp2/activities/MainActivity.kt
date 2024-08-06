@@ -370,6 +370,7 @@ class MainActivity : ComponentActivity() {
                                 title = authentications
                                 header = authentications
                                 refreshVisible = false
+                                breadcrumb = ""
                             }
                             composable(notificationsTab.title) {
                                 if(viewModel.getFirstStart()) {
@@ -381,12 +382,14 @@ class MainActivity : ComponentActivity() {
                                     header = permissions
                                     refreshVisible = false
                                     tabBarVisible.value = false
+                                    breadcrumb = ""
                                 } else {
                                     NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                     title = notificationsTab.title
                                     header = notificationsTab.title
                                     refreshVisible = false
                                     tabBarVisible.value = true
+                                    breadcrumb = ""
                                 }
                             }
                             composable(dataTab.title) {
@@ -401,6 +404,7 @@ class MainActivity : ComponentActivity() {
                                 header = dataTab.title
                                 refreshVisible = false
                                 tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(notesTab.title) {
                                 NotesScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
@@ -408,6 +412,7 @@ class MainActivity : ComponentActivity() {
                                 header = notesTab.title
                                 refreshVisible = false
                                 tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(calendarsTab.title) {
                                 CalendarScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
@@ -416,6 +421,7 @@ class MainActivity : ComponentActivity() {
                                 refreshVisible = true
                                 progress = importCalendarAction()
                                 tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(contactsTab.title) {
                                 ContactScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
@@ -424,6 +430,7 @@ class MainActivity : ComponentActivity() {
                                 refreshVisible = true
                                 progress = importContactAction()
                                 tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(roomTab.title) {
                                 RoomScreen(onChatScreen = { x, y ->
@@ -433,6 +440,7 @@ class MainActivity : ComponentActivity() {
                                 header = roomTab.title
                                 refreshVisible = false
                                 tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(
                                 "${chatsTab.title}/{lookIntoFuture}/{token}",
@@ -447,18 +455,21 @@ class MainActivity : ComponentActivity() {
                                 title = chatsTab.title
                                 header = chatsTab.title
                                 tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(settings) {
                                 title = settings
                                 header = settings
                                 SettingsScreen()
                                 tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(permissions) {
                                 title = permissions
                                 header = permissions
                                 tabBarVisible.value = false
                                 PermissionScreen { back() }
+                                breadcrumb = ""
                             }
                         }
                     }
