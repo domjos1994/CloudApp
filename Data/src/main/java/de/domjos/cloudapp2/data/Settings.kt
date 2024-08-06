@@ -22,6 +22,11 @@ class Settings(private val context: Context) {
         val themeFromCloudKey = booleanPreferencesKey("user_theme_from_cloud")
         val themeFromCloudMobileKey = booleanPreferencesKey("user_theme_from_cloud_mobile")
 
+        // notification settings
+        val notificationTypeAppKey = booleanPreferencesKey("notification_type_app_key")
+        val notificationTypeServerKey = booleanPreferencesKey("notification_type_server_key")
+        val notificationTimeKey = floatPreferencesKey("notification_time_key")
+
         // contact settings
         val contactRegularityKey = floatPreferencesKey("user_contact_regularity")
         val calendarRegularityKey = floatPreferencesKey("user_calendar_regularity")
@@ -44,6 +49,11 @@ class Settings(private val context: Context) {
     private var timeSpan: Float = 20.0f
     private var themeFromCloud: Boolean = true
     private var themeFromCloudMobile: Boolean = true
+
+    // notification settings
+    private var notificationTypeApp: Boolean = true
+    private var notificationTypeServer: Boolean = true
+    private var notificationTime: Float = 7.0f
 
     // contact settings
     private var contactRegularity: Float = 1.0f
@@ -83,6 +93,11 @@ class Settings(private val context: Context) {
             preferences[timeSpanKey] = timeSpan
             preferences[themeFromCloudKey] = themeFromCloud
             preferences[themeFromCloudMobileKey] = themeFromCloudMobile
+
+            // notification settings
+            preferences[notificationTypeAppKey] = notificationTypeApp
+            preferences[notificationTypeServerKey] = notificationTypeServer
+            preferences[notificationTimeKey] = notificationTime
 
             // contact settings
             preferences[contactRegularityKey] = contactRegularity

@@ -30,6 +30,13 @@
     <string name="settings_data_show_txt_header">Show Text-Files in Internal Viewer</string>
     <string name="settings_data_show_md_title">Markdown-Files in Internal Viewer</string>
     <string name="settings_data_show_md_header">Show Markdown-Files in Internal Viewer</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notifications_type_app_title">App-Notifications</string>
+    <string name="settings_notifications_type_app_header">Show App-Notifications!</string>
+    <string name="settings_notifications_type_server_title">Server-Notifications</string>
+    <string name="settings_notifications_type_server_header">Show Server-Notifications!</string>
+    <string name="settings_notifications_time_title">Change the time of showing Notifications</string>
+    <string name="settings_notifications_time_header">Chane the time (in days) of showing the App-Notifications (Calendar, Contact-Birthday)!</string>
 
     <string name="calendars">Calendar</string>
     <string name="calendars_all">All Calendars</string>

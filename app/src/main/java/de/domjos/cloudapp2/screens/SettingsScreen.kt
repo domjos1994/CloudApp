@@ -33,6 +33,31 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         R.string.settings_theme_cloud_mobile_header, R.drawable.baseline_signal_wifi_connected_no_internet_4_24
     )
 
+    // notifications
+    val notificationTypeAppPreference = createSwitchPreference(
+        key = Settings.notificationTypeAppKey,
+        default = true,
+        titleId = R.string.settings_notifications_type_app_title,
+        headerId = R.string.settings_notifications_type_app_header,
+        resId = R.drawable.baseline_notifications_24
+    )
+    val notificationTypeServerPreference = createSwitchPreference(
+        key = Settings.notificationTypeServerKey,
+        default = true,
+        titleId = R.string.settings_notifications_type_server_title,
+        headerId = R.string.settings_notifications_type_server_header,
+        resId = R.drawable.baseline_notifications_24
+    )
+    val notificationTimePreference = createSeekBarPreference(
+        key = Settings.notificationTimeKey,
+        default = 7.0f,
+        titleId = R.string.settings_notifications_time_title,
+        headerId = R.string.settings_notifications_time_header,
+        resId = R.drawable.baseline_access_time_24,
+        representation = {"${it.toInt()} days"},
+        range = 1.0f.rangeTo(365.0f)
+    )
+
     // contacts
     val contactRegularityPreference = createSeekBarPreference(
         Settings.contactRegularityKey, 1.0f, R.string.settings_contact_regularity_title,
@@ -81,12 +106,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     )
 
     val cloudGroup = Preference.PreferenceGroup(stringResource(id = R.string.settings_cloud_title), true, listOf(cloudThemePreference, cloudThemeMobilePreference))
+    val notificationGroup = Preference.PreferenceGroup(stringResource(R.string.settings_notifications), true, listOf(notificationTypeAppPreference, notificationTypeServerPreference, notificationTimePreference))
     val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference, cardavRegularityPreference))
     val calendarGroup = Preference.PreferenceGroup(stringResource(R.string.calendars), true, listOf(calendarRegularityPreference, caldavRegularityPreference))
     val dataGroup = Preference.PreferenceGroup(stringResource(R.string.data), true, listOf(filesInInternal, pdfInInternal, imgInInternal, textInInternal, mdInInternal))
 
     PreferenceScreen(
-        items = listOf(timeSpanPreference, cloudGroup, contactGroup, calendarGroup, dataGroup),
+        items = listOf(timeSpanPreference, cloudGroup, notificationGroup, contactGroup, calendarGroup, dataGroup),
         dataStore = viewModel.init(),
         statusBarPadding = true
     )

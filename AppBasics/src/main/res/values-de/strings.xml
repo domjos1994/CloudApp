@@ -28,6 +28,13 @@
     <string name="settings_data_show_txt_header">Zeige Text-Dateien in interner Anzeige an</string>
     <string name="settings_data_show_md_title">Markdown-Dateien in interner Anzeige</string>
     <string name="settings_data_show_md_header">Zeige Markdown-Dateien in interner Anzeige an</string>
+    <string name="settings_notifications">Benachrichtigungen</string>
+    <string name="settings_notifications_type_app_title">App-Benachrichtigungen</string>
+    <string name="settings_notifications_type_app_header">Zeige App-Benachrichtigungen!</string>
+    <string name="settings_notifications_type_server_title">Server-Benachrichtigungen</string>
+    <string name="settings_notifications_type_server_header">Zeige Server-Benachrichtigungen!</string>
+    <string name="settings_notifications_time_title">Ändere die Zeit, in den Benachrichtigungen angezeigt werden</string>
+    <string name="settings_notifications_time_header">Ändere die Zeit (in Tage) in den App-Benachrichtigungen für Kalender und Kontakt-Geburtstage angezeigt werden!</string>
 
 
     <string name="calendars">Kalender</string>
