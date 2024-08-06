@@ -4,8 +4,10 @@ import com.thegrizzlylabs.sardineandroid.DavResource
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.webdav.model.Item
+import okhttp3.OkHttpClient
 import java.io.File
 import java.io.InputStream
+import java.time.Duration
 import java.util.LinkedList
 import java.util.Stack
 
@@ -112,7 +114,12 @@ class WebDav(private val authentication: Authentication) {
     }
 
     private fun connect() {
-        this.sardine = OkHttpSardine()
+        val client = OkHttpClient.Builder()
+        client.callTimeout(Duration.ofMinutes(3))
+        client.readTimeout(Duration.ofMinutes(3))
+        client.writeTimeout(Duration.ofMinutes(5))
+        client.connectTimeout(Duration.ofMinutes(3))
+        this.sardine = OkHttpSardine(client.build())
         this.sardine.setCredentials(authentication.userName, authentication.password)
         if(this.currentUrl.isEmpty()) {
             this.basePath = "/remote.php/dav/files/${authentication.userName}"

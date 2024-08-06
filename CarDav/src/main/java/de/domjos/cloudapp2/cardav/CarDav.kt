@@ -22,6 +22,8 @@ import ezvcard.property.StructuredName
 import ezvcard.property.Telephone
 import ezvcard.property.Uid
 import okhttp3.Credentials
+import okhttp3.OkHttpClient
+import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Calendar
@@ -36,7 +38,12 @@ class CarDav(private val authentication: Authentication?) {
 
     init {
         if(authentication != null) {
-            this.sardine = OkHttpSardine()
+            val client = OkHttpClient.Builder()
+            client.callTimeout(Duration.ofMinutes(3))
+            client.readTimeout(Duration.ofMinutes(3))
+            client.writeTimeout(Duration.ofMinutes(5))
+            client.connectTimeout(Duration.ofMinutes(3))
+            this.sardine = OkHttpSardine(client.build())
             this.sardine?.setCredentials(authentication.userName, authentication.password)
             this.basePath = "${authentication.url}/remote.php/dav/addressbooks/users/${authentication.userName}"
         }
