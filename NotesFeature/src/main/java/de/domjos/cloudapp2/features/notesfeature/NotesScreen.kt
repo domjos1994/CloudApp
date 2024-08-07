@@ -17,14 +17,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -62,9 +61,11 @@ import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.rest.model.notes.Note
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.ActionItem
+import de.domjos.cloudapp2.appbasics.custom.ComposeList
+import de.domjos.cloudapp2.appbasics.custom.ListItem
+import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
-import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
-import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.Separator
@@ -93,7 +94,21 @@ fun NotesScreen(
         }
     }
 
+    val painter = painterResource(R.drawable.baseline_note_24)
     NotesScreen(notes,
+        onReload = {
+            val listItems = mutableListOf<ListItem<Int>>()
+            notes.forEach { note ->
+                val item = ListItem<Int>(
+                    title = note.title,
+                    description = note.category,
+                    painter = painter
+                )
+                item.id = note.id
+                listItems.add(item)
+            }
+            listItems
+        },
         onSaveClick = {viewModel.save(it)},
         onDeleteClick = {viewModel.delete(it)},
         hasAuths = viewModel.hasAuthentications(),
@@ -108,6 +123,7 @@ fun NotesScreen(
 @Composable
 fun NotesScreen(
     items: List<Note>,
+    onReload: () -> MutableList<ListItem<Int>>,
     onSaveClick: (Note) -> Unit,
     onDeleteClick: (Note) -> Unit,
     hasAuths: Boolean,
@@ -121,7 +137,9 @@ fun NotesScreen(
     val showDialog =  remember { mutableStateOf(false) }
     val showBottomSheet = remember { mutableStateOf(false) }
     val showDeleteDialog = remember { mutableStateOf(false) }
+    val showMultipleDeleteDialog = remember { mutableStateOf(false) }
     val selectedItem = remember { mutableStateOf<Note?>(null) }
+    val selectedItems = remember { mutableStateOf<List<Note>>(listOf()) }
 
     if(showDialog.value) {
         NotesDialog(
@@ -150,6 +168,14 @@ fun NotesScreen(
             selectedItem.value = null
         })
     }
+    if(showMultipleDeleteDialog.value) {
+        ShowDeleteDialog({showMultipleDeleteDialog.value = it}, {
+            selectedItems.value.forEach { item ->
+                onDeleteClick(item)
+            }
+            selectedItems.value = listOf()
+        })
+    }
 
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (list, control) = createRefs()
@@ -163,24 +189,74 @@ fun NotesScreen(
                 height = Dimension.fillToConstraints
                 width = Dimension.fillToConstraints
             }
-            .padding(5.dp)
-            .verticalScroll(rememberScrollState())) {
-            NotesList(
-                items,
-                isConnected,
-                hasAuths,
-                toAuths,
-                {
-                    selectedItem.value = it
-                    showDialog.value = true
-                },
-                {
-                    selectedItem.value = it
-                    showBottomSheet.value = true
-                },
-                colorBackground,
-                colorForeground
-            )
+            .padding(5.dp)) {
+            if(hasAuths) {
+                val painter = painterResource(R.drawable.ic_eye)
+                ComposeList(
+                    onReload = {onReload()},
+                    colorBackground = colorBackground,
+                    colorForeground = colorForeground,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(5.dp),
+                    needsInternet = true,
+                    onSwipeToStart = ActionItem(
+                        name = "Delete Item",
+                        icon = Icons.Default.Delete,
+                        action = { listItem ->
+                            val note = items.find { it.id == listItem.id }
+                            if(note != null) {
+                                selectedItem.value = note
+                                showDeleteDialog.value = true
+                                true
+                            } else {false}
+                        },
+                        color = Color.Red
+                    ),
+                    actions = listOf(
+                        ActionItem(
+                            name = "Show Item",
+                            painter = painter,
+                            action = { listItem ->
+                                val note = items.find { it.id == listItem.id }
+                                if(note != null) {
+                                    selectedItem.value = note
+                                    showBottomSheet.value = true
+                                    true
+                                } else {false}
+                            }
+                        ),
+                        ActionItem(
+                            name = "Edit Item",
+                            icon = Icons.Default.Edit,
+                            action = { listItem ->
+                                val note = items.find { it.id == listItem.id }
+                                if(note != null) {
+                                    selectedItem.value = note
+                                    showDialog.value = true
+                                    true
+                                } else {false}
+                            }
+                        )
+                    ),
+                    multiActions = listOf(
+                        MultiActionItem(
+                            name = "Delete Selected Items",
+                            icon = Icons.Default.Delete,
+                            action = {listItems ->
+                                val selection = items.filter {
+                                    it.id == (listItems.find { ite -> ite.id == it.id }?.id ?: 0)
+                                }
+                                selectedItems.value = selection
+                                showMultipleDeleteDialog.value = true
+                                true
+                            }
+                        )
+                    )
+                )
+            } else {
+                NoAuthenticationItem(colorForeground, colorBackground, toAuths)
+            }
         }
         if(isConnected) {
             FloatingActionButton(
@@ -197,40 +273,6 @@ fun NotesScreen(
                     .padding(5.dp), containerColor = colorForeground) {
                 Icon(Icons.Filled.Add, stringResource(R.string.login_add), tint = colorBackground)
             }
-        }
-    }
-}
-
-@Composable
-fun NotesList(
-    notes: List<Note>,
-    isConnected: Boolean,
-    hasAuths: Boolean,
-    toAuths: () -> Unit,
-    onDialog: (Note) -> Unit,
-    onBottomSheet: (Note) -> Unit,
-    colorBackground: Color,
-    colorForeground: Color) {
-
-    if(hasAuths) {
-        if(isConnected) {
-            if(notes.isEmpty()) {
-                Column {
-                    NoEntryItem(colorForeground, colorBackground)
-                }
-            } else {
-                notes.forEach { item ->
-                    NotesItem(item, onDialog, onBottomSheet, colorBackground, colorForeground)
-                }
-            }
-        } else {
-            Column {
-                NoInternetItem(colorForeground, colorBackground)
-            }
-        }
-    } else {
-        Column {
-            NoAuthenticationItem(colorForeground, colorBackground, toAuths)
         }
     }
 }
@@ -385,9 +427,13 @@ fun NotesDialog(
                     )
                     Text(stringResource(R.string.notes_favorite))
                 }
-                Row(modifier = Modifier.fillMaxWidth().height(60.dp)) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp)) {
                     Column(
-                        Modifier.weight(1f).height(60.dp),
+                        Modifier
+                            .weight(1f)
+                            .height(60.dp),
                         verticalArrangement = Arrangement.Center) {
                         if(id != 0) {
                             IconButton(onClick = {
@@ -397,13 +443,20 @@ fun NotesDialog(
                                 Icon(
                                     Icons.Filled.Delete,
                                     "Delete $title",
-                                    Modifier.width(60.dp).height(60.dp))
+                                    Modifier
+                                        .width(60.dp)
+                                        .height(60.dp))
                             }
                         }
                     }
-                    Column(Modifier.weight(7f).height(60.dp)) {}
                     Column(
-                        Modifier.weight(1f).height(60.dp),
+                        Modifier
+                            .weight(7f)
+                            .height(60.dp)) {}
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .height(60.dp),
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             setShowDialog(false)
@@ -411,11 +464,15 @@ fun NotesDialog(
                             Icon(
                                 Icons.Filled.Close,
                                 "Cancel $title",
-                                Modifier.width(60.dp).height(60.dp))
+                                Modifier
+                                    .width(60.dp)
+                                    .height(60.dp))
                         }
                     }
                     Column(
-                        Modifier.weight(1f).height(60.dp),
+                        Modifier
+                            .weight(1f)
+                            .height(60.dp),
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             val tmp = Note(id, content, title, category, favorite, 0)
@@ -424,7 +481,9 @@ fun NotesDialog(
                             Icon(
                                 Icons.Filled.Done,
                                 "Save $title",
-                                Modifier.width(60.dp).height(60.dp))
+                                Modifier
+                                    .width(60.dp)
+                                    .height(60.dp))
                         }
                     }
                 }
@@ -476,7 +535,7 @@ fun NotesScreenPreview() {
     CloudAppTheme {
         val items = listOf(fake(1), fake(2), fake(3))
 
-        NotesScreen(items, {}, {}, false, {}, true, colorBackground = Color.Blue, colorForeground = Color.White)
+        NotesScreen(items, { mutableListOf() }, {}, {}, false, {}, true, colorBackground = Color.Blue, colorForeground = Color.White)
     }
 }
 

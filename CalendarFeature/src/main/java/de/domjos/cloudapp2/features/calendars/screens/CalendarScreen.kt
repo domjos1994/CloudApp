@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +28,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
@@ -57,7 +57,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -82,7 +81,11 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.ActionItem
+import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.ListItem
+import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.custom.SplitView
@@ -94,15 +97,12 @@ import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.ZonedDateTime
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Calendar
 import java.util.Date
-import java.util.GregorianCalendar
 import java.util.LinkedList
 import java.util.Locale
 
@@ -127,7 +127,6 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     var end by remember { mutableLongStateOf(baseEnd.time.time) }
     var selectedCalendar by remember { mutableStateOf("") }
     viewModel.getCalendars()
-    viewModel.load(selectedCalendar, start, end)
     viewModel.count(selectedCalendar, baseStart)
     val context = LocalContext.current
 
@@ -138,7 +137,25 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
         }
     }
 
-    CalendarScreen(events, colorBackground, colorForeground, date, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
+    val format = stringResource(R.string.sys_format)
+
+    CalendarScreen(events, {
+        val sdf = SimpleDateFormat(format, Locale.getDefault())
+        val items = mutableListOf<ListItem<Long>>()
+        viewModel.load(selectedCalendar, start, end)
+        events.forEach { event ->
+            val listItem = ListItem<Long>(
+                title = event.title,
+                description = "${sdf.format(Date(event.from))} - ${sdf.format(Date(event.to))}",
+                Icons.Default.DateRange,
+                selected = false,
+                deletable = true
+            )
+            listItem.id = event.id
+            items.add(listItem)
+        }
+        items
+    }, colorBackground, colorForeground, date, calendars, days, viewModel.hasAuthentications(), toAuths, { mode, calendar ->
         val calStart = updateTime(0, 0, 0, calendar.clone() as Calendar)
         val calEnd = updateTime(23, 59, 59, calendar.clone() as Calendar)
         if(mode==Calendar.MONTH) {
@@ -171,6 +188,7 @@ fun updateTime(hour: Int, minute: Int, seconds: Int, cal: Calendar) : Calendar {
 @Composable
 fun CalendarScreen(
     calendarEvents: List<CalendarEvent>,
+    onReload: () -> MutableList<ListItem<Long>>,
     colorBackground: Color,
     colorForeground: Color,
     currentDate: Date,
@@ -191,6 +209,8 @@ fun CalendarScreen(
     val config = LocalConfiguration.current
     val isLandScape by remember { mutableStateOf(config.orientation == Configuration.ORIENTATION_LANDSCAPE) }
 
+    var showMultipleDeleteDialog by remember { mutableStateOf(false) }
+    var events by remember { mutableStateOf<List<CalendarEvent>>(listOf()) }
 
     if(showDialog) {
         NewEditDialog(
@@ -262,23 +282,72 @@ fun CalendarScreen(
                             Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight()
-                                .verticalScroll(rememberScrollState())
                         ) {
                             if (hasAuths) {
-                                calendarEvents.forEach {
-                                    CalendarEventItem(
-                                        it,
-                                        colorBackground,
-                                        colorForeground,
-                                        { item: CalendarEvent ->
-                                            event = item
-                                            //dt = Date()
-                                            showDialog = true
-                                        }) { item: CalendarEvent ->
-                                        event = item
-                                        showEventView = true
-                                    }
-                                }
+                                val painter = painterResource(R.drawable.ic_eye)
+                                ComposeList(
+                                    onReload = onReload,
+                                    colorBackground = colorBackground,
+                                    colorForeground = colorForeground,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(5.dp),
+                                    needsInternet = false,
+                                    onSwipeToStart = ActionItem(
+                                        name = "Delete Item",
+                                        Icons.Default.Delete,
+                                        action = {listItem ->
+                                            val calendarEvent = calendarEvents.find { it.id == listItem.id }
+                                            if(calendarEvent != null) {
+                                                event = calendarEvent
+                                                showDeleteDialog = true
+                                                true
+                                            } else {false}
+                                        },
+                                        color = Color.Red
+                                    ),
+                                    actions = listOf(
+                                        ActionItem(
+                                            name = "Show Item",
+                                            painter = painter,
+                                            action = {listItem ->
+                                                val calendarEvent = calendarEvents.find { it.id == listItem.id }
+                                                if(calendarEvent != null) {
+                                                    event = calendarEvent
+                                                    showEventView = true
+                                                    true
+                                                } else {false}
+                                            }
+                                        ),
+                                        ActionItem(
+                                            name = "Edit Item",
+                                            icon = Icons.Default.Edit,
+                                            action = {listItem ->
+                                                val calendarEvent = calendarEvents.find { it.id == listItem.id }
+                                                if(calendarEvent != null) {
+                                                    event = calendarEvent
+                                                    showDialog = true
+                                                    true
+                                                } else {false}
+                                            }
+                                        )
+                                    ),
+                                    multiActions = listOf(
+                                        MultiActionItem(
+                                            name = "Delete Items",
+                                            icon = Icons.Default.Delete,
+                                            action = { selectedItems ->
+                                                val items = calendarEvents.filter {
+                                                    it.id == (selectedItems.find { ite -> ite.id == it.id }?.id
+                                                        ?: 0)
+                                                }
+                                                events = items
+                                                showMultipleDeleteDialog = true
+                                                true
+                                            }
+                                        )
+                                    )
+                                )
                             } else {
                                 NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                             }
@@ -360,20 +429,70 @@ fun CalendarScreen(
                         }
 
                         if (hasAuths) {
-                            calendarEvents.forEach {
-                                CalendarEventItem(
-                                    it,
-                                    colorBackground,
-                                    colorForeground,
-                                    { item: CalendarEvent ->
-                                        event = item
-                                        //dt = Date()
-                                        showDialog = true
-                                    }) { item: CalendarEvent ->
-                                    event = item
-                                    showEventView = true
-                                }
-                            }
+                            val painter = painterResource(R.drawable.ic_eye)
+                            ComposeList(
+                                onReload = onReload,
+                                colorBackground = colorBackground,
+                                colorForeground = colorForeground,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(5.dp),
+                                needsInternet = false,
+                                onSwipeToStart = ActionItem(
+                                    name = "Delete Item",
+                                    Icons.Default.Delete,
+                                    action = {listItem ->
+                                        val calendarEvent = calendarEvents.find { it.id == listItem.id }
+                                        if(calendarEvent != null) {
+                                            event = calendarEvent
+                                            showDeleteDialog = true
+                                            true
+                                        } else {false}
+                                    },
+                                    color = Color.Red
+                                ),
+                                actions = listOf(
+                                    ActionItem(
+                                        name = "Show Item",
+                                        painter = painter,
+                                        action = {listItem ->
+                                            val calendarEvent = calendarEvents.find { it.id == listItem.id }
+                                            if(calendarEvent != null) {
+                                                event = calendarEvent
+                                                showEventView = true
+                                                true
+                                            } else {false}
+                                        }
+                                    ),
+                                    ActionItem(
+                                        name = "Edit Item",
+                                        icon = Icons.Default.Edit,
+                                        action = {listItem ->
+                                            val calendarEvent = calendarEvents.find { it.id == listItem.id }
+                                            if(calendarEvent != null) {
+                                                event = calendarEvent
+                                                showDialog = true
+                                                true
+                                            } else {false}
+                                        }
+                                    )
+                                ),
+                                multiActions = listOf(
+                                    MultiActionItem(
+                                        name = "Delete Items",
+                                        icon = Icons.Default.Delete,
+                                        action = { selectedItems ->
+                                            val items = calendarEvents.filter {
+                                                it.id == (selectedItems.find { ite -> ite.id == it.id }?.id
+                                                    ?: 0)
+                                            }
+                                            events = items
+                                            showMultipleDeleteDialog = true
+                                            true
+                                        }
+                                    )
+                                )
+                            )
                         } else {
                             NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                         }
@@ -609,76 +728,6 @@ fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: C
             .padding(5.dp)
             .semantics { contentDescription = cal.time.toString() })
     }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun CalendarEventItem(calendarEvent: CalendarEvent, colorBackground: Color, colorForeground: Color, onClick: (CalendarEvent)->Unit, onLongClick: (CalendarEvent) -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(5.dp)
-            .background(colorBackground)
-            .combinedClickable(
-                onClick = { onLongClick(calendarEvent) },
-                onLongClick = { onClick(calendarEvent) })) {
-        Column(Modifier.weight(1f)) {
-            Icon(Icons.Default.DateRange, calendarEvent.title, tint = colorForeground)
-        }
-        Column(Modifier.weight(if(calendarEvent.categories=="") 6f else 4f)) {
-            Row {
-                Text(calendarEvent.title, fontWeight = FontWeight.Bold, color = colorForeground)
-            }
-            Row {
-                Text(calendarEvent.description, fontWeight = FontWeight.Normal, fontSize = 10.sp, color = colorForeground)
-            }
-        }
-        if(calendarEvent.categories != "") {
-            Column(Modifier.weight(2f)) {
-                Row {
-                    calendarEvent.categories.split(",").forEach { tag ->
-                        Column(
-                            Modifier
-                                .padding(1.dp)
-                                .clip(RoundedCornerShape(5.dp))
-                                .background(colorForeground)) {
-                            Text(tag.trim(),
-                                Modifier.padding(2.dp),
-                                color = colorBackground,
-                                fontSize = 8.sp)
-                        }
-                    }
-                }
-            }
-        }
-        val sdf = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-        val sdfFullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        val from = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(calendarEvent.from), ZoneId.systemDefault()))
-        val to = GregorianCalendar.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(calendarEvent.to), ZoneId.systemDefault()))
-
-        val start: String
-        val end: String
-        if(from.get(Calendar.HOUR) == 0 && from.get(Calendar.MINUTE) == 0 && to.get(Calendar.HOUR) == 0 && to.get(Calendar.MINUTE) == 0) {
-            start = sdfFullDay.format(Date.from(Instant.ofEpochMilli(calendarEvent.from)))
-            end = sdfFullDay.format(Date.from(Instant.ofEpochMilli(calendarEvent.to)))
-        } else {
-            start = sdf.format(Date.from(Instant.ofEpochMilli(calendarEvent.from)))
-            end = sdf.format(Date.from(Instant.ofEpochMilli(calendarEvent.to)))
-        }
-
-        Column(Modifier.weight(3f)) {
-            Row {
-                Text(start,
-                    Modifier.padding(2.dp), colorForeground)
-            }
-            Row {
-                Text(end,
-                    Modifier.padding(2.dp), colorForeground)
-            }
-        }
-    }
-    Separator(color = colorForeground)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -933,10 +982,10 @@ fun NewEditDialog(
                             date = from,
                             onValueChange = {
                                 from = it
-                                if(!wholeDay) {
-                                    isFromValid = from.before(to)
+                                isFromValid = if(!wholeDay) {
+                                    from.before(to)
                                 } else {
-                                    isFromValid = true
+                                    true
                                 }
                             },
                             {Text(stringResource(R.string.calendar_from))},
@@ -966,7 +1015,8 @@ fun NewEditDialog(
                     }
                 }
                 Row {
-                    Column(Modifier
+                    Column(
+                        Modifier
                             .weight(8f)
                             .padding(5.dp)) {
                         Text(stringResource(R.string.calendar_whole_day))
@@ -1254,12 +1304,6 @@ fun CalendarPreview() {
 }
 
 @Preview(showBackground = true)
-@Composable
-fun CalendarItemPreview() {
-    CalendarEventItem(fakeEvent(1), colorBackground = Color.Blue, colorForeground = Color.White, {}) {}
-}
-
-@Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun EventViewPreview() {
@@ -1273,7 +1317,8 @@ fun EventViewPreview() {
 @PreviewScreenSizes
 @Composable
 fun ScreenPreview() {
-    CalendarScreen(listOf(fakeEvent(1), fakeEvent(2), fakeEvent(3)), colorBackground = Color.Blue, colorForeground = Color.White, Date(), listOf(), listOf(), true, {}, {_,_->}, {}, {}, {})
+    val lst = mutableListOf(fakeEvent(1), fakeEvent(2), fakeEvent(3))
+    CalendarScreen(lst, { mutableListOf() }, colorBackground = Color.Blue, colorForeground = Color.White, Date(), listOf(), listOf(), true, {}, { _, _->}, {}, {}, {})
 }
 
 @Preview(showBackground = true)

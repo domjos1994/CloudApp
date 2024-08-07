@@ -1,10 +1,6 @@
 package de.domjos.cloudapp2.features.chats.screens
 
 import android.widget.Toast
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,15 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -37,18 +32,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -61,13 +53,15 @@ import de.domjos.cloudapp2.rest.model.msg.Message
 import de.domjos.cloudapp2.rest.model.room.Room
 import de.domjos.cloudapp2.rest.model.room.Type
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
+import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
-import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.rest.model.user.User
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -82,7 +76,6 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Colo
     val isConnected = connection === ConnectionState.Available
 
     if(isConnected) {
-        viewModel.reload()
         viewModel.loadUsers()
     }
 
@@ -105,6 +98,24 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Colo
         onDeleteClick = {
             viewModel.deleteRoom(it)
         },
+        onReload = {
+            viewModel.reload()
+            val items = mutableListOf<ListItem<Long>>()
+            rooms.forEach {
+                var icon: ImageVector? = null
+                var image: ImageBitmap? = null
+                if(it.icon != null) {
+                    image = it.icon!!.asImageBitmap()
+                } else {
+                    icon = Icons.Default.AccountBox
+                }
+
+                val item = ListItem<Long>(it.name ?: "", "${it.lastMessage.actorDisplayName}: ${it.lastMessage.message}", icon = icon, image = image)
+                item.id = it.id
+                items.add(item)
+            }
+            items
+        },
         rooms = rooms, users, isConnected, viewModel.hasAuthentications(), toAuths, onChatScreen,
         colorBackground, colorForeground)
 }
@@ -113,6 +124,7 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Colo
 fun RoomScreen(
     onSaveClick: (Room) -> Unit,
     onDeleteClick: (Room) -> Unit,
+    onReload: () -> MutableList<ListItem<Long>>,
     rooms: List<Room>,
     users: List<User?>,
     isConnected: Boolean,
@@ -151,7 +163,6 @@ fun RoomScreen(
 
         Column(
             Modifier
-                .verticalScroll(rememberScrollState())
                 .constrainAs(list) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
@@ -162,15 +173,54 @@ fun RoomScreen(
                 }) {
             if(hasAuths) {
                 if(isConnected) {
-                    rooms.forEach { room ->
-                        RoomItem(room, colorBackground, colorForeground, {
-                            selectedItem.value = it
-                            onChatScreen(1, it.token)
-                        }, {
-                            selectedItem.value = it
-                            showDialog.value = true
-                        })
-                    }
+                    val painter = painterResource(R.drawable.ic_eye)
+                    ComposeList(
+                        onReload = onReload,
+                        colorBackground = colorBackground,
+                        colorForeground = colorForeground,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(5.dp),
+                        needsInternet = true,
+                        onSwipeToStart = ActionItem(
+                            name = "Delete Room",
+                            icon = Icons.Default.Delete,
+                            action = {item ->
+                                val room = rooms.find { item.id == it.id }
+                                if(room != null) {
+                                    selectedItem.value = room
+                                    showDeleteDialog.value = true
+                                    true
+                                } else { false }
+                            }
+                        ),
+                        actions = listOf(
+                            ActionItem(
+                                name = "Show Item",
+                                painter = painter,
+                                action = { item ->
+                                    val room = rooms.find { item.id == it.id }
+                                    if(room != null) {
+                                        selectedItem.value = room
+                                        onChatScreen(1, room.token)
+                                        true
+                                    } else { false }
+                                }
+                            ),
+                            ActionItem(
+                                name = "Edit Item",
+                                icon = Icons.Default.Edit,
+                                action = { item ->
+                                    val room = rooms.find { item.id == it.id }
+                                    if(room != null) {
+                                        selectedItem.value = room
+                                        showDialog.value = true
+                                        true
+                                    } else { false }
+                                }
+                            )
+                        )
+                    )
                 } else {
                     NoInternetItem(colorForeground, colorBackground)
                 }
@@ -200,61 +250,6 @@ fun RoomScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun RoomItem(room: Room, colorBackground: Color, colorForeground: Color,
-             onClick: (Room) -> Unit, onLongClick: (Room) -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(70.dp)
-            .background(colorBackground)
-            .combinedClickable(
-                onClick = { onClick(room) },
-                onLongClick = { onLongClick(room) })
-    ) {
-        if(room.icon?.asImageBitmap()!=null) {
-            Image(
-                bitmap = room.icon?.asImageBitmap()!!,
-                room.name,
-                modifier = Modifier
-                    .padding(5.dp)
-                    .height(60.dp)
-                    .width(60.dp)
-                    .clip(RoundedCornerShape(5.dp)))
-        } else {
-            Image(
-                painterResource(R.drawable.baseline_person_24),
-                room.name,
-                modifier = Modifier
-                    .padding(5.dp)
-                    .height(60.dp)
-                    .width(60.dp)
-                    .clip(RoundedCornerShape(5.dp)),
-                colorFilter = ColorFilter.tint(colorForeground))
-        }
-        Column {
-            val content: String = if(room.lastMessage.actorDisplayName!="") {
-                "${room.lastMessage.actorDisplayName}: ${room.lastMessage.message}"
-            } else {
-                room.lastMessage.message
-            }
-            Text(room.displayName!!, fontWeight= FontWeight.Bold, modifier = Modifier.padding(1.dp),
-                color = colorForeground)
-            Text(
-                room.lastMessage.getParameterizedMessage(content),
-                modifier = Modifier
-                    .padding(1.dp), maxLines = 1,
-                fontStyle = if(room.unreadMessages==0) FontStyle.Normal else FontStyle.Italic,
-                fontWeight = if(room.unreadMessages==0) FontWeight.Normal else FontWeight.Bold,
-                color = colorForeground
-            )
-        }
-    }
-    Separator(color = colorForeground)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -322,7 +317,9 @@ fun EditDialog(
                         }
                     }
                 }
-                Row(modifier = Modifier.fillMaxWidth().height(70.dp)) {
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp)) {
                     AutocompleteTextField(
                         value = name,
                         onValueChange = {name = it},
@@ -426,17 +423,11 @@ fun DialogUpdatePreview() {
 @Preview(showBackground = true)
 @Composable
 fun RoomScreenPreview() {
-    RoomScreen({}, {}, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)), listOf(),
+    RoomScreen({}, {}, { mutableListOf() }, listOf(fakeRoom(0), fakeRoom(1), fakeRoom(2)), listOf(),
         isConnected = true,
         hasAuths = true, {},
         onChatScreen = { _, _->}, colorBackground = Color.Blue, colorForeground = Color.White
     )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RoomItemPreview() {
-    RoomItem(fakeRoom(1), colorBackground = Color.Blue, colorForeground = Color.White, {}, {})
 }
 
 fun fakeRoom(no: Int): Room {

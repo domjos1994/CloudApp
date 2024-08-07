@@ -9,18 +9,15 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,14 +27,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
@@ -64,7 +62,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -81,9 +78,12 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.ActionItem
+import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.ListItem
+import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
-import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ImageHelper
@@ -118,7 +118,6 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
     val connectivity by connectivityState()
     val available = connectivity === ConnectionState.Available
     viewModel.getAddressBooks(available, LocalContext.current)
-    viewModel.loadAddresses(available)
 
     viewModel.message.observe(LocalLifecycleOwner.current) {
         if(it != null) {
@@ -127,7 +126,25 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
         }
     }
 
-    ContactScreen(
+    ContactScreen(onReload = {
+            viewModel.loadAddresses(available)
+            val items = mutableListOf<ListItem<Long>>()
+            contacts.forEach { contact ->
+                var book = contact.addressBook
+                if(addressBooks.containsKey(book)) {
+                    book = addressBooks[book].toString()
+                }
+
+                val listItem = ListItem<Long>(
+                    "${contact.givenName} ${contact.familyName}".trim(),
+                    book,
+                    Icons.Default.AccountCircle
+                )
+                listItem.id = contact.id
+                items.add(listItem)
+            }
+            items
+        },
         contacts, colorBackground, colorForeground, addressBooks,
         viewModel.hasAuthentications(), toAuths, canInsert,
         onSelectedAddressBook = { book: String ->
@@ -158,6 +175,7 @@ fun importContactAction(viewModel: ContactViewModel = hiltViewModel()): (updateP
 
 @Composable
 fun ContactScreen(
+    onReload: ()-> MutableList<ListItem<Long>>,
     contacts: List<Contact>,
     colorBackground: Color,
     colorForeground: Color,
@@ -174,11 +192,31 @@ fun ContactScreen(
     var showDialog by remember { mutableStateOf(false) }
     var showBottomSheet by remember { mutableStateOf(false) }
     var contact by remember { mutableStateOf<Contact?>(null) }
+    var selectedContacts by remember { mutableStateOf<List<Contact>>(listOf()) }
     val all = stringResource(R.string.contacts_all)
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showMultipleDeleteDialog by remember { mutableStateOf(false) }
 
     if(showDeleteDialog) {
-        ShowDeleteDialog(onShowDialog = {showDeleteDialog = it}, {onDelete(contact!!)})
+        ShowDeleteDialog(
+            onShowDialog = {showDeleteDialog = it},
+            {
+                onDelete(contact!!)
+                contact = null
+            }
+        )
+    }
+
+    if(showMultipleDeleteDialog) {
+        ShowDeleteDialog(
+            onShowDialog = {showDeleteDialog = it},
+            {
+                selectedContacts.forEach { selected ->
+                    onDelete(selected)
+                }
+                selectedContacts = listOf()
+            }
+        )
     }
 
     ConstraintLayout(Modifier.fillMaxSize()) {
@@ -213,28 +251,75 @@ fun ContactScreen(
                     BottomSheet(contact = contact!!, {showBottomSheet=it}, openPhone, openEmail, hasPhone)
                 }
 
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    if(hasAuths) {
-                        if(contacts.isEmpty()) {
-                            NoEntryItem(colorForeground = colorBackground, colorBackground = colorForeground)
-                        } else {
-                            contacts.forEach {
-                                ContactItem(contact = it, addressBooks, colorBackground, colorForeground, { c ->
+                if(hasAuths) {
+                    val painter = painterResource(R.drawable.ic_eye)
+                    ComposeList(
+                        onReload = {onReload()},
+                        colorBackground = colorBackground,
+                        colorForeground = colorForeground,
+                        onSwipeToStart = ActionItem(
+                            name = "Delete Item",
+                            icon = Icons.Default.Delete,
+                            action = { item ->
+                                val c = contacts.find { it.id == item.id }
+                                if(c != null) {
                                     contact = c
-                                    showBottomSheet = true
-                                }) { c->
-                                    contact = c
-                                    showDialog = true
+                                    showDeleteDialog = true
+                                    true
+                                } else {false}
+                            },
+                            color = Color.Red
+                        ),
+                        actions = listOf(
+                            ActionItem(
+                                name = "Show item",
+                                painter = painter,
+                                action = {item ->
+                                    val c = contacts.find { it.id == item.id }
+                                    if(c != null) {
+                                        contact = c
+                                        showBottomSheet = true
+                                        true
+                                    } else {false}
                                 }
-                            }
-                        }
-                    } else {
-                        NoAuthenticationItem(
-                            colorBackground = colorBackground,
-                            colorForeground = colorForeground,
-                            toAuths = toAuths
-                        )
-                    }
+                            ),
+                            ActionItem(
+                                name = "Edit item",
+                                icon = Icons.Default.Edit,
+                                action = {item ->
+                                    val c = contacts.find { it.id == item.id }
+                                    if(c != null) {
+                                        contact = c
+                                        showDialog = true
+                                        true
+                                    } else {false}
+                                }
+                            )
+                        ),
+                        multiActions = listOf(
+                            MultiActionItem(
+                                name = "Delete Item",
+                                icon = Icons.Default.Delete,
+                                action = { selected ->
+                                    val items = contacts.filter {
+                                        it.id == (selected.find { ite -> ite.id == it.id }?.id ?: 0)
+                                    }
+                                    selectedContacts = items
+                                    showMultipleDeleteDialog = true
+                                    true
+                                }
+                            )
+                        ),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(5.dp)
+                    )
+                } else {
+                    NoAuthenticationItem(
+                        colorBackground = colorBackground,
+                        colorForeground = colorForeground,
+                        toAuths = toAuths
+                    )
                 }
             }
         }
@@ -261,92 +346,6 @@ fun ContactScreen(
             }
         }
     }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun ContactItem(contact: Contact, addressBooks: Map<String, String>, colorBackground: Color, colorForeground: Color, onClick: (Contact) -> Unit, onLongClick: (Contact) -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .wrapContentSize(Alignment.TopEnd)
-            .height(40.dp)
-            .background(colorBackground)
-            .combinedClickable(
-                onClick = { onClick(contact) },
-                onLongClick = { onLongClick(contact) },
-            )) {
-
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .background(colorBackground),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
-            if(contact.photo != null) {
-                val data = ImageHelper.convertImageByteArrayToBitmap(contact.photo!!)
-                if(data != null) {
-                    Image(data.asImageBitmap(), contentDescription = contact.familyName)
-                } else {
-                    Image(painterResource(id = R.drawable.baseline_person_24), contentDescription = contact.familyName, colorFilter = ColorFilter.tint(colorForeground))
-                }
-            } else {
-                Image(
-                    painterResource(id = R.drawable.baseline_person_24),
-                    contentDescription = contact.familyName,
-                    colorFilter = ColorFilter.tint(colorForeground)
-                )
-            }
-        }
-        Column(
-            Modifier
-                .weight(5f)
-                .padding(5.dp)) {
-            Row {
-                var prefix = ""
-                var suffix = ""
-                var family = ""
-                val given = "${contact.givenName} "
-                if(contact.prefix != null) prefix = "${contact.prefix} "
-                if(contact.suffix != null) suffix = "${contact.suffix} "
-                if(contact.familyName != null) family = "${contact.familyName} "
-
-                val name = "$prefix$given$family$suffix"
-                Text(
-                    text = name.trim(),
-                    fontWeight = FontWeight.Bold,
-                    color = colorForeground
-                )
-            }
-            if(contact.birthDay != null) {
-                Row {
-                    val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                    Text(sdf.format(contact.birthDay!!),
-                        color = colorForeground)
-                }
-            }
-        }
-        Column(
-            modifier = Modifier
-                .weight(4f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally) {
-
-            var book = ""
-            if(addressBooks[contact.addressBook] != null) {
-                book = addressBooks[contact.addressBook]!!
-            }
-
-            Text(book, color = colorForeground)
-        }
-    }
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(color = colorForeground)) {}
 }
 
 @Composable
