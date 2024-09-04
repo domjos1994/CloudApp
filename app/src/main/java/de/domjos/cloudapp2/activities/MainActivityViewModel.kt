@@ -2,6 +2,7 @@ package de.domjos.cloudapp2.activities
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -18,6 +19,7 @@ import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.rest.model.capabilities.Data
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.net.URL
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -28,10 +30,28 @@ class MainActivityViewModel @Inject constructor(
 ) : ViewModel() {
     var message = MutableLiveData<String?>()
 
-    fun getCapabilities(onResult: (Data?) -> Unit, authentication: Authentication?) {
+    fun getCapabilities(onResult: (Authentication?) -> Unit, authentication: Authentication?) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                onResult(authenticationRepository.getCapabilities(authentication))
+                val tmp = authentication ?: authenticationRepository.getLoggedInUser()
+
+                if(tmp?.colorForeground == "") {
+                    val data = authenticationRepository.getCapabilities(authentication)
+                    tmp.colorBackground = data?.capabilities?.theming?.color ?: ""
+                    tmp.colorForeground = data?.capabilities?.theming?.`color-text` ?: ""
+                    tmp.serverVersion = data?.version?.string ?: ""
+                    tmp.spreed = if(data?.capabilities?.spreed != null) "true" else "false"
+                    tmp.thUrl = data?.capabilities?.theming?.url ?: ""
+                    val icon = data?.capabilities?.theming?.logo ?: ""
+                    if(icon.isNotEmpty()) {
+                        val stream = URL(icon).openStream()
+                        tmp.thumbNail = stream.readBytes()
+                        stream.close()
+                    }
+                    authenticationRepository.update(tmp, "")
+                }
+
+                onResult(authentication)
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)

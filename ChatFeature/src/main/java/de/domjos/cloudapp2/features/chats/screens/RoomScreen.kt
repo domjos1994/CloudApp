@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
@@ -16,22 +17,18 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -157,8 +154,7 @@ fun RoomScreen(
     }
 
     ConstraintLayout(modifier = Modifier
-        .fillMaxSize()
-        .padding(5.dp)) {
+        .fillMaxSize()) {
         val (list, control) = createRefs()
 
         Column(
@@ -179,11 +175,10 @@ fun RoomScreen(
                         colorBackground = colorBackground,
                         colorForeground = colorForeground,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(5.dp),
+                            .fillMaxSize(),
                         needsInternet = true,
                         onSwipeToStart = ActionItem(
-                            name = "Delete Room",
+                            name = stringResource(R.string.sys_list_delete),
                             icon = Icons.Default.Delete,
                             action = {item ->
                                 val room = rooms.find { item.id == it.id }
@@ -196,7 +191,7 @@ fun RoomScreen(
                         ),
                         actions = listOf(
                             ActionItem(
-                                name = "Show Item",
+                                name = stringResource(R.string.sys_list_show),
                                 painter = painter,
                                 action = { item ->
                                     val room = rooms.find { item.id == it.id }
@@ -208,7 +203,7 @@ fun RoomScreen(
                                 }
                             ),
                             ActionItem(
-                                name = "Edit Item",
+                                name = stringResource(R.string.sys_list_edit),
                                 icon = Icons.Default.Edit,
                                 action = { item ->
                                     val room = rooms.find { item.id == it.id }
@@ -252,7 +247,6 @@ fun RoomScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditDialog(
     room: Room?,
@@ -266,7 +260,6 @@ fun EditDialog(
     var invite by remember { mutableStateOf(room?.invite ?: "") }
     var name by remember { mutableStateOf(TextFieldValue("")) }
     var description by remember { mutableStateOf(TextFieldValue("")) }
-    var expanded by remember { mutableStateOf(false) }
 
     if(room != null) {
         token = room.token
@@ -283,43 +276,14 @@ fun EditDialog(
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    ExposedDropdownMenuBox(
-                        expanded = expanded,
-                        onExpandedChange = {expanded=!expanded},
-                        modifier = Modifier.fillMaxWidth()) {
-                        TextField(
-                            readOnly = true,
-                            value = type,
-                            onValueChange = { },
-                            label = { Text(stringResource(R.string.chats_rooms_type)) },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                    expanded = expanded
-                                )
-                            },
-                            colors = ExposedDropdownMenuDefaults.textFieldColors()
-                        )
-                        ExposedDropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = {
-                                expanded = false
-                            }
-                        ) {
-                            Type.entries.forEach { selectionOption ->
-                                DropdownMenuItem(
-                                    text = {selectionOption.name},
-                                    onClick = {
-                                        type = selectionOption.name
-                                        expanded = false
-                                    }
-                                )
-                            }
-                        }
-                    }
+                    DropDown(
+                        items = Type.entries.toList().map { it.name },
+                        initial = Type.FormerOneToOne.name,
+                        onSelected = { type = it },
+                        label = stringResource(R.string.chats_rooms_type)
+                    )
                 }
-                Row(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(70.dp)) {
+                Row(modifier = Modifier.fillMaxWidth()) {
                     AutocompleteTextField(
                         value = name,
                         onValueChange = {name = it},
@@ -360,29 +324,51 @@ fun EditDialog(
                     })
                 }
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
                     horizontalArrangement = Arrangement.Start) {
 
                     if(room?.token != null) {
-                        Column(modifier = Modifier.weight(1F)) {
+                        Column(modifier = Modifier
+                            .weight(2F)
+                            .height(60.dp).width(60.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center) {
                             IconButton(onClick = {
                                 onDeleteClick(room)
                                 setShowDialog(false)
-                            }) {
-                                Icon(Icons.Default.Delete, stringResource(R.string.login_delete))
+                            }, Modifier.height(50.dp).width(50.dp)) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    stringResource(R.string.login_delete),
+                                    Modifier.height(50.dp).width(50.dp)
+                                )
                             }
                         }
                     }
-                    Column(modifier = Modifier.weight(9F)) {
-
-                    }
-                    Column(modifier = Modifier.weight(1F)) {
-                        IconButton(onClick = { setShowDialog(false) }) {
-                            Icon(Icons.Default.Close, stringResource(R.string.login_close))
+                    Column(modifier = Modifier.weight(9F)) {}
+                    Column(modifier = Modifier
+                        .weight(2F)
+                        .height(60.dp).width(60.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
+                        IconButton(onClick = {
+                            setShowDialog(false)
+                        }, Modifier.height(50.dp).width(50.dp)) {
+                            Icon(
+                                Icons.Default.Close,
+                                stringResource(R.string.login_close),
+                                Modifier.height(50.dp).width(50.dp)
+                            )
                         }
                     }
                     Column(
-                        modifier = Modifier.weight(1F)) {
+                        modifier = Modifier
+                            .weight(2F)
+                            .height(60.dp).width(60.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             val auth = Room(
                                 0L,
@@ -398,8 +384,12 @@ fun EditDialog(
 
                             onSaveClick(auth)
                             setShowDialog(false)
-                        }) {
-                            Icon(Icons.Default.CheckCircle, stringResource(R.string.login_close))
+                        }, Modifier.height(50.dp).width(50.dp)) {
+                            Icon(
+                                Icons.Default.CheckCircle,
+                                stringResource(R.string.login_close),
+                                Modifier.height(50.dp).width(50.dp)
+                            )
                         }
                     }
                 }
@@ -450,7 +440,7 @@ fun fakeRoom(no: Int): Room {
         "description$no",
         1,
         no,
-        "dfsklghkgfd",
+        "version 1",
         msg
     )
 }

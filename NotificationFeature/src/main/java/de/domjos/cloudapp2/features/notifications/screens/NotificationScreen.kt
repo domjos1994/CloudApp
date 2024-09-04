@@ -139,8 +139,6 @@ fun Header(
     val strServer = stringResource(R.string.notification_server)
     val strWhole = stringResource(R.string.notification_whole)
 
-    HorizontalDivider(color = colorForeground)
-
     if(allTypes) {
         Row(
             Modifier

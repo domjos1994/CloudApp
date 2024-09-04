@@ -83,6 +83,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
+import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
@@ -174,7 +175,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
 fun importCalendarAction(viewModel: CalendarViewModel = hiltViewModel()): (updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit) -> Unit {
     val context = LocalContext.current
     return {onProgress, onFinish ->
-        viewModel.reload(onProgress, onFinish,context.getString(R.string.calendar_import_calendar), context.getString(R.string.calendar_save_calendar))
+        viewModel.import(onProgress, onFinish,context.getString(R.string.calendar_import_calendar), context.getString(R.string.calendar_save_calendar))
     }
 }
 
@@ -244,13 +245,12 @@ fun CalendarScreen(
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
                 width = Dimension.fillToConstraints
-            }) {
+            }.padding(5.dp)) {
                 DropDown(
                     calendars.map { it.label }, initial,
                     {onCalendarSelected(calendars.find { elem -> elem.label == it }!!.name)},
                     stringResource(R.string.calendars)
                 )
-                Separator(colorForeground)
             }
 
             Column(Modifier.constrainAs(list) {
@@ -988,8 +988,9 @@ fun NewEditDialog(
                                     true
                                 }
                             },
-                            {Text(stringResource(R.string.calendar_from))},
-                            !isFromValid
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {Text(stringResource(R.string.calendar_from))},
+                            isError = !isFromValid
                         )
                     }
                 }
@@ -1006,8 +1007,9 @@ fun NewEditDialog(
                                     to = it
                                     isToValid = to.after(from)
                                 },
-                                { Text(stringResource(R.string.calendar_to)) },
-                                !isToValid
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text(stringResource(R.string.calendar_to)) },
+                                isError = !isToValid
                             )
                         } else {
                             isToValid = true
@@ -1193,106 +1195,6 @@ fun NewEditDialog(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, label: @Composable (() -> Unit)? = null, isError: Boolean = false) {
-    val cal = Calendar.getInstance(Locale.getDefault())
-    cal.time = date
-    val context = LocalContext.current
-    var showDatePicker by remember { mutableStateOf(false) }
-    var showTimePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState(date.time)
-    val timePickerState = rememberTimePickerState(cal.get(Calendar.HOUR), cal.get(Calendar.MINUTE), true)
-    val selectedDate = datePickerState.selectedDateMillis?.let {
-        val dateTime = it + (1000L * 60L * 60L * timePickerState.hour) + (1000L * 60L * timePickerState.minute)
-        onValueChange(Date(dateTime))
-        convertMillisToDate(context, dateTime)
-    } ?: ""
-
-    Box(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = selectedDate,
-            onValueChange = {
-                onValueChange(convertStringToDate(context, it))
-            },
-            label = label,
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = { showTimePicker = !showTimePicker }) {
-                    Icon(
-                        painterResource(id = R.drawable.ic_time),
-                        contentDescription = stringResource(R.string.date_picker_time)
-                    )
-                }
-            },
-            leadingIcon = {
-                IconButton(onClick = { showDatePicker = !showDatePicker }) {
-                    Icon(
-                        imageVector = Icons.Default.DateRange,
-                        contentDescription = stringResource(R.string.date_picker_date)
-                    )
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(64.dp),
-            isError = isError
-        )
-
-        if (showDatePicker) {
-            Popup(
-                onDismissRequest = { showDatePicker = false },
-                alignment = Alignment.TopStart
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset(y = 64.dp)
-                        .shadow(elevation = 4.dp)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(16.dp)
-                ) {
-                    DatePicker(
-                        state = datePickerState,
-                        showModeToggle = true
-                    )
-                }
-            }
-        }
-        if (showTimePicker) {
-            Popup(
-                onDismissRequest = { showTimePicker = false },
-                alignment = Alignment.TopStart
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset(y = 64.dp)
-                        .shadow(elevation = 4.dp)
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(16.dp)
-                ) {
-                    TimePicker(
-                        state = timePickerState
-                    )
-                }
-            }
-        }
-    }
-}
-
-fun convertMillisToDate(context: Context, millis: Long): String {
-    val formatter = SimpleDateFormat(context.getString(R.string.sys_format), Locale.getDefault())
-    return formatter.format(Date(millis))
-}
-
-fun convertStringToDate(context: Context, date: String): Date {
-    val formatter = SimpleDateFormat(context.getString(R.string.sys_format), Locale.getDefault())
-    return formatter.parse(date) ?: Date()
 }
 
 @Preview(showBackground = true)

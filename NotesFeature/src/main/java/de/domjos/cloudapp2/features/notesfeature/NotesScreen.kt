@@ -188,8 +188,7 @@ fun NotesScreen(
                 bottom.linkTo(parent.bottom)
                 height = Dimension.fillToConstraints
                 width = Dimension.fillToConstraints
-            }
-            .padding(5.dp)) {
+            }) {
             if(hasAuths) {
                 val painter = painterResource(R.drawable.ic_eye)
                 ComposeList(
@@ -197,11 +196,10 @@ fun NotesScreen(
                     colorBackground = colorBackground,
                     colorForeground = colorForeground,
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(5.dp),
+                        .fillMaxSize(),
                     needsInternet = true,
                     onSwipeToStart = ActionItem(
-                        name = "Delete Item",
+                        name = stringResource(R.string.sys_list_delete),
                         icon = Icons.Default.Delete,
                         action = { listItem ->
                             val note = items.find { it.id == listItem.id }
@@ -215,7 +213,7 @@ fun NotesScreen(
                     ),
                     actions = listOf(
                         ActionItem(
-                            name = "Show Item",
+                            name = stringResource(R.string.sys_list_show),
                             painter = painter,
                             action = { listItem ->
                                 val note = items.find { it.id == listItem.id }
@@ -227,7 +225,7 @@ fun NotesScreen(
                             }
                         ),
                         ActionItem(
-                            name = "Edit Item",
+                            name = stringResource(R.string.sys_list_edit),
                             icon = Icons.Default.Edit,
                             action = { listItem ->
                                 val note = items.find { it.id == listItem.id }
@@ -241,7 +239,7 @@ fun NotesScreen(
                     ),
                     multiActions = listOf(
                         MultiActionItem(
-                            name = "Delete Selected Items",
+                            name = stringResource(R.string.sys_list_delete),
                             icon = Icons.Default.Delete,
                             action = {listItems ->
                                 val selection = items.filter {
@@ -535,7 +533,7 @@ fun NotesScreenPreview() {
     CloudAppTheme {
         val items = listOf(fake(1), fake(2), fake(3))
 
-        NotesScreen(items, { mutableListOf() }, {}, {}, false, {}, true, colorBackground = Color.Blue, colorForeground = Color.White)
+        NotesScreen(items, { mutableListOf() }, {}, {}, true, {}, true, colorBackground = Color.Blue, colorForeground = Color.White)
     }
 }
 

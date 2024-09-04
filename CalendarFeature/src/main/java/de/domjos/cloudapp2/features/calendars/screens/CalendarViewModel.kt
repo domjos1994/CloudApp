@@ -31,9 +31,16 @@ class CalendarViewModel @Inject constructor(
     private val _date = MutableStateFlow(Date())
     val date: StateFlow<Date> get() = _date
 
+    private var calendar: String = ""
+    private var start: Long = 0L
+    private var end: Long = 0L
+
     fun load(calendar: String, startTime: Long, endTime: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                this@CalendarViewModel.calendar = calendar
+                this@CalendarViewModel.start = startTime
+                this@CalendarViewModel.end = endTime
                 _events.value = calendarRepository.loadData(calendar, startTime, endTime)
                 _date.value = Date(startTime)
             } catch (ex: Exception) {
@@ -65,10 +72,12 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun reload(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, progressLabel: String, saveLabel: String) {
+    fun import(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, progressLabel: String, saveLabel: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 calendarRepository.reload(updateProgress, progressLabel, saveLabel)
+                _events.value = calendarRepository.loadData(calendar, start, end)
+                _date.value = Date(start)
                 onFinish()
             } catch (ex: Exception) {
                 message.postValue(ex.message)

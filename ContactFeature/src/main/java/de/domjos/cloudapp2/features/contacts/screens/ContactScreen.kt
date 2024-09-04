@@ -80,6 +80,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
+import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
 import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
@@ -167,9 +168,9 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
 }
 
 @Composable
-fun importContactAction(viewModel: ContactViewModel = hiltViewModel()): (updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit) -> Unit {
+fun importContactAction(viewModel: ContactViewModel = hiltViewModel(), hasInternet: Boolean): (updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit) -> Unit {
     return {onProgress, onFinish ->
-        viewModel.importAddresses(onProgress, onFinish)
+        viewModel.import(onProgress, onFinish, hasInternet)
     }
 }
 
@@ -231,13 +232,9 @@ fun ContactScreen(
             width = Dimension.fillToConstraints
         }) {
             Column {
-                DropDown(addressBooks.values.toList(), all, onSelectedAddressBook, stringResource(R.string.contacts_book))
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(2.dp)
-                        .background(Color.Black)) {}
-
+                Row(Modifier.padding(5.dp)) {
+                    DropDown(addressBooks.values.toList(), all, onSelectedAddressBook, stringResource(R.string.contacts_book))
+                }
 
                 if(showDialog) {
                     EditDialog(contact = contact, setShowDialog = {
@@ -258,7 +255,7 @@ fun ContactScreen(
                         colorBackground = colorBackground,
                         colorForeground = colorForeground,
                         onSwipeToStart = ActionItem(
-                            name = "Delete Item",
+                            name = stringResource(R.string.sys_list_delete),
                             icon = Icons.Default.Delete,
                             action = { item ->
                                 val c = contacts.find { it.id == item.id }
@@ -268,11 +265,12 @@ fun ContactScreen(
                                     true
                                 } else {false}
                             },
-                            color = Color.Red
+                            color = Color.Red,
+                            visible = canInsert
                         ),
                         actions = listOf(
                             ActionItem(
-                                name = "Show item",
+                                name = stringResource(R.string.sys_list_show),
                                 painter = painter,
                                 action = {item ->
                                     val c = contacts.find { it.id == item.id }
@@ -284,7 +282,7 @@ fun ContactScreen(
                                 }
                             ),
                             ActionItem(
-                                name = "Edit item",
+                                name = stringResource(R.string.sys_list_edit),
                                 icon = Icons.Default.Edit,
                                 action = {item ->
                                     val c = contacts.find { it.id == item.id }
@@ -293,12 +291,13 @@ fun ContactScreen(
                                         showDialog = true
                                         true
                                     } else {false}
-                                }
+                                },
+                                visible = canInsert
                             )
                         ),
                         multiActions = listOf(
                             MultiActionItem(
-                                name = "Delete Item",
+                                name = stringResource(R.string.sys_list_delete),
                                 icon = Icons.Default.Delete,
                                 action = { selected ->
                                     val items = contacts.filter {
@@ -307,12 +306,12 @@ fun ContactScreen(
                                     selectedContacts = items
                                     showMultipleDeleteDialog = true
                                     true
-                                }
+                                },
+                                visible = canInsert
                             )
                         ),
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(5.dp)
                     )
                 } else {
                     NoAuthenticationItem(
@@ -356,8 +355,6 @@ fun EditDialog(
     onDelete: (Contact) -> Unit,
     canInsert: Boolean) {
 
-    val fullDay = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-
     var uid by remember { mutableStateOf("") }
     var suffix by remember { mutableStateOf(TextFieldValue("")) }
     var prefix by remember { mutableStateOf(TextFieldValue("")) }
@@ -366,8 +363,7 @@ fun EditDialog(
     var lastName by remember { mutableStateOf(TextFieldValue("")) }
     var isLastNameValid by remember { mutableStateOf(true) }
     var additional by remember { mutableStateOf(TextFieldValue("")) }
-    var birthDate by remember { mutableStateOf(TextFieldValue(fullDay.format(Date()))) }
-    var isBirthDateValid by remember { mutableStateOf(true) }
+    var birthDate by remember { mutableStateOf(Date()) }
     var organization by remember { mutableStateOf(TextFieldValue("")) }
     val phones = remember { mutableStateListOf(
         Phone(0L, "", "", LinkedList())
@@ -386,9 +382,7 @@ fun EditDialog(
         prefix = TextFieldValue(contact.prefix!!)
         firstName = TextFieldValue(contact.givenName)
         lastName = TextFieldValue(contact.familyName!!)
-        birthDate = TextFieldValue(
-            if(contact.birthDay!=null) fullDay.format(contact.birthDay!!) else fullDay.format(Date())
-        )
+        birthDate = if(contact.birthDay != null) contact.birthDay!! else Date()
         additional = TextFieldValue(contact.additional!!)
         organization = TextFieldValue(contact.organization!!)
         img.value = contact.photo
@@ -526,7 +520,9 @@ fun EditDialog(
                                 additional = it
                             },
                             label = {Text(stringResource(R.string.contact_additional))},
-                            modifier = Modifier.padding(2.dp)
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .fillMaxWidth()
                         )
                     }
                 }
@@ -538,15 +534,13 @@ fun EditDialog(
                         Modifier
                             .weight(1f)
                             .wrapContentHeight()) {
-                        OutlinedTextField(
-                            value = birthDate,
+                        DatePickerDocked(
+                            date = birthDate,
                             onValueChange = {
                                 birthDate = it
-                                isBirthDateValid = Validator.checkDate(it.text, "dd.MM.yyyy")
                             },
                             label = {Text(stringResource(R.string.contact_birthDate))},
-                            modifier = Modifier.padding(2.dp),
-                            isError = !isBirthDateValid
+                            showTime = false
                         )
                     }
                 }
@@ -564,7 +558,9 @@ fun EditDialog(
                                 organization = it
                             },
                             label = {Text(stringResource(R.string.contact_org))},
-                            modifier = Modifier.padding(2.dp)
+                            modifier = Modifier
+                                .padding(2.dp)
+                                .fillMaxWidth()
                         )
                     }
                 }
@@ -598,7 +594,7 @@ fun EditDialog(
                                 val first = firstName.text
                                 val last = lastName.text
                                 val add = additional.text
-                                val bd = fullDay.parse(birthDate.text)
+                                val bd = birthDate
                                 val org = organization.text
                                 val ph = LinkedList<Phone>()
                                 phones.forEach {
@@ -630,7 +626,7 @@ fun EditDialog(
 
                                 onSave(new)
                                 setShowDialog(false)
-                            }, enabled = isFirstNameValid && isLastNameValid && isBirthDateValid) {
+                            }, enabled = isFirstNameValid && isLastNameValid) {
                                 Icon(Icons.Default.Check, "")
                             }
                         }
@@ -1547,6 +1543,31 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
         }
     }
 }
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ContactScreenPreview() {
+    CloudAppTheme {
+        ContactScreen(
+            onReload = { mutableListOf() },
+            contacts = listOf(fakeContact(1), fakeContact(2), fakeContact(3)),
+            colorForeground = Color.White,
+            colorBackground = Color.Blue,
+            addressBooks = mapOf(),
+            hasAuths = true,
+            toAuths = {},
+            canInsert = true,
+            onSelectedAddressBook = {},
+            onSave = {},
+            onDelete = {},
+            openEmail = {},
+            openPhone = {},
+            hasPhone = {true}
+        )
+    }
+}
+
 
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)

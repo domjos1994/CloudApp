@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import de.domjos.cloudapp2.appbasics.R
+import java.net.URL
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,6 +28,8 @@ class AuthenticationViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AuthenticationUiState.Loading)
     var message = MutableLiveData<String?>()
     var resId = MutableLiveData<Int?>()
+
+
     fun checkAuthentications(authentication: Authentication) {
         viewModelScope.launch {
             try {
@@ -44,6 +47,19 @@ class AuthenticationViewModel @Inject constructor(
                 if(!authenticationRepository.hasAuthentications()) {
                     authentication.selected = true
                 }
+
+                val capabilities = authenticationRepository.getCapabilities(authentication)
+                authentication.colorBackground = capabilities?.capabilities?.theming?.color ?: ""
+                authentication.colorForeground = capabilities?.capabilities?.theming?.`color-text` ?: ""
+                authentication.serverVersion = capabilities?.version?.string ?: ""
+                authentication.spreed = if(capabilities?.capabilities?.spreed != null) "true" else "false"
+                authentication.thUrl = capabilities?.capabilities?.theming?.url ?: ""
+                val icon = capabilities?.capabilities?.theming?.logo ?: ""
+                if(icon.isNotEmpty()) {
+                    val stream = URL(icon).openStream()
+                    authentication.thumbNail = stream.readBytes()
+                    stream.close()
+                }
                 val result = authenticationRepository.insert(authentication, msg)
                 if(result != "" && result.toLongOrNull() == null) {
                     message.postValue(result)
@@ -60,6 +76,18 @@ class AuthenticationViewModel @Inject constructor(
     fun updateAuthentication(authentication: Authentication, msg: String) {
         viewModelScope.launch {
             try {
+                val capabilities = authenticationRepository.getCapabilities(authentication)
+                authentication.colorBackground = capabilities?.capabilities?.theming?.color ?: ""
+                authentication.colorForeground = capabilities?.capabilities?.theming?.`color-text` ?: ""
+                authentication.serverVersion = capabilities?.version?.string ?: ""
+                authentication.spreed = if(capabilities?.capabilities?.spreed != null) "true" else "false"
+                authentication.thUrl = capabilities?.capabilities?.theming?.url ?: ""
+                val icon = capabilities?.capabilities?.theming?.logo ?: ""
+                if(icon.isNotEmpty()) {
+                    val stream = URL(icon).openStream()
+                    authentication.thumbNail = stream.readBytes()
+                    stream.close()
+                }
                 val result = authenticationRepository.update(authentication, msg)
                 if(result != "") {
                     message.postValue(result)

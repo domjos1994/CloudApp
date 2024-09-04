@@ -86,7 +86,7 @@ class DefaultDataRepository @Inject constructor(
     override suspend fun getList(): List<Item> {
         path = webDav!!.getSimplePath()
         val items = webDav!!.getList()
-        if(shares != null) {
+        /*if(shares != null) {
             items.forEach { item ->
                 shares?.collect { shares ->
                     shares.forEach { share ->
@@ -104,7 +104,7 @@ class DefaultDataRepository @Inject constructor(
 
                 }
             }
-        }
+        }*/
         return items
     }
 

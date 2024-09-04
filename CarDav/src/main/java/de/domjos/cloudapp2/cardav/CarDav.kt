@@ -23,6 +23,11 @@ import ezvcard.property.Telephone
 import ezvcard.property.Uid
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.xml.sax.InputSource
+import java.io.StringReader
+import java.io.StringWriter
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId
@@ -30,6 +35,11 @@ import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
 import java.util.UUID
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 import kotlin.jvm.Throws
 
 class CarDav(private val authentication: Authentication?) {
@@ -51,16 +61,86 @@ class CarDav(private val authentication: Authentication?) {
 
     @Throws(Exception::class)
     fun getAddressBooks() : List<AddressBook> {
-        val addressBooks = LinkedList<AddressBook>()
+        var addressBooks = mutableListOf<AddressBook>()
         if(this.sardine != null) {
-            this.sardine?.list(this.basePath)?.drop(1)?.forEach { resource ->
+            val lst = this.sardine?.list(this.basePath)?.drop(1)
+            lst?.forEach { resource ->
                 val name = resource.name
                 val label = resource.displayName
                 val path = "${authentication?.url}${resource.path}"
                 addressBooks.add(AddressBook(name, label, path))
+
             }
+            addressBooks = getLabels(this.basePath, addressBooks)
         }
         return addressBooks
+    }
+
+    fun getLabels(path: String, lst: MutableList<AddressBook>): MutableList<AddressBook> {
+        try {
+            val factory = DocumentBuilderFactory.newInstance()
+            val builder = factory.newDocumentBuilder()
+            val document = builder.newDocument()
+
+
+            val propFindElement = document.createElementNS("DAV:", "propfind")
+            propFindElement.prefix = "d"
+            document.appendChild(propFindElement)
+
+            val propElement = document.createElement("d:prop")
+            propFindElement.appendChild(propElement)
+
+            val displayNameElement = document.createElement("d:displayname")
+            propElement.appendChild(displayNameElement)
+
+            val tf = TransformerFactory.newInstance()
+            val transformer = tf.newTransformer()
+            transformer.setOutputProperty(OutputKeys.ENCODING, "yes")
+            val writer = StringWriter()
+            transformer.transform(DOMSource(document), StreamResult(writer))
+            val output = writer.buffer.toString()
+
+            val okHttp = OkHttpClient()
+            val request = Request.Builder()
+                .url(path)
+                .addHeader("Authorization", Credentials.basic(authentication!!.userName, authentication.password))
+                .method("PROPFIND", output.toRequestBody())
+                .build()
+            val response = okHttp.newCall(request).execute()
+            if(response.code < 400) {
+                val content = response.body?.string()
+                val resultDoc = builder.parse(InputSource(StringReader(content)))
+                if(resultDoc.hasChildNodes()) {
+                    for(i in 0..<resultDoc.childNodes.length) {
+                        val node = resultDoc.childNodes.item(i)
+                        if(node.hasChildNodes()) {
+                            for(j in 0..<node.childNodes.length) {
+                                val subNode = node.childNodes.item(j)
+                                if(subNode.childNodes.length == 2) {
+                                    val tempPath = subNode.childNodes.item(0).childNodes.item(0).textContent
+                                    val baseLblNode = subNode.childNodes.item(1)
+                                    var label = ""
+                                    if(baseLblNode.hasChildNodes()) {
+                                        val child = baseLblNode.childNodes.item(0)
+                                        if(child.hasChildNodes()) {
+                                            val grandChild = child.childNodes.item(0)
+                                            if(grandChild.hasChildNodes()) {
+                                                label = grandChild.childNodes.item(0).textContent
+                                            }
+                                        }
+                                    }
+                                    val found = lst.find { it.path.endsWith(tempPath) }
+                                    if(found != null) {
+                                        found.label = label
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch(_: Exception) {}
+        return lst
     }
 
     @Throws(Exception::class)

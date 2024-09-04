@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,7 +45,6 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
-import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.rest.model.msg.Message
 
 
@@ -93,6 +94,7 @@ fun ChatScreen(messages: List<Message>, userName: String, colorBackground: Color
             }
         }
 
+        HorizontalDivider(color = colorForeground)
         Row(
             Modifier
                 .wrapContentHeight()
@@ -102,36 +104,36 @@ fun ChatScreen(messages: List<Message>, userName: String, colorBackground: Color
                     bottom.linkTo(parent.bottom)
                     top.linkTo(list.bottom)
                     width = Dimension.fillToConstraints
-                }
-                .background(colorBackground)) {
-            Column {
-                Separator(color = colorForeground)
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(2.dp)) {
-                    Column(
-                        Modifier
-                            .weight(18f)) {
-                        OutlinedTextField(
-                            value = msg,
-                            onValueChange = {msg = it},
-                            label = {Text(stringResource(R.string.chats_msg),
+                    height = Dimension.value(70.dp)
+                }.background(colorBackground)) {
+            Column(
+                Modifier
+                    .weight(18f)
+                    .height(70.dp)
+                    .padding(5.dp)) {
+                OutlinedTextField(
+                    value = msg,
+                    onValueChange = {msg = it},
+                    label = {
+                        Text(stringResource(R.string.chats_msg),
                             fontSize = 12.sp,
-                            color = colorForeground)}
+                            color = colorForeground
                         )
-                    }
-                    Column(
-                        Modifier
-                            .weight(2f),
-                        verticalArrangement = Arrangement.Center) {
-                        IconButton(onClick = {
-                            onSend(msg.text)
-                            msg = TextFieldValue("")
-                        }) {
-                            Icon(Icons.AutoMirrored.Filled.Send, stringResource(R.string.chats_send), tint = colorForeground)
-                        }
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            Column(
+                Modifier
+                    .weight(2f)
+                    .height(70.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally) {
+                IconButton(onClick = {
+                    onSend(msg.text)
+                    msg = TextFieldValue("")
+                }) {
+                    Icon(Icons.AutoMirrored.Filled.Send, stringResource(R.string.chats_send), tint = colorForeground)
                 }
             }
         }
@@ -226,5 +228,5 @@ fun BotChatItemPreview() {
 }
 
 fun fakeMessage(no: Int, isBot: Boolean = false): Message {
-    return Message(no, "Test$no", if(isBot) "bots" else "person", " $no", "Test", 0L, "This is a test $no!")
+    return Message(no, "Test$no", if(isBot) "bots" else "person", " $no", "Test$no", 0L, "This is a test $no!")
 }

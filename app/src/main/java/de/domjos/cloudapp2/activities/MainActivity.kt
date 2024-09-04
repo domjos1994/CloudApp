@@ -35,6 +35,7 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -166,7 +167,7 @@ class MainActivity : ComponentActivity() {
             val tmpForeground = MaterialTheme.colorScheme.primary
             var colorBackground by remember { mutableStateOf(tmpBackground) }
             var colorForeground by remember { mutableStateOf(tmpForeground) }
-            var icon by remember { mutableStateOf("") }
+            var icon by remember { mutableStateOf<ByteArray?>(null) }
             var authTitle by remember { mutableStateOf("") }
             var breadcrumb by remember { mutableStateOf("") }
             val connection by connectivityState()
@@ -197,18 +198,18 @@ class MainActivity : ComponentActivity() {
                         if(isConnected && it && isMobile) {
                             viewModel.getCapabilities({ data ->
                                 if(data != null) {
-                                    colorBackground = Color(android.graphics.Color.parseColor(data.capabilities.theming.color))
-                                    colorForeground = Color(android.graphics.Color.parseColor(data.capabilities.theming.`color-text`))
-                                    icon = data.capabilities.theming.logo
-                                    authTitle = "(${data.capabilities.theming.url})"
+                                    colorBackground = Color(android.graphics.Color.parseColor(data.colorBackground))
+                                    colorForeground = Color(android.graphics.Color.parseColor(data.colorForeground))
+                                    icon = data.thumbNail
+                                    authTitle = "(${data.thUrl})"
                                     hasAuthentications = viewModel.hasAuthentications()
-                                    hasSpreed = data.capabilities.spreed != null
+                                    hasSpreed = data.spreed.equals("true")
                                 }
                             }, auth)
                         } else {
                             colorBackground = tmpBackground
                             colorForeground = tmpForeground
-                            icon = ""
+                            icon = null
                             authTitle = ""
                         }
                     }
@@ -262,108 +263,119 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
 
-                    Scaffold(bottomBar = { TabView(tabBarItems, updateTheme, navController, tabBarVisible, hasSpreed) }, topBar = {
-
-                        TopAppBar(
-                            colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = colorBackground,
-                                titleContentColor = colorForeground,
-                            ),
-                            title={
+                    Scaffold(
+                        bottomBar = { TabView(tabBarItems, updateTheme, navController, tabBarVisible, hasSpreed) },
+                        topBar = {
+                            Column {
                                 Row {
-                                    Column {
-                                        Text(header)
-                                    }
-                                    if(breadcrumb == "") {
-                                        Column(
-                                            Modifier.padding(2.dp),
-                                            verticalArrangement = Arrangement.Bottom
-                                        ) {
-                                            Text(authTitle, fontSize = 12.sp)
-                                        }
-                                    } else {
-                                        Column(
-                                            Modifier.padding(2.dp),
-                                            verticalArrangement = Arrangement.Bottom
-                                        ) {
-                                            Text("$authTitle ($breadcrumb)", fontSize = 10.sp)
-                                        }
-                                    }
+                                   TopAppBar(
+                                       colors = TopAppBarDefaults.topAppBarColors(
+                                           containerColor = colorBackground,
+                                           titleContentColor = colorForeground,
+                                       ),
+                                       title={
+                                           Row {
+                                               Column {
+                                                   Text(header)
+                                               }
+                                               if(breadcrumb == "") {
+                                                   Column(
+                                                       Modifier.padding(2.dp),
+                                                       verticalArrangement = Arrangement.Bottom
+                                                   ) {
+                                                       Text(authTitle, fontSize = 12.sp)
+                                                   }
+                                               } else {
+                                                   Column(
+                                                       Modifier.padding(2.dp),
+                                                       verticalArrangement = Arrangement.Bottom
+                                                   ) {
+                                                       Text("$authTitle ($breadcrumb)", fontSize = 10.sp)
+                                                   }
+                                               }
+                                           }
+                                       },
+                                       actions = {
+                                           if(refreshVisible && isConnected && hasAuthentications) {
+                                               var showDialog by rememberSaveable { mutableStateOf(false) }
+                                               var currentProgress by remember { mutableFloatStateOf(0f) }
+                                               var currentText by remember { mutableStateOf("") }
+
+                                               IconButton(onClick = {
+                                                   showDialog = true
+                                                   notification = Notifications.showBasicNotification(context, import, "")
+                                                   progress?.let {
+                                                       it({ progress, text ->
+                                                           currentProgress = progress
+                                                           currentText = text
+                                                           if(notification != null) {
+                                                               Notifications.updateNotification(context, progress, notification!!)
+                                                           }
+                                                       }, {
+                                                           showDialog = false
+                                                           Notifications.deleteNotification(context)
+                                                       })
+                                                   }
+                                               }) {
+                                                   Icon(imageVector = Icons.Outlined.Refresh, import, tint = colorForeground)
+                                               }
+
+                                               if(showDialog) {
+                                                   ProgressDialog(
+                                                       onShowDialog = {showDialog=it},
+                                                       currentText = currentText,
+                                                       currentProgress = currentProgress,
+                                                       foregroundColor = colorForeground,
+                                                       backgroundColor = colorBackground
+                                                   )
+                                               }
+
+                                           } else if(refreshVisible && hasAuthentications) {
+                                               Icon(Icons.Filled.CloudOff, import, tint = colorForeground)
+                                           }
+                                           IconButton(onClick = {
+                                               navController.navigate(authentications)
+                                           }) {
+                                               if(icon == null) {
+                                                   Icon(
+                                                       imageVector = Icons.Filled.Person,
+                                                       contentDescription = stringResource(R.string.login),
+                                                       tint = colorForeground
+                                                   )
+                                               } else {
+                                                   AsyncImage(model = ImageRequest.Builder(LocalContext.current)
+                                                       .decoderFactory(SvgDecoder.Factory())
+                                                       .data(icon)
+                                                       .scale(Scale.FIT)
+                                                       .build(), contentDescription = stringResource(R.string.login))
+                                               }
+                                           }
+
+                                           var menuExpanded by remember { mutableStateOf(false) }
+                                           IconButton(onClick = { menuExpanded = !menuExpanded }) {
+                                               Icon(
+                                                   imageVector = Icons.Filled.MoreVert,
+                                                   contentDescription = "More",
+                                                   tint = colorForeground
+                                               )
+                                           }
+                                           if(menuExpanded) {
+                                               Menu(
+                                                   {menuExpanded = it},
+                                                   updateTheme,
+                                                   true,
+                                                   {navController.navigate(settings)},
+                                                   {navController.navigate(permissions)})
+                                           }
+                                       }
+                                   )
                                 }
-                            },
-                            actions = {
-                        if(refreshVisible && isConnected && hasAuthentications) {
-                            var showDialog by rememberSaveable { mutableStateOf(false) }
-                            var currentProgress by remember { mutableFloatStateOf(0f) }
-                            var currentText by remember { mutableStateOf("") }
-
-                            IconButton(onClick = {
-                                showDialog = true
-                                notification = Notifications.showBasicNotification(context, import, "")
-                                progress?.let {
-                                    it({ progress, text ->
-                                        currentProgress = progress
-                                        currentText = text
-                                        if(notification != null) {
-                                            Notifications.updateNotification(context, progress, notification!!)
-                                        }
-                                    }, {
-                                        showDialog = false
-                                        Notifications.deleteNotification(context)
-                                    })
+                                Row {
+                                    HorizontalDivider(color = colorForeground)
                                 }
-                            }) {
-                                Icon(imageVector = Icons.Outlined.Refresh, import, tint = colorForeground)
-                            }
-
-                            if(showDialog) {
-                                ProgressDialog(
-                                    onShowDialog = {showDialog=it},
-                                    currentText = currentText,
-                                    currentProgress = currentProgress,
-                                    foregroundColor = colorForeground,
-                                    backgroundColor = colorBackground
-                                )
-                            }
-
-                        } else if(refreshVisible && hasAuthentications) {
-                            Icon(Icons.Filled.CloudOff, import, tint = colorForeground)
-                        }
-                        IconButton(onClick = {
-                            navController.navigate(authentications)
-                        }) {
-                            if(icon == "") {
-                                Icon(
-                                    imageVector = Icons.Filled.Person,
-                                    contentDescription = stringResource(R.string.login),
-                                    tint = colorForeground
-                                )
-                            } else {
-                                AsyncImage(model = ImageRequest.Builder(LocalContext.current)
-                                    .decoderFactory(SvgDecoder.Factory())
-                                    .data(icon)
-                                    .scale(Scale.FIT)
-                                    .build(), contentDescription = stringResource(R.string.login))
                             }
                         }
-
-                        var menuExpanded by remember { mutableStateOf(false) }
-                        IconButton(onClick = { menuExpanded = !menuExpanded }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = "More",
-                                tint = colorForeground
-                            )
-                        }
-                        if(menuExpanded) {
-                            Menu(
-                                {menuExpanded = it},
-                                updateTheme,
-                                true,
-                                {navController.navigate(settings)},
-                                {navController.navigate(permissions)})
-                        }
-                    })}) {
+                    ) {
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
                                 AuthenticationScreen(colorForeground = colorForeground, colorBackground = colorBackground, onSelectedChange = updateTheme)
@@ -430,7 +442,7 @@ class MainActivity : ComponentActivity() {
                                 title = contactsTab.title
                                 header = contactsTab.title
                                 refreshVisible = true
-                                progress = importContactAction()
+                                progress = importContactAction(hasInternet = true)
                                 tabBarVisible.value = true
                                 breadcrumb = ""
                             }

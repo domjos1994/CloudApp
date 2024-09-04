@@ -6,6 +6,7 @@
 
 package de.domjos.cloudapp2.database.model
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -16,7 +17,28 @@ import androidx.room.PrimaryKey
         Index(value = ["title"], orders = [Index.Order.ASC], name = "title_index", unique = true)
     ]
 )
-data class Authentication(@PrimaryKey(autoGenerate = true) var id: Long, var title: String, var url: String, var userName: String, var password: String, var selected: Boolean, var description: String?, var thumbNail: ByteArray?) {
+data class Authentication(
+    @PrimaryKey(autoGenerate = true)
+    var id: Long,
+    var title: String,
+    var url: String,
+    var userName: String,
+    var password: String,
+    var selected: Boolean,
+    var description: String?,
+    var thumbNail: ByteArray?,
+    @ColumnInfo("colorForeground", defaultValue = "")
+    var colorForeground: String? = "",
+    @ColumnInfo("colorBackground", defaultValue = "")
+    var colorBackground: String? = "",
+    @ColumnInfo("serverVersion", defaultValue = "")
+    var serverVersion: String? = "",
+    @ColumnInfo("slogan", defaultValue = "")
+    var slogan: String? = "",
+    @ColumnInfo("spreed", defaultValue = "")
+    var spreed: String? = "",
+    @ColumnInfo("thUrl", defaultValue = "")
+    var thUrl: String? = "") {
 
     override fun toString(): String {
         return "$title($userName)"
@@ -36,6 +58,11 @@ data class Authentication(@PrimaryKey(autoGenerate = true) var id: Long, var tit
         if(selected != other.selected) return false
         if (description != other.description) return false
         if (!thumbNail.contentEquals(other.thumbNail)) return false
+        if (colorForeground != other.colorForeground) return false
+        if (colorBackground != other.colorBackground) return false
+        if (slogan != other.slogan) return false
+        if (spreed != other.spreed) return false
+        if (thUrl != other.thUrl) return false
 
         return true
     }
@@ -48,6 +75,11 @@ data class Authentication(@PrimaryKey(autoGenerate = true) var id: Long, var tit
         result = 31 * result + password.hashCode()
         result = 31 * result + description.hashCode()
         result = 31 * result + thumbNail.contentHashCode()
+        result = 31 * result + colorForeground.hashCode()
+        result = 31 * result + colorBackground.hashCode()
+        result = 31 * result + slogan.hashCode()
+        result = 31 * result + spreed.hashCode()
+        result = 31 * result + thUrl.hashCode()
         return result
     }
 }

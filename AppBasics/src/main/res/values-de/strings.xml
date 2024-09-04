@@ -166,6 +166,10 @@
     <string name="sys_loading">Einträge werden geladen!</string>
     <string name="sys_delete_item">Sind Sie sicher, dass Sie den Eintrag/die Einträge löschen möchten?</string>
     <string name="sys_clear_text">Text löschen</string>
+    <string name="sys_list_show">Zeige Eintrag</string>
+    <string name="sys_list_edit">Bearbeite Eintrag</string>
+    <string name="sys_list_delete">Lösche Eintrag/Einträge</string>
+    <string name="sys_dropdown_open">Dropdown öffnen</string>
 
     <string name="permissions">Berechtigungen</string>
     <string name="permissions_grant">Berechtigung gewähren</string>

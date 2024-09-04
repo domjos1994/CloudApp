@@ -176,6 +176,11 @@
     <string name="sys_loading">Entries are loading!</string>
     <string name="sys_delete_item">Are you sure, you want to delete the Item(s)?</string>
     <string name="sys_clear_text">Clear text</string>
+    <string name="sys_list_show">Show Item</string>
+    <string name="sys_list_edit">Edit Item</string>
+    <string name="sys_list_delete">Delete Item(s)</string>
+    <string name="sys_dropdown_open">Open Dropdown</string>
+
 
     <string name="permissions">Permissions</string>
     <string name="permissions_grant">Grant Permission</string>
