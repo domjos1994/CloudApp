@@ -21,6 +21,7 @@ import net.fortuna.ical4j.model.property.Location
 import net.fortuna.ical4j.model.property.Status
 import net.fortuna.ical4j.model.property.Summary
 import net.fortuna.ical4j.model.property.Uid
+import net.fortuna.ical4j.model.property.RRule
 import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -223,6 +224,17 @@ class CalDav(private val authentication: Authentication?) {
                         val categories = readPropertyToString<Categories>(component)
                         val confirmation = readPropertyToString<Status>(component)
                         val color = readPropertyToString<Color>(component)
+                        val rRule = RRule::class.simpleName?.uppercase()
+                        val comp = component.getProperty<RRule>(rRule)
+                        val frequency = comp.recur.frequency.name.lowercase()
+                        val freq = when(frequency) {
+                            "yearly" -> Frequency.Yearly
+                            "monthly" -> Frequency.Monthly
+                            "daily" -> Frequency.Daily
+                            "hourly" -> Frequency.Hourly
+                            else -> Frequency.None
+                        }
+
                         var lastModified: Long = 0
                         try {
                             lastModified = component.getProperty<LastModified>("LAST-MODIFIED").dateTime.time
@@ -237,10 +249,38 @@ class CalDav(private val authentication: Authentication?) {
                             from = net.fortuna.ical4j.model.DateTime(readPropertyToString<DtStart>(component)).time
                             to = net.fortuna.ical4j.model.DateTime(readPropertyToString<DtEnd>(component)).time
                         }
-                        items.add(CalendarEvent(0L, uid, from, to, title, location,
-                            description, confirmation, categories, color,
-                            name, "", -1L, lastModified,
-                            authentication?.id!!, path))
+                        val limitStart = from + (1000L * 60L * 60L * 24L * 365L * 5L)
+                        val limitEnd = to + (1000L * 60L * 60L * 24L * 365L * 5L)
+
+                        when(freq) {
+                            Frequency.Hourly -> {
+                                for(currentStart in from..limitStart step(1000L * 60L * 60L)) {
+                                    val currentEnd = to + 1000L * 60L * 60L
+                                    items.add(
+                                        CalendarEvent(0L, uid, currentStart, currentEnd, title, location,
+                                            description, confirmation, categories, color,
+                                            name, "", -1L, lastModified,
+                                            authentication?.id!!, path))
+                                }
+                            }
+                            Frequency.Daily -> {
+                                for(currentStart in from..limitStart step(1000L * 60L * 60L * 24L)) {
+                                    val currentEnd = to + 1000L * 60L * 60L * 24L
+                                    items.add(
+                                        CalendarEvent(0L, uid, currentStart, currentEnd, title, location,
+                                            description, confirmation, categories, color,
+                                            name, "", -1L, lastModified,
+                                            authentication?.id!!, path))
+                                }
+                            }
+                            else -> {
+                                items.add(
+                                    CalendarEvent(0L, uid, from, to, title, location,
+                                        description, confirmation, categories, color,
+                                        name, "", -1L, lastModified,
+                                        authentication?.id!!, path))
+                            }
+                        }
                     }
                 } catch (ex:Exception) {
                     Log.e("Error", ex.message, ex)
@@ -288,4 +328,13 @@ class CalDav(private val authentication: Authentication?) {
         headers["Authorization"] = auth
         return headers
     }
+}
+
+private enum class Frequency {
+    Yearly,
+    Monthly,
+    Weekly,
+    Daily,
+    Hourly,
+    None
 }
