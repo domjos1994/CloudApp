@@ -5,7 +5,10 @@ import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.rest.model.capabilities.Data
 import de.domjos.cloudapp2.rest.model.user.User
 import de.domjos.cloudapp2.rest.requests.UserRequest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.withContext
+import java.net.URL
 import javax.inject.Inject
 
 interface AuthenticationRepository {
@@ -17,6 +20,7 @@ interface AuthenticationRepository {
     suspend fun delete(authentication: Authentication): String
 
     suspend fun getLoggedInUser(): Authentication?
+    suspend fun updateTheme(authentication: Authentication, force: Boolean): Authentication
     suspend fun checkConnection(authentication: Authentication): User?
     suspend fun getCapabilities(authentication: Authentication?): Data?
     fun hasAuthentications(): Boolean
@@ -74,6 +78,28 @@ class DefaultAuthenticationRepository @Inject constructor(
     override suspend fun checkConnection(authentication: Authentication): User? {
         val ur = UserRequest(authentication)
         return ur.checkConnection()
+    }
+
+    override suspend fun updateTheme(authentication: Authentication, force: Boolean): Authentication {
+        if(force || authentication.colorForeground?.isEmpty() == true) {
+            val capabilities = getCapabilities(authentication)
+            authentication.colorBackground = capabilities?.capabilities?.theming?.color ?: ""
+            authentication.colorForeground = capabilities?.capabilities?.theming?.`color-text` ?: ""
+            authentication.serverVersion = capabilities?.version?.string ?: ""
+            authentication.spreed = if(capabilities?.capabilities?.spreed != null) "true" else "false"
+            authentication.thUrl = capabilities?.capabilities?.theming?.url ?: ""
+            val icon = capabilities?.capabilities?.theming?.logo ?: ""
+            if(icon.isNotEmpty()) {
+                val stream = withContext(Dispatchers.IO) {
+                    URL(icon).openStream()
+                }
+                authentication.thumbNail = stream.readBytes()
+                withContext(Dispatchers.IO) {
+                    stream.close()
+                }
+            }
+        }
+        return authentication
     }
 
     override suspend fun delete(authentication: Authentication): String {
