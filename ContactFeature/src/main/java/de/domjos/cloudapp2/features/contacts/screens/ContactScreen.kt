@@ -270,6 +270,34 @@ fun ContactScreen(
                         ),
                         actions = listOf(
                             ActionItem(
+                                name = stringResource(R.string.contact_open_phone),
+                                painter  = painterResource(R.drawable.baseline_phone_24),
+                                action = {item ->
+                                    try {
+                                        val c = contacts.find { it.id == item.id }
+                                        if(c != null) {
+                                            openPhone(c.phoneNumbers[0].value)
+                                            return@ActionItem true
+                                        }
+                                    } catch (_: Exception) {}
+                                    false
+                                }
+                            ),
+                            ActionItem(
+                                name = stringResource(R.string.contact_mail),
+                                painter  = painterResource(R.drawable.baseline_mail_24),
+                                action = {item ->
+                                    try {
+                                        val c = contacts.find { it.id == item.id }
+                                        if(c != null) {
+                                            openEmail(c.emailAddresses[0].value)
+                                            return@ActionItem true
+                                        }
+                                    } catch (_: Exception) {}
+                                    false
+                                }
+                            ),
+                            ActionItem(
                                 name = stringResource(R.string.sys_list_show),
                                 painter = painter,
                                 action = {item ->

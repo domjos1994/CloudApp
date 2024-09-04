@@ -83,6 +83,8 @@
     <string name="contact_mails">Email-Adressen</string>
     <string name="contact_mail">Email-Adresse</string>
     <string name="contact_open">Öffne Element in Kontakte</string>
+    <string name="contact_open_phone">Kontakt anrufen</string>
+    <string name="contact_open_email">Email verfassen</string>
 
     <string name="data">Daten</string>
     <string name="data_file_add">Datei hinzufügen</string>
