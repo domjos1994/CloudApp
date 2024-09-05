@@ -70,10 +70,12 @@ class NotificationViewModel @Inject constructor(
                     var contacts = contactDAO.getAll(authenticationDAO.getSelectedItem()?.id ?: 0)
                     contacts = contacts.filter { if(it.birthDay != null) it.birthDay?.time!! in startTime..endTime else false}
                     var events = calendarEventDAO.getAll(authenticationDAO.getSelectedItem()?.id ?: 0)
-                    events = events.filter {
-                        stringToDate(it.string_from).after(Date(startTime)) &&
-                        stringToDate(it.string_from).before(Date(endTime))
-                    }
+                    try {
+                        events = events.filter {
+                            stringToDate(it.string_from).after(Date(startTime)) &&
+                            stringToDate(it.string_from).before(Date(endTime))
+                        }
+                    } catch(_: Exception) {}
 
                     contacts.forEach {
                         val description = "${context.getString(R.string.contact_birthDate)}: ${it.givenName} ${it.familyName?:""}".trim()
@@ -88,12 +90,12 @@ class NotificationViewModel @Inject constructor(
 
                     val format = context.getString(R.string.sys_format)
                     events.forEach {
-                        val start = stringToOtherFormat(it.string_from, format)
-                        val end = stringToOtherFormat(it.string_to, format)
+                        val start = try {stringToOtherFormat(it.string_from, format)} catch (_: Exception) {""}
+                        val end = try {stringToOtherFormat(it.string_to, format)} catch (_: Exception) {""}
                         val description = "${it.title}: $start - $end".trim()
                         notificationItems.add(NotificationItem(
                             type = NotificationItem.Type.App,
-                            date = stringToDate(it.string_from),
+                            date = try {stringToDate(it.string_from)} catch (_: Exception) {Date()},
                             title = it.title,
                             description = description,
                             icon = {Icon(imageVector = Icons.Filled.DateRange, contentDescription = description)}
