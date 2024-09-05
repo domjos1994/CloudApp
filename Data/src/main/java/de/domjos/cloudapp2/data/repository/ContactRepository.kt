@@ -14,7 +14,7 @@ interface ContactRepository {
 
     suspend fun loadAddressBooks(hasInternet: Boolean): List<AddressBook>
     fun loadContacts(addressBook: String = ""): List<Contact>
-    fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit)
+    fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, deleteLabel: String, insertLabel: String, importLabel: String)
     fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact)
     fun deleteContact(hasInternet: Boolean, contact: Contact)
     fun hasAuthentications(): Boolean
@@ -48,15 +48,20 @@ class DefaultContactRepository @Inject constructor(
         return authenticationDAO.selected()!=0L
     }
 
-    override fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit) {
+    override fun importContacts(
+        updateProgress: (Float, String) -> Unit,
+        onFinish: ()->Unit,
+        deleteLabel: String,
+        insertLabel: String,
+        importLabel: String) {
         try {
             // delete all
-            updateProgress(0.0f, "Delete")
+            updateProgress(0.0f, deleteLabel)
             this.contactDAO.getAll(this.authenticationDAO.getSelectedItem()?.id!!)
                 .forEach { this.contactDAO.deleteContact(it) }
 
             val lst = this.loader.getAddressBooks()
-            updateProgress(0.0f, "Insert")
+            updateProgress(0.0f, insertLabel)
             lst.forEach { item ->
                 // contacts
                 val contacts = this.loader.getContacts(item)
@@ -96,7 +101,7 @@ class DefaultContactRepository @Inject constructor(
                     }
 
                     items++
-                    updateProgress(factor * items, if(item.label!=null) item.label!! else item.name)
+                    updateProgress(factor * items, String.format(importLabel, if(item.label!=null) item.label!! else item.name))
                 }
             }
         } finally {

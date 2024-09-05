@@ -40,9 +40,6 @@
 
     <string name="calendars">Kalender</string>
     <string name="calendars_all">Alle Kalender</string>
-    <string name="calendar_import">Importieren</string>
-    <string name="calendar_import_calendar">Importiere %s …</string>
-    <string name="calendar_save_calendar">Speichere %s …</string>
     <string name="calendar_title">Titel</string>
     <string name="calendar_from">Ab (Tag.Monat.Jahr [Stunde:Minute])</string>
     <string name="calendar_to">Bis (Tag.Monat.Jahr [Stunde:Minute])</string>
@@ -62,9 +59,6 @@
     <string name="contacts_all">Alle Kontakte</string>
     <string name="contacts_system">System-Kontakte</string>
     <string name="contacts_app">App-Kontakte</string>
-    <string name="contact_import">Kontakte importieren</string>
-    <string name="contact_delete">Alles löschen</string>
-    <string name="contact_insert">Einfügen</string>
     <string name="contact_family">Familien-Name</string>
     <string name="contact_given">Vorname</string>
     <string name="contact_additional">Zusätzlich</string>
@@ -85,6 +79,10 @@
     <string name="contact_open">Öffne Element in Kontakte</string>
     <string name="contact_open_phone">Kontakt anrufen</string>
     <string name="contact_open_email">Email verfassen</string>
+
+    <string name="import_delete">Lösche alle Daten…</string>
+    <string name="import_insert">Füge Daten ein…</string>
+    <string name="import_item" formatted="true">Importiere %s…</string>
 
     <string name="data">Daten</string>
     <string name="data_file_add">Datei hinzufügen</string>

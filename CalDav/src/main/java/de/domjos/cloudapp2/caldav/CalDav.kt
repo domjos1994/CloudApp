@@ -10,6 +10,7 @@ import net.fortuna.ical4j.data.CalendarOutputter
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
+import net.fortuna.ical4j.model.component.CalendarComponent
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Categories
 import net.fortuna.ical4j.model.property.Color
@@ -159,7 +160,7 @@ class CalDav(private val authentication: Authentication?) {
                     Log.e("Error", ex.message, ex)
                 } finally {
                     item += 1
-                    updateProgress((percentage*item)/100.0f, String.format(progressLabel, name))
+                    updateProgress((percentage*item)/100.0f, String.format(progressLabel, calendarModel.label))
                 }
             }
         }
@@ -224,63 +225,23 @@ class CalDav(private val authentication: Authentication?) {
                         val categories = readPropertyToString<Categories>(component)
                         val confirmation = readPropertyToString<Status>(component)
                         val color = readPropertyToString<Color>(component)
-                        val rRule = RRule::class.simpleName?.uppercase()
-                        val comp = component.getProperty<RRule>(rRule)
-                        val frequency = comp.recur.frequency.name.lowercase()
-                        val freq = when(frequency) {
-                            "yearly" -> Frequency.Yearly
-                            "monthly" -> Frequency.Monthly
-                            "daily" -> Frequency.Daily
-                            "hourly" -> Frequency.Hourly
-                            else -> Frequency.None
-                        }
 
                         var lastModified: Long = 0
                         try {
                             lastModified = component.getProperty<LastModified>("LAST-MODIFIED").dateTime.time
                         } catch (_: Exception) {}
 
-                        var from: Long
-                        var to: Long
-                        try {
-                            from = net.fortuna.ical4j.model.Date(readPropertyToString<DtStart>(component)).time
-                            to = net.fortuna.ical4j.model.Date(readPropertyToString<DtEnd>(component)).time
-                        } catch (_: Exception) {
-                            from = net.fortuna.ical4j.model.DateTime(readPropertyToString<DtStart>(component)).time
-                            to = net.fortuna.ical4j.model.DateTime(readPropertyToString<DtEnd>(component)).time
-                        }
-                        val limitStart = from + (1000L * 60L * 60L * 24L * 365L * 5L)
-                        val limitEnd = to + (1000L * 60L * 60L * 24L * 365L * 5L)
+                        val from: String = readPropertyToString<DtStart>(component)
+                        val to: String = readPropertyToString<DtEnd>(component)
 
-                        when(freq) {
-                            Frequency.Hourly -> {
-                                for(currentStart in from..limitStart step(1000L * 60L * 60L)) {
-                                    val currentEnd = to + 1000L * 60L * 60L
-                                    items.add(
-                                        CalendarEvent(0L, uid, currentStart, currentEnd, title, location,
-                                            description, confirmation, categories, color,
-                                            name, "", -1L, lastModified,
-                                            authentication?.id!!, path))
-                                }
-                            }
-                            Frequency.Daily -> {
-                                for(currentStart in from..limitStart step(1000L * 60L * 60L * 24L)) {
-                                    val currentEnd = to + 1000L * 60L * 60L * 24L
-                                    items.add(
-                                        CalendarEvent(0L, uid, currentStart, currentEnd, title, location,
-                                            description, confirmation, categories, color,
-                                            name, "", -1L, lastModified,
-                                            authentication?.id!!, path))
-                                }
-                            }
-                            else -> {
-                                items.add(
-                                    CalendarEvent(0L, uid, from, to, title, location,
-                                        description, confirmation, categories, color,
-                                        name, "", -1L, lastModified,
-                                        authentication?.id!!, path))
-                            }
-                        }
+                        items.add(
+                            CalendarEvent(
+                                0L, uid, from, to, title, location,
+                                description, confirmation, categories, color,
+                                name, "", -1L, lastModified,
+                                authentication?.id!!, path, buildRecurrence(component)
+                            )
+                        )
                     }
                 } catch (ex:Exception) {
                     Log.e("Error", ex.message, ex)
@@ -292,12 +253,43 @@ class CalDav(private val authentication: Authentication?) {
         return items
     }
 
+    private fun buildRecurrence(component: CalendarComponent): String {
+        try {
+            val itemList = mutableListOf<Int>()
+            val frequency = component.getProperty<RRule>(RRule::class.simpleName?.uppercase())
+            val type = frequency.recur.frequency.name.lowercase()
+            var freq: Frequency = Frequency.None
+            when(type) {
+                "yearly" -> {
+                    freq = Frequency.Yearly
+                    frequency.recur.monthList.forEach {m -> itemList.add(m.monthOfYear)}
+                }
+                "monthly" -> {
+                    freq = Frequency.Monthly
+                    frequency.recur.dayList.forEach {d -> itemList.add(d.day.ordinal)}
+                }
+                "weekly" -> {
+                    freq = Frequency.Weekly
+                    frequency.recur.weekNoList.forEach {w -> itemList.add(w)}
+                }
+                "daily" -> {freq = Frequency.Daily}
+                else -> Frequency.None
+            }
+            val interval = frequency.recur.interval
+            val repeats = frequency.recur.count
+            val untilDate = frequency.recur.until?.time ?: 0L
+
+            return "${freq.name}(${itemList.joinToString(",")}), $interval, $repeats, $untilDate"
+        } catch (_: Exception) {}
+        return ""
+    }
+
     private fun modelToICal(event: CalendarEvent): Calendar? {
         try {
             val vEvent =
                 VEvent(
-                    net.fortuna.ical4j.model.DateTime(event.from),
-                    net.fortuna.ical4j.model.DateTime(event.to),
+                    net.fortuna.ical4j.model.DateTime(event.string_from),
+                    net.fortuna.ical4j.model.DateTime(event.string_to),
                     event.title
                 )
 
@@ -335,6 +327,5 @@ private enum class Frequency {
     Monthly,
     Weekly,
     Daily,
-    Hourly,
     None
 }

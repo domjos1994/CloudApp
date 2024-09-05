@@ -20,8 +20,6 @@ import kotlinx.coroutines.flow.Flow
  * @property getAll
  * @property getAllWithoutFlow
  * @property getCalendars
- * @property getItemsByTime
- * @property getItemsByTimeAndCalendar
  * counting:
  * @property count
  * adding:
@@ -79,48 +77,6 @@ interface CalendarEventDAO {
     fun getAll(authId: Long, uid: String): CalendarEvent?
 
     /**
-     * Count events by time and uid
-     * @param startTime time-range start
-     * @param endTime end-range start
-     * @param authId id of authentication
-     * @return number
-     */
-    @Query("SELECT count(uid) FROM calendarEvents WHERE `to`>:startTime and `from`<:endTime and authId=:authId order by `from`")
-    fun count(startTime: Long, endTime: Long, authId: Long): Long
-
-    /**
-     * Get events by time and uid
-     * @param startTime time-range start
-     * @param endTime end-range start
-     * @param authId id of authentication
-     * @return number
-     */
-    @Query("SELECT * FROM calendarEvents WHERE `to`>:startTime and `from`<:endTime and authId=:authId order by `from`")
-    fun getItemsByTime(startTime: Long, endTime: Long, authId: Long): List<CalendarEvent>
-
-    /**
-     * Count events by time, calendar and uid
-     * @param calendar the name of calendar
-     * @param startTime time-range start
-     * @param endTime end-range start
-     * @param authId id of authentication
-     * @return number
-     */
-    @Query("SELECT count(uid) FROM calendarEvents WHERE calendar=:calendar and `to`>:startTime and `from`<:endTime and authId=:authId order by `from`")
-    fun count(calendar: String, startTime: Long, endTime: Long, authId: Long): Long
-
-    /**
-     * Get events by time, calendar and uid
-     * @param calendar the name of calendar
-     * @param startTime time-range start
-     * @param endTime end-range start
-     * @param authId id of authentication
-     * @return number
-     */
-    @Query("SELECT * FROM calendarEvents WHERE calendar=:calendar and `to`>:startTime and `from`<:endTime and authId=:authId order by `from`")
-    fun getItemsByTimeAndCalendar(calendar: String, startTime: Long, endTime: Long, authId: Long): List<CalendarEvent>
-
-    /**
      * Update the synced event id
      * @param eventId id of synced event
      * @param lastUpdated timestamp
@@ -128,9 +84,6 @@ interface CalendarEventDAO {
      */
     @Query("UPDATE calendarEvents SET eventId=:eventId, lastUpdatedEventPhone=:lastUpdated WHERE id=:id")
     fun updateEventSync(eventId: String, lastUpdated: Long, id: Long)
-
-    @Query("SELECT count(id) FROM calendarEvents WHERE calendar=:calendar and `to`=:startTime and `from`=:endTime and authId=:authId and (:id=0 or id!=:id)")
-    fun validate(calendar: String, startTime: Long, endTime: Long, authId: Long, id: Long): Int
 
     /**
      * Insert new Event

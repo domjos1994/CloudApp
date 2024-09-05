@@ -10,7 +10,6 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import java.util.UUID
 
 @Entity(
     tableName = "calendarEvents",
@@ -18,14 +17,16 @@ import java.util.UUID
         Index(value = ["uid"], orders = [Index.Order.ASC], name = "ce_uid_index")
     ]
 )
-class CalendarEvent(
+data class CalendarEvent(
     @PrimaryKey(autoGenerate = true)
     @ColumnInfo("id")
     var id: Long = 0L,
     @ColumnInfo("uid", defaultValue = "")
     var uid: String = "",
-    var from: Long,
-    var to: Long,
+    @ColumnInfo("string_from", defaultValue = "")
+    var string_from: String = "",
+    @ColumnInfo("string_to", defaultValue = "")
+    var string_to: String = "",
     var title: String,
     @ColumnInfo("location", defaultValue = "")
     var location: String = "",
@@ -47,5 +48,6 @@ class CalendarEvent(
     @ColumnInfo("authId", defaultValue = "0")
     var authId: Long = 0L,
     @ColumnInfo("path", defaultValue = "")
-    var path: String = "") {
-}
+    var path: String = "",
+    @ColumnInfo("recurrence", defaultValue = "")
+    var recurrence: String = "")

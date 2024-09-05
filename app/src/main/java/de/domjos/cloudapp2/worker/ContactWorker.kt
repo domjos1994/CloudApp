@@ -20,7 +20,7 @@ class ContactWorker(private val context: Context, workerParams: WorkerParameters
                    .build()
 
            val repo = DefaultContactRepository(db.authenticationDao(), db.contactDao())
-           repo.importContacts({_,_->}, {})
+           repo.importContacts({_,_->}, {}, "", "", "")
            Result.success()
        } catch (_: Exception) {
            Result.failure()

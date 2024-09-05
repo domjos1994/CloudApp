@@ -169,8 +169,9 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
 
 @Composable
 fun importContactAction(viewModel: ContactViewModel = hiltViewModel(), hasInternet: Boolean): (updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit) -> Unit {
+    val context = LocalContext.current
     return {onProgress, onFinish ->
-        viewModel.import(onProgress, onFinish, hasInternet)
+        viewModel.import(onProgress, onFinish, context, hasInternet)
     }
 }
 

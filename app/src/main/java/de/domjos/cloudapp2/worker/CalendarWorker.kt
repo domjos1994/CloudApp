@@ -18,7 +18,7 @@ class CalendarWorker(private val context: Context, workerParams: WorkerParameter
                     .build()
 
             val repo = DefaultCalendarRepository(db.authenticationDao(), db.calendarEventDao())
-            repo.reload({_,_->}, "", "")
+            repo.import({_,_->}, "", "")
             Result.success()
         } catch (_: Exception) {
             Result.failure()

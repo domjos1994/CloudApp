@@ -10,6 +10,7 @@ import android.content.Context
 import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.DeleteTable
+import androidx.room.DeleteColumn
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
@@ -32,7 +33,7 @@ import de.domjos.cloudapp2.database.model.contacts.Phone
         Authentication::class, CalendarEvent::class,
         Contact::class, Address::class, Phone::class, Email::class
    ],
-    version = 18,
+    version = 20,
     autoMigrations = [
         AutoMigration(1, 2),
         AutoMigration(2, 3),
@@ -50,7 +51,9 @@ import de.domjos.cloudapp2.database.model.contacts.Phone
         AutoMigration(14, 15),
         AutoMigration(15, 16),
         AutoMigration(16, 17),
-        AutoMigration(17, 18)
+        AutoMigration(17, 18),
+        AutoMigration(18, 19),
+        AutoMigration(19, 20, DeleteEventFromTo::class)
     ]
 )
 @TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class)
@@ -72,3 +75,7 @@ abstract class DB : RoomDatabase() {
 
 @DeleteTable("dataItems")
 class DeleteDataItem : AutoMigrationSpec
+
+@DeleteColumn("calendarEvents", "from")
+@DeleteColumn("calendarEvents", "to")
+class DeleteEventFromTo : AutoMigrationSpec

@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.features.calendars.screens
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,11 +9,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.data.repository.CalendarRepository
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
+import de.domjos.cloudapp2.appbasics.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
@@ -61,10 +62,10 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun count(calendar: String, event: Calendar) {
+    fun count() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _days.value = calendarRepository.countData(calendar, event)
+                _days.value = calendarRepository.countData()
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)
@@ -72,10 +73,14 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun import(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, progressLabel: String, saveLabel: String) {
+    fun import(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                calendarRepository.reload(updateProgress, progressLabel, saveLabel)
+                calendarRepository.import(
+                    updateProgress,
+                    context.getString(R.string.import_item),
+                    context.getString(R.string.import_insert)
+                )
                 _events.value = calendarRepository.loadData(calendar, start, end)
                 _date.value = Date(start)
                 onFinish()

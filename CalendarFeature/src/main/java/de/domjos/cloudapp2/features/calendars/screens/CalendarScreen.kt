@@ -1,6 +1,5 @@
 package de.domjos.cloudapp2.features.calendars.screens
 
-import android.content.Context
 import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -8,13 +7,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
@@ -33,7 +30,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -45,9 +41,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TimePicker
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -57,7 +50,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -75,7 +67,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.Popup
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -95,11 +86,13 @@ import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.openEvent
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.caldav.model.CalendarModel
+import de.domjos.cloudapp2.data.repository.dateToString
+import de.domjos.cloudapp2.data.repository.stringToDate
+import de.domjos.cloudapp2.data.repository.stringToOtherFormat
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.TextStyle
 import java.time.temporal.WeekFields
 import java.util.Calendar
@@ -128,7 +121,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     var end by remember { mutableLongStateOf(baseEnd.time.time) }
     var selectedCalendar by remember { mutableStateOf("") }
     viewModel.getCalendars()
-    viewModel.count(selectedCalendar, baseStart)
+    viewModel.count()
     val context = LocalContext.current
 
     viewModel.message.observe(LocalLifecycleOwner.current) {
@@ -139,15 +132,13 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     }
 
     val format = stringResource(R.string.sys_format)
-
     CalendarScreen(events, {
-        val sdf = SimpleDateFormat(format, Locale.getDefault())
         val items = mutableListOf<ListItem<Long>>()
         viewModel.load(selectedCalendar, start, end)
         events.forEach { event ->
             val listItem = ListItem<Long>(
                 title = event.title,
-                description = "${sdf.format(Date(event.from))} - ${sdf.format(Date(event.to))}",
+                description = "${stringToOtherFormat(event.string_from, format)} - ${stringToOtherFormat(event.string_to, format)}",
                 Icons.Default.DateRange,
                 selected = false,
                 deletable = true
@@ -166,7 +157,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
         start = calStart.time.time
         end = calEnd.time.time
         viewModel.load(selectedCalendar, start, end)
-        viewModel.count(selectedCalendar, calStart)
+        viewModel.count()
     }, { item: CalendarEvent -> viewModel.insertCalendar(item) },
         { item: CalendarEvent -> viewModel.deleteCalendar(item)}, {selected -> selectedCalendar = selected})
 }
@@ -175,7 +166,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
 fun importCalendarAction(viewModel: CalendarViewModel = hiltViewModel()): (updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit) -> Unit {
     val context = LocalContext.current
     return {onProgress, onFinish ->
-        viewModel.import(onProgress, onFinish,context.getString(R.string.calendar_import_calendar), context.getString(R.string.calendar_save_calendar))
+        viewModel.import(onProgress, onFinish, context)
     }
 }
 
@@ -217,7 +208,6 @@ fun CalendarScreen(
         NewEditDialog(
             {showDialog=it},
             event = event,
-            date = dt,
             calendars = calendars,
             onSave = {
                 onSave(it)
@@ -240,12 +230,15 @@ fun CalendarScreen(
         ConstraintLayout(Modifier.fillMaxSize()) {
             val (dropdown, list, control) = createRefs()
 
-            Column(Modifier.constrainAs(dropdown) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                width = Dimension.fillToConstraints
-            }.padding(5.dp)) {
+            Column(
+                Modifier
+                    .constrainAs(dropdown) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        width = Dimension.fillToConstraints
+                    }
+                    .padding(5.dp)) {
                 DropDown(
                     calendars.map { it.label }, initial,
                     {onCalendarSelected(calendars.find { elem -> elem.label == it }!!.name)},
@@ -631,12 +624,12 @@ fun DateHeader(
     date: Date
 ) {
     val format by remember { mutableStateOf("MM.yyyy") }
-    val fsdf = SimpleDateFormat(format, Locale.getDefault())
+    val dtMonth = SimpleDateFormat(format, Locale.getDefault())
     Column(
         Modifier
             .padding(5.dp)
             .fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(fsdf.format(date), fontWeight = FontWeight.Bold)
+        Text(dtMonth.format(date), fontWeight = FontWeight.Bold)
     }
     Separator(color = colorForeground)
 }
@@ -758,7 +751,7 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(getFormattedDate(ts = event.from), fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+                Text(event.string_from, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
             }
             Column(
                 modifier = Modifier.weight(1f),
@@ -772,7 +765,7 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(getFormattedDate(ts = event.to), fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+                Text(event.string_to, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
             }
         }
         if(event.location != "") {
@@ -892,24 +885,9 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
 }
 
 @Composable
-private fun getFormattedDate(ts: Long): String {
-    val dt = Date(ts)
-    val zdt = dt.toInstant().atZone(ZoneId.systemDefault())
-    val dFormat = SimpleDateFormat(stringResource(R.string.sys_format_date), Locale.getDefault())
-    val dtFormat = SimpleDateFormat(stringResource(R.string.sys_format), Locale.getDefault())
-
-    return if(zdt.hour == 0 && zdt.minute == 0 && zdt.second == 0) {
-        dFormat.format(dt)
-    } else {
-        dtFormat.format(dt)
-    }
-}
-
-@Composable
 fun NewEditDialog(
     onShowDialog: (Boolean) -> Unit,
     event: CalendarEvent?,
-    date: Date = Date(),
     calendars: List<CalendarModel>,
     onSave: (CalendarEvent) -> Unit,
     onDelete: (CalendarEvent) -> Unit) {
@@ -921,12 +899,15 @@ fun NewEditDialog(
     var title by remember { mutableStateOf(TextFieldValue(event?.title ?: "")) }
     var isTitleValid by remember { mutableStateOf(event?.title?.isNotEmpty() ?: false ) }
 
-    var wholeDay by remember { mutableStateOf(false) }
-    var from by remember { mutableStateOf(Date(event?.from ?: date.time)) }
-    var isFromValid by remember { mutableStateOf(event?.from?.toInt() != 0) }
+    val dtFrom = stringToDate(event?.string_from ?: "")
+    val dtTo= stringToDate(event?.string_to ?: "")
 
-    var to by remember { mutableStateOf(Date(event?.to ?: (date.time + 1000L * 60L * 60L))) }
-    var isToValid by remember { mutableStateOf(to.time != 0L && to.time > from.time && !wholeDay) }
+    var wholeDay by remember { mutableStateOf(false) }
+    var from by remember { mutableStateOf(dtFrom) }
+    var isFromValid by remember { mutableStateOf(true) }
+
+    var to by remember { mutableStateOf(dtTo) }
+    var isToValid by remember { mutableStateOf(true) }
 
     var description by remember { mutableStateOf(TextFieldValue(event?.description ?: "")) }
     var location by remember { mutableStateOf(TextFieldValue(event?.location ?: "")) }
@@ -1147,7 +1128,7 @@ fun NewEditDialog(
                         if(id != 0L && uid.isNotEmpty() && isTitleValid && isFromValid && isToValid) {
                             IconButton(onClick = {
                                 val calendarEvent = CalendarEvent(
-                                    id, uid, from.time, to.time, title.text,
+                                    id, uid, dateToString(from), dateToString(to), title.text,
                                     location.text, description.text, confirmation.text,
                                     categories.text, "", calendar.name, "", -1L, -1L,
                                     0L, path
@@ -1179,7 +1160,7 @@ fun NewEditDialog(
                                 to  = cal.time
                             }
                             val calendarEvent = CalendarEvent(
-                                id, uid, from.time, to.time, title.text,
+                                id, uid, dateToString(from), dateToString(to), title.text,
                                 location.text, description.text, confirmation.text,
                                 categories.text, "", calendar.name, "", -1L, -1L,
                                 0L, path
@@ -1229,7 +1210,7 @@ fun EditDialogPreview() {
     CloudAppTheme {
         NewEditDialog(
             onShowDialog = {},
-            event = fakeEvent(0L), date = Date(), onSave = {}, calendars =
+            event = fakeEvent(0L), onSave = {}, calendars =
             listOf(
                 CalendarModel("Test1", "", ""),
                 CalendarModel("Test2", "", "")
@@ -1243,8 +1224,8 @@ fun EditDialogPreview() {
 private fun fakeEvent(id: Long):CalendarEvent {
     return CalendarEvent(id,
         "$id",
-        Calendar.getInstance().time.time,
-        Calendar.getInstance().time.time,
+        dateToString(Calendar.getInstance().time),
+        dateToString(Calendar.getInstance().time),
         "Test $id",
         "New York! $id",
         "This is a Test! $id",

@@ -161,7 +161,7 @@ class MainActivity : ComponentActivity() {
             var progress by remember { mutableStateOf<((updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit)-> Unit)?>(null) }
             val context = LocalContext.current
             var notification: NotificationCompat.Builder?
-            val import = stringResource(R.string.calendar_import)
+            val import = String.format(stringResource(R.string.import_item), "").trim()
             val viewModel: MainActivityViewModel = hiltViewModel()
             val tmpBackground = MaterialTheme.colorScheme.primaryContainer
             val tmpForeground = MaterialTheme.colorScheme.primary

@@ -26,7 +26,8 @@ import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 import de.domjos.cloudapp2.appbasics.R
-import java.text.SimpleDateFormat
+import de.domjos.cloudapp2.data.repository.stringToDate
+import de.domjos.cloudapp2.data.repository.stringToOtherFormat
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
@@ -69,7 +70,10 @@ class NotificationViewModel @Inject constructor(
                     var contacts = contactDAO.getAll(authenticationDAO.getSelectedItem()?.id ?: 0)
                     contacts = contacts.filter { if(it.birthDay != null) it.birthDay?.time!! in startTime..endTime else false}
                     var events = calendarEventDAO.getAll(authenticationDAO.getSelectedItem()?.id ?: 0)
-                    events = events.filter { it.from in startTime..endTime }
+                    events = events.filter {
+                        stringToDate(it.string_from).after(Date(startTime)) &&
+                        stringToDate(it.string_from).before(Date(endTime))
+                    }
 
                     contacts.forEach {
                         val description = "${context.getString(R.string.contact_birthDate)}: ${it.givenName} ${it.familyName?:""}".trim()
@@ -82,14 +86,14 @@ class NotificationViewModel @Inject constructor(
                         ))
                     }
 
+                    val format = context.getString(R.string.sys_format)
                     events.forEach {
-                        val sdf = SimpleDateFormat(context.getString(R.string.sys_format), Locale.getDefault())
-                        val start = sdf.format(Date(it.from))
-                        val end = sdf.format(Date(it.to))
+                        val start = stringToOtherFormat(it.string_from, format)
+                        val end = stringToOtherFormat(it.string_to, format)
                         val description = "${it.title}: $start - $end".trim()
                         notificationItems.add(NotificationItem(
                             type = NotificationItem.Type.App,
-                            date = Date(it.from),
+                            date = stringToDate(it.string_from),
                             title = it.title,
                             description = description,
                             icon = {Icon(imageVector = Icons.Filled.DateRange, contentDescription = description)}

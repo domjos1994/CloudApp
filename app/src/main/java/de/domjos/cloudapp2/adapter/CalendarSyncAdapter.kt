@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.CalendarContract
 import android.util.Log
+import de.domjos.cloudapp2.data.repository.stringToDate
 import de.domjos.cloudapp2.database.DB
 import java.util.Date
 
@@ -41,9 +42,9 @@ class CalendarSyncAdapter @JvmOverloads constructor(
             calendars.forEach { calendar ->
                 val cid = addCalendar(calendar)
                 val events =
-                    db.calendarEventDao().getItemsByTimeAndCalendar(calendar, 0, Long.MAX_VALUE, id)
+                    db.calendarEventDao().getAll(id)
 
-                events.forEach { event ->
+                events.filter { it.calendar == calendar }.forEach { event ->
                     var eventId = -1L
                     try {
                         val projection = arrayOf(CalendarContract.Events._ID)
@@ -65,10 +66,10 @@ class CalendarSyncAdapter @JvmOverloads constructor(
                     }
 
                     try {
-                        if(event.from > 0L && event.to > 0L && event.title != "") {
+                        if(event.title != "") {
                             val values = ContentValues().apply {
-                                put(CalendarContract.Events.DTSTART, event.from)
-                                put(CalendarContract.Events.DTEND, event.to)
+                                put(CalendarContract.Events.DTSTART, stringToDate(event.string_from).time)
+                                put(CalendarContract.Events.DTEND, stringToDate(event.string_to).time)
                                 put(CalendarContract.Events.TITLE, event.title)
 
                                 if(event.description != "") {

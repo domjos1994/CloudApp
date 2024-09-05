@@ -44,9 +44,6 @@
 
     <string name="calendars">Calendar</string>
     <string name="calendars_all">All Calendars</string>
-    <string name="calendar_import">Import</string>
-    <string name="calendar_import_calendar">Import %s …</string>
-    <string name="calendar_save_calendar">Save %s …</string>
     <string name="calendar_title">Title</string>
     <string name="calendar_from">From (year-Month-day [Hour:Minute])</string>
     <string name="calendar_to">To (year-Month-day [Hour:Minute])</string>
@@ -64,9 +61,6 @@
     <string name="contacts_all">All Contacts</string>
     <string name="contacts_system">System-Contacts</string>
     <string name="contacts_app">App-Contacts</string>
-    <string name="contact_import">Import Contacts</string>
-    <string name="contact_delete">Delete all</string>
-    <string name="contact_insert">Insert</string>
     <string name="contact_family">Family-Name</string>
     <string name="contact_given">Given-Name</string>
     <string name="contact_suffix" translatable="false">Suffix</string>
@@ -91,6 +85,9 @@
     <string name="contact_open_phone">Call Contact</string>
     <string name="contact_open_email">Create Mail</string>
 
+    <string name="import_delete">Delete all Data…</string>
+    <string name="import_insert">Insert Data…</string>
+    <string name="import_item" formatted="true">Import %s…</string>
 
     <string name="data">Data</string>
     <string name="data_breadcrumb" translatable="false">Breadcrumb</string>

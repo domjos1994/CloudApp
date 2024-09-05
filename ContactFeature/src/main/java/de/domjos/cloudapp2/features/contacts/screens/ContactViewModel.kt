@@ -52,10 +52,16 @@ class ContactViewModel @Inject constructor(
         }
     }
 
-    fun import(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, hasInternet: Boolean) {
+    fun import(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, context: Context, hasInternet: Boolean) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                contactRepository.importContacts(updateProgress, onFinish)
+                contactRepository.importContacts(
+                    updateProgress,
+                    onFinish,
+                    context.getString(R.string.import_delete),
+                    context.getString(R.string.import_insert),
+                    context.getString(R.string.import_item)
+                )
                 loadAddresses(hasInternet)
             } catch (ex: Exception) {
                 message.postValue(ex.message)

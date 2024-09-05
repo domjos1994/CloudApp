@@ -7,6 +7,7 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import dagger.hilt.android.AndroidEntryPoint
 import de.domjos.cloudapp2.data.repository.CalendarRepository
+import de.domjos.cloudapp2.data.repository.stringToDate
 import de.domjos.cloudapp2.widgets.CalendarWidget
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -35,7 +36,17 @@ class CalendarWidgetReceiver : AbstractWidgetReceiver(CalendarWidget()) {
             val events = mutableListOf<Event>()
             calendarRepository.getCalendars().forEach { calendar ->
                 calendarRepository.loadData(calendar.name, tsStart, tsEnd).forEach { event ->
-                    events.add(Event(event.title, event.description, event.location, event.calendar, event.from, event.to, event.eventId))
+                    events.add(
+                        Event(
+                            event.title,
+                            event.description,
+                            event.location,
+                            event.calendar,
+                            stringToDate(event.string_from).time,
+                            stringToDate(event.string_to).time,
+                            event.eventId
+                        )
+                    )
                 }
             }
 
