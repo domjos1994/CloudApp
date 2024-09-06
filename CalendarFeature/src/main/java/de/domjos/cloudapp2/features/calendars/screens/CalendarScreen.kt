@@ -35,6 +35,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -53,7 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -543,7 +544,7 @@ fun Calendar(
                     dt = cal
                     format = "MM.yyyy"
                     onChange(Calendar.MONTH, dt)
-                }) {
+                }, colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground, contentColor = colorForeground) ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, sdfMonth.format(next.time))
                 }
             }
@@ -565,7 +566,7 @@ fun Calendar(
                     dt = cal
                     format = "MM.yyyy"
                     onChange(Calendar.MONTH, dt)
-                }) {
+                }, colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground, contentColor = colorForeground) ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, sdfMonth.format(previous.time))
                 }
             }
@@ -582,7 +583,10 @@ fun Calendar(
 
             days.forEach { day ->
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault()).substring(0, 2), fontWeight = FontWeight.Bold)
+                    val label = try {
+                        day.getDisplayName(TextStyle.SHORT, Locale.getDefault()).substring(0, 2)
+                    } catch (_: Exception) {""}
+                    Text(label, fontWeight = FontWeight.Bold)
                 }
             }
         }

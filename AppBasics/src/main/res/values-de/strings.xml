@@ -110,6 +110,7 @@
     <string name="data_shared_dialog">Teile das Element nur lesend durch einen Link?</string>
     <string name="data_shared_dialog_cancel">Breche das teilen ab</string>
     <string name="data_shared_dialog_okay">Teile Element</string>
+    <string name="data_add">Füge Element hinzu</string>
 
     <string name="chats">Chats</string>
     <string name="chats_msg">Nachricht</string>

@@ -377,26 +377,31 @@ class DefaultCalendarRepository @Inject constructor(
 }
 
 fun stringToOtherFormat(string: String, format: String): String {
-    val sdfOutput = SimpleDateFormat(format, Locale.getDefault())
-    val dt = stringToDate(string)
-    return try {
-        sdfOutput.format(dt)
-    } catch (_: Exception) { "" }
+    try {
+        val sdfOutput = SimpleDateFormat(format, Locale.getDefault())
+        val dt = stringToDate(string)
+        return try {
+            sdfOutput.format(dt)
+        } catch (_: Exception) { "" }
+    } catch (_: Exception) {return ""}
 }
 
 fun stringToDate(string: String): Date {
-    val sdfDt = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-    val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-    return try {
-        sdfDt.parse(string)!!
-    } catch (_: Exception) {sdf.parse(string) ?: Date()
-    }
+    try {
+        val sdfDt = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
+        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        return try {
+            sdfDt.parse(string)!!
+        } catch (_: Exception) {sdf.parse(string) ?: Date() }
+    } catch (_:Exception) {return Date()}
 }
 
 fun dateToString(date: Date): String {
-    val sdfDt = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-    val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-    return try {
-        sdfDt.format(date)
-    } catch (_: Exception) {sdf.format(date) ?: ""}
+    try {
+        val sdfDt = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
+        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        return try {
+            sdfDt.format(date)
+        } catch (_: Exception) {sdf.format(date) ?: ""}
+    } catch (_: Exception) {return ""}
 }

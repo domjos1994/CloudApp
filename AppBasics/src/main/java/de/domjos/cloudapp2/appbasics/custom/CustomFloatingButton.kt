@@ -11,11 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -60,6 +56,7 @@ class FabItem(
 fun MultiFloatingActionButton(
     fabIcon: Painter,
     items: List<FabItem>,
+    contentDescription: String,
     showLabels: Boolean = true,
     onStateChanged: ((state: MultiFabState) -> Unit)? = null,
     backgroundColor: Color, foregroundColor: Color
@@ -143,7 +140,7 @@ fun MultiFloatingActionButton(
                         .padding(5.dp)) {
                     Icon(
                         painter = fabIcon,
-                        contentDescription = null,
+                        contentDescription = contentDescription,
                         tint = backgroundColor,
                         modifier = Modifier.rotate(rotation)
                     )

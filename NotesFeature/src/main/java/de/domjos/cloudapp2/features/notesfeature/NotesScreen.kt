@@ -45,7 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -430,7 +430,7 @@ fun NotesDialog(
                     .height(60.dp)) {
                     Column(
                         Modifier
-                            .weight(1f)
+                            .weight(2f)
                             .height(60.dp),
                         verticalArrangement = Arrangement.Center) {
                         if(id != 0) {
@@ -453,7 +453,7 @@ fun NotesDialog(
                             .height(60.dp)) {}
                     Column(
                         Modifier
-                            .weight(1f)
+                            .weight(2f)
                             .height(60.dp),
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
@@ -469,7 +469,7 @@ fun NotesDialog(
                     }
                     Column(
                         Modifier
-                            .weight(1f)
+                            .weight(2f)
                             .height(60.dp),
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
