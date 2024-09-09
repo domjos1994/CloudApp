@@ -1,7 +1,6 @@
 package de.domjos.cloudapp2.features.chats.screens
 
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +44,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.rest.model.msg.Message
 
 
@@ -54,17 +54,15 @@ fun ChatScreen(
     lookIntoFuture: Int,
     token: String, colorBackground: Color, colorForeground: Color) {
     val messages by viewModel.messages.collectAsStateWithLifecycle()
-    viewModel.initChats(lookIntoFuture, token)
+
+    LogViewModel.Init(viewModel)
+
+    LaunchedEffect(lookIntoFuture, token) {
+        viewModel.initChats(lookIntoFuture, token)
+    }
 
     val context = LocalContext.current
     val userName = viewModel.getUserName()
-
-    viewModel.message.observe(LocalLifecycleOwner.current) {
-        if(it != null) {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.message.value = null
-        }
-    }
 
     ChatScreen(messages, userName, colorBackground, colorForeground, {viewModel.getDate(it, context)}) {
         viewModel.sendMessage(it)
@@ -105,7 +103,8 @@ fun ChatScreen(messages: List<Message>, userName: String, colorBackground: Color
                     top.linkTo(list.bottom)
                     width = Dimension.fillToConstraints
                     height = Dimension.value(70.dp)
-                }.background(colorBackground)) {
+                }
+                .background(colorBackground)) {
             Column(
                 Modifier
                     .weight(18f)

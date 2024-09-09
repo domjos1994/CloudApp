@@ -1,7 +1,6 @@
 package de.domjos.cloudapp2.features.calendars.screens
 
 import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,7 +53,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -82,6 +80,7 @@ import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.custom.SplitView
+import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.openEvent
@@ -123,14 +122,8 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     var selectedCalendar by remember { mutableStateOf("") }
     viewModel.getCalendars()
     viewModel.count()
-    val context = LocalContext.current
 
-    viewModel.message.observe(LocalLifecycleOwner.current) {
-        if(it != null) {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.message.value = null
-        }
-    }
+    LogViewModel.Init(viewModel)
 
     val format = stringResource(R.string.sys_format)
     CalendarScreen(events, {

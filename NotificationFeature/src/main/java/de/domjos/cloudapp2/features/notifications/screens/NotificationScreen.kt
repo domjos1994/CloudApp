@@ -1,6 +1,5 @@
 package de.domjos.cloudapp2.features.notifications.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,39 +45,23 @@ import coil.size.Scale
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
-import de.domjos.cloudapp2.appbasics.helper.ConnectionState
-import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.features.notifications.screens.model.NotificationItem
 import de.domjos.cloudapp2.rest.model.notifications.Action
 import de.domjos.cloudapp2.rest.model.notifications.Notification
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
     val allTypes by viewModel.allTypes.collectAsStateWithLifecycle()
 
-    val connection by connectivityState()
-    val isConnected = connection === ConnectionState.Available
-    val context = LocalContext.current
-
-    viewModel.message.observe(LocalLifecycleOwner.current) {
-        if(it != null) {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.message.value = null
-        }
-    }
-
-    if(isConnected) {
-        viewModel.reload(LocalContext.current)
-    }
+    ConnectivityViewModel.Init(viewModel)
 
     NotificationScreen(notifications, allTypes, {
         viewModel.getFullIconLink(it)
-    }, isConnected, viewModel.hasAuthentications(), colorBackground, colorForeground, toAuths, onChatScreen)
+    }, viewModel.isConnected(), viewModel.hasAuthentications(), colorBackground, colorForeground, toAuths, onChatScreen)
 }
 
 @Composable
@@ -172,7 +154,7 @@ fun Header(
     } else {
         app = true
         server = true
-        onAppChange(app)
+        onAppChange(true)
         onServerChange(server)
     }
 
@@ -186,7 +168,7 @@ fun Header(
                 .fillMaxWidth()) {
             Row(Modifier.fillMaxWidth()) {
                 val text = if(allTypes) {
-                    "$strWhole: $count, $strApp: ${appCount}, $strServer: ${serverCount}"
+                    "$strWhole: $count, $strApp: ${appCount}, $strServer: $serverCount"
                 } else {
                     "$strWhole: $count"
                 }

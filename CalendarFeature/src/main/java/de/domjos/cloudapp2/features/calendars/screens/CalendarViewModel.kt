@@ -1,15 +1,13 @@
 package de.domjos.cloudapp2.features.calendars.screens
 
 import android.content.Context
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.data.repository.CalendarRepository
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,14 +18,13 @@ import javax.inject.Inject
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val calendarRepository: CalendarRepository
-) : ViewModel() {
+) : LogViewModel() {
     private val _events = MutableStateFlow(listOf<CalendarEvent>())
     val events: StateFlow<List<CalendarEvent>> get() = _events
     private val _days = MutableStateFlow(listOf<Int>())
     val days: StateFlow<List<Int>> get() = _days
     private val _calendars = MutableStateFlow(listOf<CalendarModel>())
     val calendars: StateFlow<List<CalendarModel>> get() = _calendars
-    val message = MutableLiveData<String?>()
 
     private val _date = MutableStateFlow(Date())
     val date: StateFlow<Date> get() = _date
@@ -45,8 +42,7 @@ class CalendarViewModel @Inject constructor(
                 _events.value = calendarRepository.loadData(calendar, startTime, endTime)
                 _date.value = Date(startTime)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -56,8 +52,7 @@ class CalendarViewModel @Inject constructor(
             try {
                 _calendars.value = calendarRepository.getCalendars()
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -67,8 +62,7 @@ class CalendarViewModel @Inject constructor(
             try {
                 _days.value = calendarRepository.countData()
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -85,8 +79,7 @@ class CalendarViewModel @Inject constructor(
                 _date.value = Date(start)
                 onFinish()
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -100,8 +93,7 @@ class CalendarViewModel @Inject constructor(
                     calendarRepository.insert(calendarEvent)
                 }
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -111,8 +103,7 @@ class CalendarViewModel @Inject constructor(
             try {
                 calendarRepository.delete(calendarEvent)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }

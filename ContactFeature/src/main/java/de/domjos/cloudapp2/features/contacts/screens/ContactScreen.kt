@@ -88,6 +88,7 @@ import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ImageHelper
+import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
@@ -120,12 +121,7 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
     val available = connectivity === ConnectionState.Available
     viewModel.getAddressBooks(available, LocalContext.current)
 
-    viewModel.message.observe(LocalLifecycleOwner.current) {
-        if(it != null) {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.message.value = null
-        }
-    }
+    LogViewModel.Init(viewModel)
 
     ContactScreen(onReload = {
             viewModel.loadAddresses(available)

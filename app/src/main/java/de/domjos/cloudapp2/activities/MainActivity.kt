@@ -47,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -60,7 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
@@ -190,32 +191,35 @@ class MainActivity : ComponentActivity() {
             }
 
             // updates the theme if connection and so on
-            val updateTheme = {auth: Authentication? ->
-                viewModel.getCloudTheme {
-                    viewModel.getCloudThemeMobile { mobile ->
-                        val isMobile = mobile || isWifi
+            var updateTheme: (Authentication?) -> Unit = {}
+            LaunchedEffect(isConnected) {
+                updateTheme = {auth: Authentication? ->
+                    viewModel.getCloudTheme {
+                        viewModel.getCloudThemeMobile { mobile ->
+                            val isMobile = mobile || isWifi
 
-                        if(isConnected && it && isMobile) {
-                            viewModel.getCapabilities({ data ->
-                                if(data != null) {
-                                    colorBackground = Color(android.graphics.Color.parseColor(data.colorBackground))
-                                    colorForeground = Color(android.graphics.Color.parseColor(data.colorForeground))
-                                    icon = data.thumbNail
-                                    authTitle = "(${data.thUrl})"
-                                    hasAuthentications = viewModel.hasAuthentications()
-                                    hasSpreed = data.spreed.equals("true")
-                                }
-                            }, auth)
-                        } else {
-                            colorBackground = tmpBackground
-                            colorForeground = tmpForeground
-                            icon = null
-                            authTitle = ""
+                            if(isConnected && it && isMobile) {
+                                viewModel.getCapabilities({ data ->
+                                    if(data != null) {
+                                        colorBackground = Color(android.graphics.Color.parseColor(data.colorBackground))
+                                        colorForeground = Color(android.graphics.Color.parseColor(data.colorForeground))
+                                        icon = data.thumbNail
+                                        authTitle = "(${data.thUrl})"
+                                        hasAuthentications = viewModel.hasAuthentications()
+                                        hasSpreed = data.spreed.equals("true")
+                                    }
+                                }, auth)
+                            } else {
+                                colorBackground = tmpBackground
+                                colorForeground = tmpForeground
+                                icon = null
+                                authTitle = ""
+                            }
                         }
                     }
                 }
+                updateTheme(null)
             }
-            updateTheme(null)
 
             // initiates the worker to sync data from dav-server
             var contactPeriod by remember { mutableFloatStateOf(0.0F) }
@@ -264,7 +268,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     Scaffold(
-                        bottomBar = { TabView(tabBarItems, updateTheme, navController, tabBarVisible, hasSpreed) },
+                        bottomBar = { TabView(tabBarItems, navController, tabBarVisible, hasSpreed) },
                         topBar = {
                             Column {
                                 Row {
@@ -520,7 +524,7 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
 }
 
 @Composable
-fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Unit, navController: NavController, visible: MutableState<Boolean>, hasSpreed: Boolean) {
+fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>, hasSpreed: Boolean) {
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -539,7 +543,6 @@ fun TabView(tabBarItems: List<TabBarItem>, updateTheme: (Authentication?) -> Uni
                     NavigationBarItem(
                         selected = selectedTabIndex == index,
                         onClick = {
-                            updateTheme(null)
                             selectedTabIndex = index
                             navController.navigate(tabBarItem.title)
                         },
@@ -607,6 +610,6 @@ fun TabBarPreview() {
     items.add(TabBarItem("Test 5", Icons.Filled.Person, Icons.Filled.Person, null, "Test 5"))
 
     CloudAppTheme {
-        TabView(tabBarItems = items, updateTheme = {}, navController = rememberNavController(), visible = mutableStateOf(true), hasSpreed = true)
+        TabView(tabBarItems = items, navController = rememberNavController(), visible = mutableStateOf(true), hasSpreed = true)
     }
 }

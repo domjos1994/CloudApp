@@ -3,8 +3,6 @@ package de.domjos.cloudapp2.features.data.screens
 import android.content.Context
 import android.util.Log
 import androidx.datastore.preferences.core.Preferences
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.data.repository.DataRepository
@@ -16,6 +14,7 @@ import kotlinx.coroutines.launch
 import java.io.InputStream
 import javax.inject.Inject
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.data.Settings
 import de.domjos.cloudapp2.rest.model.shares.InsertShare
 import de.domjos.cloudapp2.rest.model.shares.Share
@@ -28,27 +27,24 @@ import de.schnettler.datastore.manager.PreferenceRequest
 class DataViewModel @Inject constructor(
     private val dataRepository: DataRepository,
     private val settings: Settings
-) : ViewModel() {
+) : ConnectivityViewModel() {
     private val _path = MutableStateFlow("")
     private val _items = MutableStateFlow(listOf<Item>())
     val items: StateFlow<List<Item>> get() = _items
     private val _item = MutableStateFlow<Item?>(null)
     val item: StateFlow<Item?> get() = _item
     val path: StateFlow<String> get() = _path
-    var message = MutableLiveData<String?>()
-    var resId = MutableLiveData<Int>()
 
     private val _shareItems = MutableStateFlow<List<String>>(listOf())
 
-    fun init() {
+    override fun init() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 dataRepository.init()
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -57,8 +53,7 @@ class DataViewModel @Inject constructor(
         return try {
             dataRepository.exists(item)
         } catch (ex: Exception) {
-            message.postValue(ex.message)
-            Log.e(this.javaClass.name, ex.message, ex)
+            printException(ex, this)
             false
         }
     }
@@ -84,8 +79,7 @@ class DataViewModel @Inject constructor(
                     path = "$dir/${item.name.trim().replace(" ", "_")}"
                 }
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             } finally {
                 onFinish(path)
             }
@@ -97,8 +91,7 @@ class DataViewModel @Inject constructor(
             try {
                 dataRepository.openFile(path, item, context)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -107,8 +100,7 @@ class DataViewModel @Inject constructor(
         return try {
             dataRepository.hasFolderToMove()
         } catch (ex: Exception) {
-            message.postValue(ex.message)
-            Log.e(this.javaClass.name, ex.message, ex)
+            printException(ex, this)
             false
         }
     }
@@ -125,8 +117,7 @@ class DataViewModel @Inject constructor(
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
-                resId.postValue(R.string.data_element_cut_error)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, R.string.data_element_cut_error, this)
             }
         }
     }
@@ -139,8 +130,7 @@ class DataViewModel @Inject constructor(
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
-                resId.postValue(R.string.data_element_cut_error)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, R.string.data_element_cut_error, this)
             }
         }
     }
@@ -153,8 +143,7 @@ class DataViewModel @Inject constructor(
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
-                resId.postValue(R.string.data_element_add_error)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, R.string.data_element_add_error, this)
             }
         }
     }
@@ -168,8 +157,7 @@ class DataViewModel @Inject constructor(
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
-                resId.postValue(R.string.data_element_delete_error)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, R.string.data_element_delete_error, this)
             }
         }
     }
@@ -183,8 +171,7 @@ class DataViewModel @Inject constructor(
                 _path.value = dataRepository.path
                 onFinish()
             } catch (ex: Exception) {
-                resId.postValue(R.string.data_element_add_error)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, R.string.data_element_add_error, this)
             }
         }
     }
@@ -205,7 +192,7 @@ class DataViewModel @Inject constructor(
                     if(share != null) {
                         onFinish(share)
                         if(share.url != "") {
-                            resId.postValue(R.string.data_shared_copied)
+                            printMessage(R.string.data_shared_copied, this@DataViewModel)
                         }
                     }
                     _items.value = dataRepository.getList()
@@ -223,14 +210,13 @@ class DataViewModel @Inject constructor(
             try {
                 dataRepository.deleteShare(id).collect { state ->
                     if(state != "") {
-                        message.postValue(state)
+                        printMessage(state, this@DataViewModel)
                     }
                     _items.value = dataRepository.getList()
                     _path.value = dataRepository.path
                 }
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -246,8 +232,7 @@ class DataViewModel @Inject constructor(
                     _path.value = dataRepository.path
                 }
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -263,8 +248,7 @@ class DataViewModel @Inject constructor(
                     _shareItems.value = listOf()
                 }
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
                 _shareItems.value = listOf()
             }
         }

@@ -2,7 +2,6 @@ package de.domjos.cloudapp2.features.notesfeature
 
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -44,8 +43,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,32 +64,16 @@ import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
-import de.domjos.cloudapp2.appbasics.helper.ConnectionState
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
-import de.domjos.cloudapp2.appbasics.helper.connectivityState
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun NotesScreen(
     viewModel: NotesViewModel = hiltViewModel(), toAuths: () -> Unit, colorBackground: Color, colorForeground: Color
 ) {
     val notes by viewModel.notes.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val connection by connectivityState()
-    val isConnected = connection === ConnectionState.Available
-
-    if(isConnected) {
-        viewModel.reload()
-    }
-
-    viewModel.message.observe(LocalLifecycleOwner.current) {
-        if(it != null) {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.message.value = null
-        }
-    }
+    ConnectivityViewModel.Init(viewModel)
 
     val painter = painterResource(R.drawable.baseline_note_24)
     NotesScreen(notes,
@@ -113,7 +94,7 @@ fun NotesScreen(
         onDeleteClick = {viewModel.delete(it)},
         hasAuths = viewModel.hasAuthentications(),
         toAuths = toAuths,
-        isConnected = isConnected,
+        isConnected = viewModel.isConnected(),
         colorBackground = colorBackground,
         colorForeground = colorForeground
     )

@@ -1,13 +1,10 @@
 package de.domjos.cloudapp2.features.chats.screens
 
-import android.content.Context
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.data.repository.RoomRepository
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.rest.model.room.Room
 import de.domjos.cloudapp2.rest.model.room.RoomInput
 import de.domjos.cloudapp2.rest.model.user.User
@@ -20,13 +17,15 @@ import javax.inject.Inject
 @HiltViewModel
 class RoomViewModel @Inject constructor(
     private val roomRepository: RoomRepository
-) : ViewModel() {
+) : ConnectivityViewModel() {
     private val _rooms = MutableStateFlow(listOf<Room>())
     val rooms: StateFlow<List<Room>> get() = _rooms
-    val message = MutableLiveData<String?>()
-
     private val _users = MutableStateFlow(listOf<User?>())
     val users: StateFlow<List<User?>> get() = _users
+
+    override fun init() {
+        loadUsers()
+    }
 
     fun reload() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -35,26 +34,24 @@ class RoomViewModel @Inject constructor(
                     _rooms.value = it
                 }
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
 
-    fun insertRoom(room: Room, context: Context) {
+    fun insertRoom(room: Room) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val roomInput = RoomInput(room.type, room.invite, roomName = room.displayName)
                 roomRepository.insertRoom(roomInput)
-                message.postValue(context.getString(R.string.chats_rooms_created))
+                printMessage(R.string.chats_rooms_created, this)
             } catch (ex: Exception) {
                 if(ex.message == "200") {
-                    message.postValue(context.getString(R.string.chats_rooms_exists))
+                    printException(ex, R.string.chats_rooms_exists, this)
                 } else if(ex.message?.toIntOrNull() != null) {
-                    message.postValue(context.getString(R.string.chats_rooms_error))
+                    printException(ex, R.string.chats_rooms_error, this)
                 } else {
-                    message.postValue(ex.message)
-                    Log.e(this.javaClass.name, ex.message, ex)
+                    printException(ex, this)
                 }
             }
         }
@@ -69,8 +66,7 @@ class RoomViewModel @Inject constructor(
                     room.description
                 )
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -80,8 +76,7 @@ class RoomViewModel @Inject constructor(
             try {
                 roomRepository.deleteRoom(room.token)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -95,8 +90,7 @@ class RoomViewModel @Inject constructor(
             try {
                 _users.value = roomRepository.getUsers()
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }

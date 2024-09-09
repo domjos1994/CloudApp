@@ -1,14 +1,10 @@
 package de.domjos.cloudapp2.features.notifications.screens
 
-import android.content.Context
-import android.util.Log
 import java.util.Date
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.data.Settings
@@ -25,9 +21,10 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
-import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.data.repository.stringToDate
 import de.domjos.cloudapp2.data.repository.stringToOtherFormat
+import java.text.SimpleDateFormat
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
@@ -36,14 +33,20 @@ class NotificationViewModel @Inject constructor(
     private val calendarEventDAO: CalendarEventDAO,
     private val contactDAO: ContactDAO,
     private val settings: Settings
-): ViewModel() {
+): ConnectivityViewModel() {
     private val _notifications = MutableStateFlow(listOf<NotificationItem>())
     val notifications: StateFlow<List<NotificationItem>> get() = _notifications
     private val _allTypes = MutableStateFlow(true)
     val allTypes: StateFlow<Boolean> get() = _allTypes
-    val message = MutableLiveData<String>()
 
-    fun reload(context: Context) {
+
+    override fun init() {
+        if(isConnected()) {
+            reload()
+        }
+    }
+
+    private fun reload() {
         viewModelScope.launch(Dispatchers.IO) {
             val notificationItems = mutableListOf<NotificationItem>()
             try {
@@ -77,8 +80,14 @@ class NotificationViewModel @Inject constructor(
                         }
                     } catch(_: Exception) {}
 
+                    var format = "yyyy-MM-dd"
+                    if(Locale.getDefault() == Locale.GERMANY) {
+                        format = "dd.MM.yyyy"
+                    }
+                    val sdf = SimpleDateFormat(format, Locale.getDefault())
+
                     contacts.forEach {
-                        val description = "${context.getString(R.string.contact_birthDate)}: ${it.givenName} ${it.familyName?:""}".trim()
+                        val description = sdf.format(it.birthDay!!)
                         notificationItems.add(NotificationItem(
                             type = NotificationItem.Type.App,
                             date = it.birthDay!!,
@@ -88,7 +97,7 @@ class NotificationViewModel @Inject constructor(
                         ))
                     }
 
-                    val format = context.getString(R.string.sys_format)
+
                     events.forEach {
                         val start = try {stringToOtherFormat(it.string_from, format)} catch (_: Exception) {""}
                         val end = try {stringToOtherFormat(it.string_to, format)} catch (_: Exception) {""}
@@ -103,8 +112,7 @@ class NotificationViewModel @Inject constructor(
                     }
                 }
             } catch (ex: Exception) {
-                Log.e(this.javaClass.name, ex.message, ex)
-                message.postValue(ex.message)
+                printException(ex, this)
             } finally {
                 _notifications.value = notificationItems
             }

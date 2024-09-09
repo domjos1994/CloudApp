@@ -1,10 +1,8 @@
 package de.domjos.cloudapp2.features.notesfeature
 
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.data.repository.NoteRepository
 import de.domjos.cloudapp2.rest.model.notes.Note
 import kotlinx.coroutines.Dispatchers
@@ -16,18 +14,18 @@ import javax.inject.Inject
 @HiltViewModel
 class NotesViewModel @Inject constructor(
     private val noteRepository: NoteRepository
-): ViewModel() {
+): ConnectivityViewModel() {
     private val _notes = MutableStateFlow(listOf<Note>())
     val notes: StateFlow<List<Note>> get() = _notes
-    val message = MutableLiveData<String>()
 
-    fun reload() {
+    override fun init() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                load()
+                if(super.isConnected()) {
+                    load()
+                }
             } catch (ex: Exception) {
-                Log.e(this.javaClass.name, ex.message, ex)
-                message.postValue(ex.message)
+                super.printException(ex, this)
             }
         }
     }
@@ -42,8 +40,7 @@ class NotesViewModel @Inject constructor(
                 }
                 load()
             } catch (ex: Exception) {
-                Log.e(this.javaClass.name, ex.message, ex)
-                message.postValue(ex.message)
+                super.printException(ex, this)
             }
         }
     }
@@ -54,14 +51,18 @@ class NotesViewModel @Inject constructor(
                 noteRepository.deleteNote(note.id)
                 load()
             } catch (ex: Exception) {
-                Log.e(this.javaClass.name, ex.message, ex)
-                message.postValue(ex.message)
+                super.printException(ex, this)
             }
         }
     }
 
     fun hasAuthentications(): Boolean {
-        return noteRepository.hasAuthentications()
+        try {
+            return noteRepository.hasAuthentications()
+        } catch (ex: Exception) {
+            super.printException(ex, this)
+        }
+        return false
     }
 
     private suspend fun load() {

@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.hiltLibrary) apply false
     alias(libs.plugins.serializationLibrary) apply false
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.google.gms.google.services) apply false
+    alias(libs.plugins.google.firebase.crashlytics) apply false
 }
 
 buildscript {

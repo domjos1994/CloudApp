@@ -1,9 +1,6 @@
 package de.domjos.cloudapp2.features.chats.screens
 
 import android.content.Context
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.data.repository.ChatRepository
@@ -17,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.data.Settings
 import java.util.Locale
 
@@ -24,10 +22,9 @@ import java.util.Locale
 class ChatViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
     private val settings: Settings
-    ) : ViewModel() {
+    ) : LogViewModel() {
     private val _messages = MutableStateFlow(listOf<Message>())
     val messages: StateFlow<List<Message>> get() = _messages
-    val message = MutableLiveData<String?>()
 
     fun initChats(lookIntoFuture: Int, token: String) {
         chatRepository.lookIntoFuture = lookIntoFuture
@@ -41,8 +38,7 @@ class ChatViewModel @Inject constructor(
                     delay(timeSpan)
                 }
             } catch (ex: Exception) {
-                Log.e(this.javaClass.name, ex.message, ex)
-                message.postValue(ex.message)
+                printException(ex, this)
             }
         }
     }
@@ -52,8 +48,7 @@ class ChatViewModel @Inject constructor(
             try {
                 _messages.value = chatRepository.postChat(msg)
             } catch (ex: Exception) {
-                Log.e(this.javaClass.name, ex.message, ex)
-                message.postValue(ex.message)
+                printException(ex, this)
             }
         }
     }

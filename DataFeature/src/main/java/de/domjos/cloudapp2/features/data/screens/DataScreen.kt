@@ -91,10 +91,9 @@ import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.OutlinedPasswordField
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
-import de.domjos.cloudapp2.appbasics.helper.ConnectionState
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.appbasics.helper.LoadingDialog
 import de.domjos.cloudapp2.appbasics.helper.Validator
-import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.data.Settings
 import de.domjos.cloudapp2.rest.model.shares.InsertShare
@@ -103,7 +102,6 @@ import de.domjos.cloudapp2.rest.model.shares.Share
 import de.domjos.cloudapp2.rest.model.shares.Types
 import de.domjos.cloudapp2.rest.model.shares.UpdateShare
 import de.domjos.cloudapp2.webdav.model.Item
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
@@ -113,7 +111,6 @@ import java.util.Locale
 
 
 @SuppressLint("StateFlowValueCalledInComposition")
-@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun DataScreen(
     viewModel: DataViewModel = hiltViewModel(),
@@ -126,26 +123,13 @@ fun DataScreen(
     val items by viewModel.items.collectAsStateWithLifecycle()
     val parentItem by viewModel.item.collectAsStateWithLifecycle()
 
-    val connection by connectivityState()
-    val isConnected = connection === ConnectionState.Available
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     var showFile by remember { mutableStateOf(false) }
     var path by remember { mutableStateOf("") }
     var currentItem by remember { mutableStateOf<Item?>(null) }
 
-    viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
-        msg?.let {
-            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-            viewModel.message.value = null
-        }
-    }
-    viewModel.resId.observe(LocalLifecycleOwner.current) { res ->
-        res?.let {
-            Toast.makeText(context, res, Toast.LENGTH_LONG).show()
-            viewModel.resId.value = null
-        }
-    }
+    ConnectivityViewModel.Init(viewModel)
 
     if(showFile) {
         ShowFile(path, {showFile = it}, {
@@ -158,11 +142,7 @@ fun DataScreen(
     }
     onBreadCrumbChange(viewModel.path.value)
 
-    if(isConnected) {
-        viewModel.init()
-    }
-
-    DataScreen(items, parentItem, isConnected, viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
+    DataScreen(items, parentItem, viewModel.isConnected(), viewModel.hasAuthentications(), toAuths, colorBackground, colorForeground,
     { text: String, type: Types ->
         viewModel.autoComplete(text, type)
     },

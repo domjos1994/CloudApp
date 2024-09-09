@@ -3,15 +3,13 @@ package de.domjos.cloudapp2.features.contacts.screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.util.Log
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.data.repository.ContactRepository
 import de.domjos.cloudapp2.database.model.contacts.Contact
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +24,7 @@ import de.domjos.cloudapp2.appbasics.helper.openPhone as op
 @HiltViewModel
 class ContactViewModel @Inject constructor(
     private val contactRepository: ContactRepository
-): ViewModel() {
+): LogViewModel() {
     private val _addressBooks = MutableStateFlow(mapOf<String, String>())
     val addressBooks: StateFlow<Map<String, String>> get() = _addressBooks
     private val _contacts = MutableStateFlow(listOf<Contact>())
@@ -34,7 +32,6 @@ class ContactViewModel @Inject constructor(
     private val _addressBook = MutableStateFlow("")
     private val _canInsert = MutableStateFlow(false)
     val canInsert: StateFlow<Boolean> get() = _canInsert
-    val message = MutableLiveData<String?>()
 
     fun getAddressBooks(hasInternet: Boolean, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -46,8 +43,7 @@ class ContactViewModel @Inject constructor(
                 lst[""] = context.getString(R.string.contacts_all)
                 _addressBooks.value = lst
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -64,8 +60,7 @@ class ContactViewModel @Inject constructor(
                 )
                 loadAddresses(hasInternet)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -83,8 +78,7 @@ class ContactViewModel @Inject constructor(
                 }
                 loadAddresses(hasInternet)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -103,8 +97,7 @@ class ContactViewModel @Inject constructor(
                     _contacts.value = contactRepository.contacts
                 }
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -117,8 +110,7 @@ class ContactViewModel @Inject constructor(
                 contactRepository.loadContacts(_addressBook.value)
                 _contacts.value = contactRepository.contacts
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -131,8 +123,7 @@ class ContactViewModel @Inject constructor(
                 contactRepository.loadContacts(_addressBook.value)
                 _contacts.value = contactRepository.contacts
             } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
+                printException(ex, this)
             }
         }
     }
@@ -146,7 +137,7 @@ class ContactViewModel @Inject constructor(
             try {
                 op(context, phone)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
+                printException(ex, this)
             }
         }
     }
@@ -158,10 +149,9 @@ class ContactViewModel @Inject constructor(
     fun openEmail(email: String, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-
                 oe(context, email)
             } catch (ex: Exception) {
-                message.postValue(ex.message)
+                printException(ex, this)
             }
         }
     }

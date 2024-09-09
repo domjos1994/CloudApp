@@ -1,6 +1,5 @@
 package de.domjos.cloudapp2.features.chats.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,8 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -58,36 +55,20 @@ import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
-import de.domjos.cloudapp2.appbasics.helper.ConnectionState
-import de.domjos.cloudapp2.appbasics.helper.connectivityState
+import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.rest.model.user.User
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
     val rooms by viewModel.rooms.collectAsStateWithLifecycle()
     val users by viewModel.users.collectAsStateWithLifecycle()
 
-    val connection by connectivityState()
-    val isConnected = connection === ConnectionState.Available
-
-    if(isConnected) {
-        viewModel.loadUsers()
-    }
-
-    val context = LocalContext.current
-    viewModel.message.observe(LocalLifecycleOwner.current) {
-        if(it != null) {
-            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
-            viewModel.message.value = null
-        }
-    }
+    ConnectivityViewModel.Init(viewModel)
 
     RoomScreen(
         onSaveClick = {
             if(it.token == "") {
-                viewModel.insertRoom(it, context)
+                viewModel.insertRoom(it)
             } else {
                 viewModel.updateRoom(it)
             }
@@ -113,7 +94,7 @@ fun RoomScreen(viewModel: RoomViewModel = hiltViewModel(), colorBackground: Colo
             }
             items
         },
-        rooms = rooms, users, isConnected, viewModel.hasAuthentications(), toAuths, onChatScreen,
+        rooms = rooms, users, viewModel.isConnected(), viewModel.hasAuthentications(), toAuths, onChatScreen,
         colorBackground, colorForeground)
 }
 
@@ -332,17 +313,23 @@ fun EditDialog(
                     if(room?.token != null) {
                         Column(modifier = Modifier
                             .weight(2F)
-                            .height(60.dp).width(60.dp),
+                            .height(60.dp)
+                            .width(60.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center) {
                             IconButton(onClick = {
                                 onDeleteClick(room)
                                 setShowDialog(false)
-                            }, Modifier.height(50.dp).width(50.dp)) {
+                            },
+                                Modifier
+                                    .height(50.dp)
+                                    .width(50.dp)) {
                                 Icon(
                                     Icons.Default.Delete,
                                     stringResource(R.string.login_delete),
-                                    Modifier.height(50.dp).width(50.dp)
+                                    Modifier
+                                        .height(50.dp)
+                                        .width(50.dp)
                                 )
                             }
                         }
@@ -350,23 +337,30 @@ fun EditDialog(
                     Column(modifier = Modifier.weight(9F)) {}
                     Column(modifier = Modifier
                         .weight(2F)
-                        .height(60.dp).width(60.dp),
+                        .height(60.dp)
+                        .width(60.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
                             setShowDialog(false)
-                        }, Modifier.height(50.dp).width(50.dp)) {
+                        },
+                            Modifier
+                                .height(50.dp)
+                                .width(50.dp)) {
                             Icon(
                                 Icons.Default.Close,
                                 stringResource(R.string.login_close),
-                                Modifier.height(50.dp).width(50.dp)
+                                Modifier
+                                    .height(50.dp)
+                                    .width(50.dp)
                             )
                         }
                     }
                     Column(
                         modifier = Modifier
                             .weight(2F)
-                            .height(60.dp).width(60.dp),
+                            .height(60.dp)
+                            .width(60.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
                         IconButton(onClick = {
@@ -384,11 +378,16 @@ fun EditDialog(
 
                             onSaveClick(auth)
                             setShowDialog(false)
-                        }, Modifier.height(50.dp).width(50.dp)) {
+                        },
+                            Modifier
+                                .height(50.dp)
+                                .width(50.dp)) {
                             Icon(
                                 Icons.Default.CheckCircle,
                                 stringResource(R.string.login_close),
-                                Modifier.height(50.dp).width(50.dp)
+                                Modifier
+                                    .height(50.dp)
+                                    .width(50.dp)
                             )
                         }
                     }

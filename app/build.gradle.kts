@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kaptLibrary)
     alias(libs.plugins.serializationLibrary)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.google.firebase.crashlytics)
 }
 
 android {
@@ -81,6 +83,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.datastore.preferences.core.jvm)
+    implementation(libs.firebase.crashlytics)
 
     ksp(libs.room.compiler)
     implementation(libs.room.runtime)
