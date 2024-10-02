@@ -1,16 +1,16 @@
 [versions]
-agp = "8.5.2"
+agp = "8.7.0"
 kotlin = "2.0.10"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.8.5"
+lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.2"
-composeBom = "2024.09.00"
+composeBom = "2024.09.02"
 appcompat = "1.7.0"
 material = "1.12.0"
-navigation = "2.8.0"
+navigation = "2.8.1"
 room = "2.6.1"
 kapt = "2.0.10-1.0.24"
 hilt = "2.51"
@@ -18,7 +18,7 @@ hilt-compose = "1.2.0"
 okhttp3 = "4.12.0"
 json = "1.7.1"
 rules = "1.6.1"
-coil = "2.6.0"
+coil = "2.7.0"
 sardine = "0.9"
 constraint = "1.0.1"
 media3Common = "1.4.1"
@@ -26,18 +26,15 @@ ez-vcard = "0.12.1"
 ical4j = "3.2.17"
 preference = "0.1.4"
 prefs = "1.1.1"
-uiTooling = "1.7.0"
+uiTooling = "1.7.2"
 accompanist = "0.31.1-alpha"
 splash = "1.0.1"
-icons = "1.7.0"
+icons = "1.7.2"
 workRuntimeKtx = "2.9.1"
 glance = "1.1.0"
 datastorePreferencesCoreJvm = "1.1.1"
 markdown = "0.16.0"
-runtimeAndroid = "1.7.0"
-firebaseCrashlytics = "19.0.3"
-googleGmsGoogleServices = "4.4.2"
-googleFirebaseCrashlytics = "3.0.2"
+runtimeAndroid = "1.7.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -91,7 +88,6 @@ androidx-datastore-preferences-core-jvm = { group = "androidx.datastore", name =
 markdown-renderer = { group = "com.mikepenz", name = "multiplatform-markdown-renderer", version.ref = "markdown" }
 markdown-renderer-m3 = { group = "com.mikepenz", name = "multiplatform-markdown-renderer-m3", version.ref = "markdown" }
 androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
-firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -101,5 +97,3 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 kaptLibrary = { id = "com.google.devtools.ksp", version.ref = "kapt" }
 hiltLibrary = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 serializationLibrary = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
-google-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "googleFirebaseCrashlytics" }

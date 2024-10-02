@@ -7,8 +7,6 @@ plugins {
     alias(libs.plugins.hiltLibrary) apply false
     alias(libs.plugins.serializationLibrary) apply false
     alias(libs.plugins.compose.compiler) apply false
-    alias(libs.plugins.google.gms.google.services) apply false
-    alias(libs.plugins.google.firebase.crashlytics) apply false
 }
 
 buildscript {
@@ -18,8 +16,8 @@ buildscript {
         set("sdk_compile", 34)
         set("sdk_min", 26)
         set("compose_version", "1.5.8")
-        set("version", 20)
-        set("version_name", "1.0.Beta.12")
+        set("version", 21)
+        set("version_name", "1.0.Beta.13")
         set("minify", false)
     }
 }
