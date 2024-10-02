@@ -49,10 +49,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
@@ -326,6 +328,7 @@ private fun EditDialog(
     var isValidDescription by remember { mutableStateOf(true) }
     var color by remember { mutableStateOf(Color.Red) }
     var showProgress by remember { mutableStateOf(false) }
+    var type by remember { mutableStateOf("") }
 
 
     if(authentication != null) {
@@ -335,6 +338,11 @@ private fun EditDialog(
         user = TextFieldValue(authentication.userName)
         pwd = TextFieldValue(authentication.password)
         description = TextFieldValue(authentication.description ?: "")
+        type =
+            if(authentication.type==Authentication.nextcloud)
+                stringResource(R.string.auth_nextcloud)
+            else
+                stringResource(R.string.auth_owncloud)
     }
 
     Dialog(onDismissRequest = {setShowDialog(false)}) {
@@ -342,6 +350,15 @@ private fun EditDialog(
             shape = RoundedCornerShape(4.dp)
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
+                if(type.isEmpty()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Text(type, fontSize = 16.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Bold)
+                    }
+                }
+
                 Row(modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = title,

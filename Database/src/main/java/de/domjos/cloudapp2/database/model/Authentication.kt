@@ -38,7 +38,14 @@ data class Authentication(
     @ColumnInfo("spreed", defaultValue = "")
     var spreed: String? = "",
     @ColumnInfo("thUrl", defaultValue = "")
-    var thUrl: String? = "") {
+    var thUrl: String? = "",
+    @ColumnInfo("type", defaultValue = "NC")
+    var type: String = nextcloud) {
+
+    companion object {
+        val nextcloud: String = "NC"
+        val owncloud: String = "OC"
+    }
 
     override fun toString(): String {
         return "$title($userName)"
