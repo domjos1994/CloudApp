@@ -3,13 +3,12 @@ package de.domjos.cloudapp2.caldav
 import android.util.Log
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import de.domjos.cloudapp2.caldav.model.CalendarModel
+import de.domjos.cloudapp2.caldav.utils.Helper
+import de.domjos.cloudapp2.caldav.utils.Helper.Companion.readPropertyToString
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import net.fortuna.ical4j.data.CalendarBuilder
-import net.fortuna.ical4j.data.CalendarOutputter
 import net.fortuna.ical4j.model.Calendar
-import net.fortuna.ical4j.model.Component
-import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Categories
@@ -27,7 +26,6 @@ import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.ByteArrayOutputStream
 import java.io.StringWriter
 import java.time.Duration
 import java.util.UUID
@@ -38,7 +36,7 @@ import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
 
-class CalDav(private val authentication: Authentication?) {
+class CalendarCalDav(private val authentication: Authentication?) {
     private var sardine: OkHttpSardine? = null
     private var basePath = ""
 
@@ -150,7 +148,7 @@ class CalDav(private val authentication: Authentication?) {
                 try {
                     val inputStream =
                         this.sardine?.get(
-                            "${authentication?.url}${element.path}", this.buildHeaders()
+                            "${authentication?.url}${element.path}", Helper.buildHeaders(this.authentication!!)
                         )
 
                     val builder = CalendarBuilder()
@@ -179,7 +177,7 @@ class CalDav(private val authentication: Authentication?) {
         if(this.sardine != null) {
             val calendar = this.modelToICal(calendarEvent)
             if(calendar != null) {
-                this.sardine?.put("${basePath}/${calendarEvent.calendar}/${calendarEvent.uid}.ics", this.getData(calendar))
+                this.sardine?.put("${basePath}/${calendarEvent.calendar}/${calendarEvent.uid}.ics", Helper.getData(calendar))
             }
         }
     }
@@ -190,7 +188,7 @@ class CalDav(private val authentication: Authentication?) {
             calendarEvent.uid = uid
             val calendar = this.modelToICal(calendarEvent)
             if(calendar != null) {
-                this.sardine?.put("${basePath}/${calendarModel.name}/$uid.ics", this.getData(calendar))
+                this.sardine?.put("${basePath}/${calendarModel.name}/$uid.ics", Helper.getData(calendar))
             }
         }
     }
@@ -199,16 +197,6 @@ class CalDav(private val authentication: Authentication?) {
         if(this.sardine != null) {
             this.sardine?.delete("${authentication?.url}/${calendarEvent.path}")
         }
-    }
-
-    private fun getData(calendar: Calendar): ByteArray {
-        val fOut = ByteArrayOutputStream()
-        val output = CalendarOutputter()
-        output.isValidating = false
-        output.output(calendar, fOut)
-        val result = fOut.toByteArray()
-        fOut.close()
-        return result
     }
 
     private fun iCalToModel(calendar: Calendar, name: String, path: String) : List<CalendarEvent> {
@@ -304,21 +292,6 @@ class CalDav(private val authentication: Authentication?) {
             Log.e("Error", ex.message, ex)
         }
         return null
-    }
-
-    private inline fun <reified T: Property> readPropertyToString(component: Component): String {
-        try {
-            val name = T::class.simpleName?.uppercase()
-            return (component.getProperty<T>(name).value.toString())
-        } catch (_: Exception) {}
-        return ""
-    }
-
-    private fun buildHeaders(): Map<String, String> {
-        val headers = LinkedHashMap<String, String>()
-        val auth = Credentials.basic(this.authentication?.userName!!, this.authentication.password)
-        headers["Authorization"] = auth
-        return headers
     }
 }
 

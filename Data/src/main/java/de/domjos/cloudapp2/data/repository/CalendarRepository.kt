@@ -1,6 +1,6 @@
 package de.domjos.cloudapp2.data.repository
 
-import de.domjos.cloudapp2.caldav.CalDav
+import de.domjos.cloudapp2.caldav.CalendarCalDav
 import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
@@ -28,7 +28,7 @@ class DefaultCalendarRepository @Inject constructor(
     private val authenticationDAO: AuthenticationDAO,
     private val calendarEventDAO: CalendarEventDAO
 ) : CalendarRepository {
-    private val calDav = CalDav(authenticationDAO.getSelectedItem())
+    private val calendarCalDav = CalendarCalDav(authenticationDAO.getSelectedItem())
     private val days = LinkedList<Int>()
 
     override fun loadData(calendar: String, startTime: Long, endTime: Long): List<CalendarEvent> {
@@ -46,7 +46,7 @@ class DefaultCalendarRepository @Inject constructor(
     override fun getCalendars(): List<CalendarModel> {
         val lst = mutableListOf<CalendarModel>()
         lst.add(CalendarModel("", "", ""))
-        lst.addAll(calDav.getCalendars())
+        lst.addAll(calendarCalDav.getCalendars())
         return lst
     }
 
@@ -55,7 +55,7 @@ class DefaultCalendarRepository @Inject constructor(
     }
 
     override fun import(updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String) {
-        val data = this.calDav.reloadCalendarEvents(updateProgress, progressLabel)
+        val data = this.calendarCalDav.reloadCalendarEvents(updateProgress, progressLabel)
         data.keys.forEach { key ->
             var progress = 0L
             val max = data[key]?.size!! / 100.0f
@@ -87,12 +87,12 @@ class DefaultCalendarRepository @Inject constructor(
         progressLabel: String,
         saveLabel: String
     ) {
-        val calendars = this.calDav.getCalendars()
+        val calendars = this.calendarCalDav.getCalendars()
         val calendar = calendars.find { it.name == name }
         var progress = 0L
 
         if(calendar != null) {
-            val data = this.calDav.loadCalendarEvents(calendar, updateProgress, progressLabel)
+            val data = this.calendarCalDav.loadCalendarEvents(calendar, updateProgress, progressLabel)
             data.forEach { event ->
                 val max = data.size / 100.0f
 
@@ -119,28 +119,28 @@ class DefaultCalendarRepository @Inject constructor(
 
     override fun insert(calendarEvent: CalendarEvent) {
         calendarEvent.authId = authenticationDAO.getSelectedItem()?.id!!
-        val item = this.calDav.getCalendars().find { it.name == calendarEvent.calendar }
+        val item = this.calendarCalDav.getCalendars().find { it.name == calendarEvent.calendar }
 
         if(item != null) {
             calendarEvent.authId = authenticationDAO.getSelectedItem()!!.id
             this.calendarEventDAO.insertCalendarEvent(calendarEvent)
-            this.calDav.newCalendarEvent(item, calendarEvent)
+            this.calendarCalDav.newCalendarEvent(item, calendarEvent)
         }
     }
 
     override fun update(calendarEvent: CalendarEvent) {
         calendarEvent.authId = authenticationDAO.getSelectedItem()?.id!!
-        val item = this.calDav.getCalendars().find { it.name == calendarEvent.calendar }
+        val item = this.calendarCalDav.getCalendars().find { it.name == calendarEvent.calendar }
 
         if(item != null) {
             this.calendarEventDAO.updateCalendarEvent(calendarEvent)
-            this.calDav.updateCalendarEvent(calendarEvent)
+            this.calendarCalDav.updateCalendarEvent(calendarEvent)
         }
     }
 
     override fun delete(calendarEvent: CalendarEvent) {
         this.calendarEventDAO.deleteCalendarEvent(calendarEvent)
-        this.calDav.deleteCalendarEvent(calendarEvent)
+        this.calendarCalDav.deleteCalendarEvent(calendarEvent)
     }
 
     private fun getRepeatedItems(calendar: String, startTime: Long, endTime: Long): List<CalendarEvent> {

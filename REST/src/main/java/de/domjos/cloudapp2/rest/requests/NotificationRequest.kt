@@ -35,16 +35,18 @@ class NotificationRequest(authentication: Authentication?) : BasicRequest(authen
             if(request!=null) {
                 client.newCall(request).execute().use { response ->
 
-                    // string to object
-                    val content = response.body!!.string()
-                    val ocs =  super.json.decodeFromString<OCSObject>(content)
+                    try {
+                        // string to object
+                        val content = response.body!!.string()
+                        val ocs =  super.json.decodeFromString<OCSObject>(content)
 
-                    // check status and return list or throw exception
-                    if(ocs.ocs.meta.statuscode==200) {
-                        emit(ocs.ocs.data.toList())
-                    } else {
-                        throw Exception(ocs.ocs.meta.message)
-                    }
+                        // check status and return list or throw exception
+                        if(ocs.ocs.meta.statuscode==200) {
+                            emit(ocs.ocs.data.toList())
+                        } else {
+                            throw Exception(ocs.ocs.meta.message)
+                        }
+                    } catch (_: Exception) {emit(listOf())}
                 }
             } else {
                 emit(listOf())
