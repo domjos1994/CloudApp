@@ -87,11 +87,16 @@ class ToDoCalDavTest {
             val count = lst.size
 
             // insert items
-            val lists = ToDoList(UUID.randomUUID().toString(), "#ff00ff", "")
+            val uuid = UUID.randomUUID().toString()
+            val color = "#ff00ff"
+            val lists = ToDoList(uuid, color, "")
             toDoCalDav.insertToDoList(lists)
 
             // compare items
-            assertNotEquals(count, toDoCalDav.getToDoLists().size)
+            val find = toDoCalDav.getToDoLists().find { it.name == uuid }
+            assertNotNull(find)
+            assertEquals(color, find?.color)
+
 
             // delete items
             toDoCalDav.deleteToDoList(lists)

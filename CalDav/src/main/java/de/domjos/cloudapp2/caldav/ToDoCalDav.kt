@@ -121,7 +121,8 @@ class ToDoCalDav(private val authentication: Authentication?) {
         displayNameElement.textContent = toDoList.name
         propElement.appendChild(displayNameElement)
 
-        val colorElement = document.createElement("d:calendar-color")
+        // Todo
+        val colorElement = document.createElement("d:x-apple-calendar-color")
         colorElement.textContent = toDoList.color
         propElement.appendChild(colorElement)
 
@@ -213,6 +214,30 @@ class ToDoCalDav(private val authentication: Authentication?) {
             categories = todo.categories,
             path = todo.path,
             authId = authentication?.id ?: 0L
+        )
+    }
+
+    fun databaseToList(toDoItem: ToDoItem): ToDoList {
+        return ToDoList(toDoItem.listName, toDoItem.listColor, toDoItem.listUid)
+    }
+
+    fun databaseToToDo(toDoItem: ToDoItem): Todo {
+        val converter = ToDoStatusConverter()
+        return Todo(
+            uid = toDoItem.uid,
+            created = null,
+            lastModified = null,
+            timestamp = null,
+            summary = toDoItem.summary,
+            start = toDoItem.start,
+            end = toDoItem.end,
+            status = converter.fromStatus(toDoItem.status),
+            completed = toDoItem.completed,
+            priority = toDoItem.priority,
+            location = toDoItem.location ?: "",
+            url = toDoItem.url ?: "",
+            categories = toDoItem.categories ?: "",
+            path = toDoItem.path ?: ""
         )
     }
 

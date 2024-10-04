@@ -21,9 +21,11 @@ import de.domjos.cloudapp2.data.repository.DefaultDataRepository
 import de.domjos.cloudapp2.data.repository.DefaultNoteRepository
 import de.domjos.cloudapp2.data.repository.DefaultNotificationsRepository
 import de.domjos.cloudapp2.data.repository.DefaultRoomRepository
+import de.domjos.cloudapp2.data.repository.DefaultToDoRepository
 import de.domjos.cloudapp2.data.repository.NoteRepository
 import de.domjos.cloudapp2.data.repository.NotificationsRepository
 import de.domjos.cloudapp2.data.repository.RoomRepository
+import de.domjos.cloudapp2.data.repository.ToDoRepository
 import javax.inject.Singleton
 
 @Module(includes = [SettingsProvider::class])
@@ -78,7 +80,11 @@ interface DataModule {
         contactRepository: DefaultContactRepository
     ): ContactRepository
 
-
+    @Singleton
+    @Binds
+    fun bindsToDoRepository(
+        toDoRepository: DefaultToDoRepository
+    ): ToDoRepository
 }
 
 @Module
