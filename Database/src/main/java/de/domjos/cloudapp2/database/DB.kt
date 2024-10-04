@@ -18,22 +18,26 @@ import androidx.room.migration.AutoMigrationSpec
 import de.domjos.cloudapp2.database.converters.AddressTypeConverter
 import de.domjos.cloudapp2.database.converters.DateConverter
 import de.domjos.cloudapp2.database.converters.PhoneTypeConverter
+import de.domjos.cloudapp2.database.converters.ToDoStatusConverter
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
+import de.domjos.cloudapp2.database.dao.ToDoItemDAO
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp2.database.model.contacts.Address
 import de.domjos.cloudapp2.database.model.contacts.Contact
 import de.domjos.cloudapp2.database.model.contacts.Email
 import de.domjos.cloudapp2.database.model.contacts.Phone
+import de.domjos.cloudapp2.database.model.todo.ToDoItem
 
 @Database(
     entities = [
         Authentication::class, CalendarEvent::class,
-        Contact::class, Address::class, Phone::class, Email::class
+        Contact::class, Address::class, Phone::class, Email::class,
+        ToDoItem::class
    ],
-    version = 21,
+    version = 22,
     autoMigrations = [
         AutoMigration(1, 2),
         AutoMigration(2, 3),
@@ -54,14 +58,16 @@ import de.domjos.cloudapp2.database.model.contacts.Phone
         AutoMigration(17, 18),
         AutoMigration(18, 19),
         AutoMigration(19, 20, DeleteEventFromTo::class),
-        AutoMigration(20, 21)
+        AutoMigration(20, 21),
+        AutoMigration(21, 22)
     ]
 )
-@TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class)
+@TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class, ToDoStatusConverter::class)
 abstract class DB : RoomDatabase() {
     abstract fun authenticationDao(): AuthenticationDAO
     abstract fun calendarEventDao(): CalendarEventDAO
     abstract fun contactDao(): ContactDAO
+    abstract fun todoItemDao(): ToDoItemDAO
 
     companion object {
         fun newInstance(context: Context): DB {

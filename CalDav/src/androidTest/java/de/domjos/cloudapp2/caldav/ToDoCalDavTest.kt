@@ -15,6 +15,7 @@ import de.domjos.cloudapp2.caldav.model.ToDoList
 import de.domjos.cloudapp2.caldav.model.Todo
 import de.domjos.cloudapp2.caldav.test.R
 import de.domjos.cloudapp2.database.model.Authentication
+import de.domjos.cloudapp2.database.model.todo.Status
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -176,6 +177,59 @@ class ToDoCalDavTest {
     }
 
     @Test
+    fun testToDoValues() {
+        runBlocking {
+
+            // new uuid and new todolist
+            val uuid = UUID.randomUUID().toString().lowercase()
+            val todoList = ToDoList(uuid, "", "")
+            todoList.path = toDoCalDav.insertToDoList(todoList)
+
+            // create to Do
+            val start = Date()
+            val end = Date()
+            val created = Date()
+            val summary = UUID.randomUUID().toString()
+            val status = "IN-PROCESS"
+            val completed = 42
+            val priority = 5
+            val location = "Online"
+            val url = "https://google.com"
+            val categories = "test-1, test-2"
+
+            val todo = Todo(
+                "", created, created, created, summary, start, end, status,
+                completed, priority, location, url, categories, ""
+            )
+            toDoCalDav.insertToDo(todoList, todo)
+
+            // find item
+            var items = toDoCalDav.getToDos(todoList, {_,_->}, "")
+            var find = items.find { it.summary == summary }
+            assertNotNull(find)
+            assertEquals(summary, find?.summary)
+            assertEquals(status, find?.status)
+            assertEquals(completed, find?.completed)
+            assertEquals(priority, find?.priority)
+            assertEquals(location, find?.location)
+            assertEquals(url, find?.url)
+            assertEquals(categories, find?.categories)
+            assertEquals(start.time.toDouble(), find?.start?.time?.toDouble()!!, 1000.0)
+            assertEquals(end.time.toDouble(), find.end?.time?.toDouble()!!, 1000.0)
+
+            toDoCalDav.deleteToDo(find)
+
+            // find item
+            items = toDoCalDav.getToDos(todoList, {_,_->}, "")
+            find = items.find { it.summary == summary }
+            assertNull(find)
+
+            // delete item
+            toDoCalDav.deleteToDoList(todoList)
+        }
+    }
+
+    @Test
     fun testUpdatingToDos() {
         runBlocking {
 
@@ -217,6 +271,24 @@ class ToDoCalDavTest {
 
             // delete item
             toDoCalDav.deleteToDoList(todoList)
+        }
+    }
+
+    @Test
+    fun testConverting() {
+        runBlocking {
+            val uuid = UUID.randomUUID().toString()
+            val list = ToDoList("List-1", "#ffffff", "/test")
+            val item = Todo(
+                uuid, Date(), Date(), Date(), "Test", Date(), Date(),
+                "DRAFT", 20, 3, "Location", "",
+                "", "/test"
+            )
+
+            val db = toDoCalDav.toDoToDatabase(list, item)
+            assertEquals(Status.DRAFT, db.status)
+            assertEquals(20, db.completed)
+            assertEquals("List-1", db.listName)
         }
     }
 }

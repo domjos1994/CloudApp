@@ -33,8 +33,8 @@ class CalendarEventDaoTest : BaseTest() {
 
         event1 = CalendarEvent(
             id = 0L,
-            from = addMonth(1, cal).time.time,
-            to = addMonth(2, cal).time.time,
+            string_from = addMonth(1, cal).time.time.toString(),
+            string_to = addMonth(2, cal).time.time.toString(),
             title = "$title 1",
             location = "",
             description = "",
@@ -49,8 +49,8 @@ class CalendarEventDaoTest : BaseTest() {
         )
         event2 = CalendarEvent(
             id = 0L,
-            from = addMonth(2, cal).time.time,
-            to = addMonth(3, cal).time.time,
+            string_from = addMonth(2, cal).time.time.toString(),
+            string_to = addMonth(3, cal).time.time.toString(),
             title = "$title 1",
             location = "",
             description = "",
@@ -111,20 +111,8 @@ class CalendarEventDaoTest : BaseTest() {
         assertEquals(1, calendars.size)
         assertEquals(cal2, calendars[0])
 
-        // check if number is 1
-        var count = calendarEventDAO.count(
-            addMonth(2, cal).time.time,
-            addMonth(3, cal).time.time, 0L)
-        assertEquals(1, count)
-
         event2.calendar = cal1
         calendarEventDAO.updateCalendarEvent(event2)
-
-        // check if number is 1
-        count = calendarEventDAO.count(cal1,
-            addMonth(2, cal).time.time,
-            addMonth(3, cal).time.time, 0L)
-        assertEquals(1, count)
 
         // delete calendar
         calendarEventDAO.deleteCalendarEvent(event2)

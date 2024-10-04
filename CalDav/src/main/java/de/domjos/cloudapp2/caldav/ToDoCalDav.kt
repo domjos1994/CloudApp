@@ -13,7 +13,9 @@ import de.domjos.cloudapp2.caldav.model.Todo
 import de.domjos.cloudapp2.caldav.utils.Helper
 import de.domjos.cloudapp2.caldav.utils.Helper.Companion.getDate
 import de.domjos.cloudapp2.caldav.utils.Helper.Companion.readPropertyToString
+import de.domjos.cloudapp2.database.converters.ToDoStatusConverter
 import de.domjos.cloudapp2.database.model.Authentication
+import de.domjos.cloudapp2.database.model.todo.ToDoItem
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.component.VToDo
@@ -191,6 +193,27 @@ class ToDoCalDav(private val authentication: Authentication?) {
             }
         }
         return todo
+    }
+
+    fun toDoToDatabase(toDoList: ToDoList, todo: Todo): ToDoItem {
+        val converter = ToDoStatusConverter()
+        return ToDoItem(
+            uid = todo.uid,
+            listUid = toDoList.path,
+            listName = toDoList.name,
+            listColor = toDoList.color,
+            summary = todo.summary,
+            start = todo.start,
+            end = todo.end,
+            status = converter.fromString(todo.status),
+            completed = todo.completed,
+            priority = todo.priority,
+            location = todo.location,
+            url = todo.url,
+            categories = todo.categories,
+            path = todo.path,
+            authId = authentication?.id ?: 0L
+        )
     }
 
     fun updateToDo(todo: Todo) {
