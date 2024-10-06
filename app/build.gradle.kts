@@ -71,6 +71,7 @@ dependencies {
 
     implementation(project(":AppBasics"))
     implementation(project(":CalendarFeature"))
+    implementation(project(":ToDoFeature"))
     implementation(project(":ChatFeature"))
     implementation(project(":ContactFeature"))
     implementation(project(":DataFeature"))

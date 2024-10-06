@@ -1,6 +1,7 @@
 package de.domjos.cloudapp2.appbasics.custom
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,20 +38,41 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @Composable
-fun DropDown(items: List<String>, initial: String, onSelected: (String) -> Unit, label: String) {
+fun DropDown(
+    items: List<String>,
+    initial: String,
+    onSelected: (String) -> Unit,
+    label: String,
+    colorBackground: Color = Color.White,
+    colorForeground: Color = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor) {
+
     var expanded by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf(initial) }
 
     Row(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colorBackground)
     ) {
         OutlinedTextField(
             value = selectedItem,
             onValueChange = {selectedItem = it},
-            label = {Text(label)},
+            label = {Text(label, color = colorForeground)},
             trailingIcon = { IconButton(onClick = { expanded = !expanded }) {
-                Icon(Icons.Default.ArrowDropDown, stringResource(R.string.sys_dropdown_open))
+                Icon(
+                    Icons.Default.ArrowDropDown,
+                    stringResource(R.string.sys_dropdown_open),
+                    tint = colorForeground
+                )
             }},
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = colorForeground,
+                unfocusedTextColor = colorForeground,
+                focusedSupportingTextColor = colorForeground,
+                unfocusedSupportingTextColor = colorForeground,
+                focusedBorderColor = colorForeground,
+                unfocusedBorderColor = colorForeground
+            ),
             modifier = Modifier.fillMaxWidth()
         )
         DropdownMenu(
@@ -70,10 +93,17 @@ fun DropDown(items: List<String>, initial: String, onSelected: (String) -> Unit,
 }
 
 @Composable
-fun <T> DropDown(items: List<T>, initial: T, onSelected: (T) -> Unit, propertyLabel: (T) -> String, label: String) {
+fun <T> DropDown(
+    items: List<T>,
+    initial: T,
+    onSelected: (T) -> Unit,
+    propertyLabel: (T) -> String,
+    label: String,
+    colorBackground: Color = Color.White,
+    colorForeground: Color = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor
+) {
     var expanded by remember { mutableStateOf(false) }
     var selectedItem by remember { mutableStateOf(initial) }
-    val color = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor
 
     Row(
         modifier = Modifier
@@ -81,6 +111,7 @@ fun <T> DropDown(items: List<T>, initial: T, onSelected: (T) -> Unit, propertyLa
             .wrapContentSize(Alignment.TopEnd)
             .padding(1.dp)
             .height(50.dp)
+            .background(colorBackground)
     ) {
         Row {
             Column(
@@ -92,7 +123,7 @@ fun <T> DropDown(items: List<T>, initial: T, onSelected: (T) -> Unit, propertyLa
                 Text(
                     label,
                     fontWeight = FontWeight.Normal,
-                    color = color
+                    color = colorForeground
                 )
             }
 
@@ -100,7 +131,7 @@ fun <T> DropDown(items: List<T>, initial: T, onSelected: (T) -> Unit, propertyLa
                 Modifier
                     .weight(7f)
                     .height(50.dp)
-                    .border(1.dp, color, shape = RoundedCornerShape(8f))) {
+                    .border(1.dp, colorForeground, shape = RoundedCornerShape(8f))) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(
                         Modifier.weight(8f),
@@ -108,7 +139,7 @@ fun <T> DropDown(items: List<T>, initial: T, onSelected: (T) -> Unit, propertyLa
                         Text(
                             propertyLabel(selectedItem),
                             fontWeight = FontWeight.Normal,
-                            color = color
+                            color = colorForeground
                         )
                     }
                     Column(
@@ -124,7 +155,7 @@ fun <T> DropDown(items: List<T>, initial: T, onSelected: (T) -> Unit, propertyLa
                                 Modifier
                                     .height(50.dp)
                                     .width(50.dp),
-                                color
+                                colorForeground
                             )
                         }
                     }

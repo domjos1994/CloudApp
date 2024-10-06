@@ -8,7 +8,6 @@ package de.domjos.cloudapp2.rest.requests
 
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.rest.model.ocs.Meta
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
@@ -26,7 +25,7 @@ import java.util.concurrent.TimeUnit
 
 open class BasicRequest(authentication: Authentication?, urlPart: String) {
     private val jsonType: MediaType = "application/json".toMediaType()
-    @OptIn(ExperimentalSerializationApi::class)
+
     protected val json = Json {
         ignoreUnknownKeys = true
         explicitNulls = false

@@ -81,7 +81,7 @@ class ToDoCalDav(private val authentication: Authentication?) {
                 }
             }
         }
-        return lst
+      return lst
     }
 
     fun insertToDoList(toDoList: ToDoList): String {

@@ -21,6 +21,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -46,7 +48,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifier = Modifier, label: @Composable (() -> Unit)? = null, isError: Boolean = false, showTime: Boolean = true) {
+fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifier = Modifier, label: @Composable (() -> Unit)? = null, isError: Boolean = false, showTime: Boolean = true, colors: TextFieldColors = OutlinedTextFieldDefaults.colors()) {
     val cal = Calendar.getInstance(Locale.getDefault())
     cal.time = date
     val context = LocalContext.current
@@ -75,7 +77,8 @@ fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifi
                     IconButton(onClick = { showTimePicker = !showTimePicker }) {
                         Icon(
                             painterResource(id = R.drawable.ic_time),
-                            contentDescription = stringResource(R.string.date_picker_time)
+                            contentDescription = stringResource(R.string.date_picker_time),
+                            tint = colors.focusedTextColor
                         )
                     }
                 }
@@ -84,14 +87,16 @@ fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifi
                 IconButton(onClick = { showDatePicker = !showDatePicker }) {
                     Icon(
                         imageVector = Icons.Default.DateRange,
-                        contentDescription = stringResource(R.string.date_picker_date)
+                        contentDescription = stringResource(R.string.date_picker_date),
+                        tint = colors.focusedTextColor
                     )
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
-            isError = isError
+            isError = isError,
+            colors = colors
         )
 
         if (showDatePicker) {

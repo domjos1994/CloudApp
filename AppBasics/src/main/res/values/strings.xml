@@ -143,6 +143,21 @@
     <string name="notes_saved">Note saved successfully!</string>
     <string name="notes_deleted">Note deleted successfully!</string>
 
+    <string name="todos">Todos</string>
+    <string name="todos_import">Import ToDos…</string>
+    <string name="todos_summary">Summary</string>
+    <string name="todos_start">Start</string>
+    <string name="todos_end">End</string>
+    <string name="todos_status">Status</string>
+    <string name="todos_completed">Completed (in %)</string>
+    <string name="todos_priority">Priority (from 0–9)</string>
+    <string name="todos_location">Location</string>
+    <string name="todos_url">Url</string>
+    <string name="todos_categories">Categories (separated by ,)</string>
+    <string name="todos_list">ToDo-List</string>
+    <string name="todos_list_name">Name</string>
+    <string name="todos_list_color">Color</string>
+
     <string name="login">Login</string>
     <string name="login.authentications">Authentications</string>
     <string name="login.title">Title</string>

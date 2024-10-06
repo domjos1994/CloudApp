@@ -19,11 +19,12 @@ interface ToDoRepository {
     fun updateList(listTuple: ListTuple)
     fun deleteList(listTuple: ListTuple)
 
-    fun import(uid: String? = null, updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String)
+    fun import(uid: String? = null, updateProgress: (Float, String) -> Unit, progressLabel: String)
     fun getToDoItems(uid: String? = null): List<ToDoItem>
     fun insertToDoItem(toDoItem: ToDoItem)
     fun updateToDoItem(toDoItem: ToDoItem)
     fun deleteToDoItem(toDoItem: ToDoItem)
+    fun hasNoAuths(): Boolean
 }
 
 class DefaultToDoRepository @Inject constructor(
@@ -39,8 +40,12 @@ class DefaultToDoRepository @Inject constructor(
         this.toDoCalDav = ToDoCalDav(auth)
     }
 
+    override fun hasNoAuths(): Boolean {
+        return this.authId.toInt() == 0
+    }
+
     override fun getLists(): List<ListTuple> {
-        return this.toDoItemDAO.getLists(this.authId)
+        return this.toDoCalDav.getToDoLists().map { ListTuple(it.path, it.name, it.color) }
     }
 
     override fun updateList(listTuple: ListTuple) {
@@ -51,7 +56,11 @@ class DefaultToDoRepository @Inject constructor(
         }
         items.forEach { item -> this.toDoItemDAO.updateToDoItem(item)}
         val list = ToDoList(listTuple.name!!, listTuple.color!!, listTuple.uid!!)
-        this.toDoCalDav.updateToDoList(list)
+        if((listTuple.uid ?: "") != "") {
+            this.toDoCalDav.updateToDoList(list)
+        } else {
+            this.toDoCalDav.insertToDoList(list)
+        }
     }
 
     override fun deleteList(listTuple: ListTuple) {
@@ -61,7 +70,7 @@ class DefaultToDoRepository @Inject constructor(
         this.toDoCalDav.deleteToDoList(list)
     }
 
-    override fun import(uid: String?, updateProgress: (Float, String) -> Unit, progressLabel: String, saveLabel: String) {
+    override fun import(uid: String?, updateProgress: (Float, String) -> Unit, progressLabel: String) {
         if(uid == null) {
             this.toDoItemDAO.getAll(this.authId).forEach { this.toDoItemDAO.deleteToDoItem(it) }
             this.toDoCalDav.getToDos(updateProgress, progressLabel).forEach { (key, values) ->

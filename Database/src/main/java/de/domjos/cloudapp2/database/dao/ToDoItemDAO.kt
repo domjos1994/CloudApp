@@ -40,7 +40,7 @@ data class ListTuple(
     @ColumnInfo(name = "list_uid")
     val uid: String?,
     @ColumnInfo(name = "list_name")
-    val name: String?,
+    var name: String?,
     @ColumnInfo(name = "list_color")
-    val color: String?
+    var color: String?
 )

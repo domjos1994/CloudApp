@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.AccountBox
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Notifications
@@ -102,6 +104,8 @@ import de.domjos.cloudapp2.features.contacts.screens.importContactAction
 import de.domjos.cloudapp2.features.data.screens.DataScreen
 import de.domjos.cloudapp2.features.notesfeature.NotesScreen
 import de.domjos.cloudapp2.features.notifications.screens.NotificationScreen
+import de.domjos.cloudapp2.features.todofeature.screens.ToDoScreen
+import de.domjos.cloudapp2.features.todofeature.screens.importToDoAction
 import de.domjos.cloudapp2.screens.AuthenticationScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp2.screens.PermissionScreen
@@ -143,11 +147,12 @@ class MainActivity : ComponentActivity() {
             val notesTab = TabBarItem(title = stringResource(id = R.string.notes), selectedIcon = Icons.Filled.Create, unselectedIcon = Icons.Outlined.Create)
             val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
             val contactsTab = TabBarItem(title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
+            val todosTab = TabBarItem(title = stringResource(R.string.todos), selectedIcon = Icons.Filled.Check, unselectedIcon = Icons.Outlined.Check, header = stringResource(R.string.todos))
             val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox, header = stringResource(id = R.string.chats))
             val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
 
             // creating a list of all the tabs
-            val tabBarItems = mutableListOf(notificationsTab, dataTab, notesTab, calendarsTab, contactsTab, roomTab)
+            val tabBarItems = mutableListOf(notificationsTab, dataTab, notesTab, calendarsTab, contactsTab, todosTab, roomTab)
             val authentications = stringResource(id = R.string.login_authentications)
             val settings = stringResource(id = R.string.settings)
             val permissions = stringResource(R.string.permissions)
@@ -450,6 +455,15 @@ class MainActivity : ComponentActivity() {
                                 tabBarVisible.value = true
                                 breadcrumb = ""
                             }
+                            composable(todosTab.title) {
+                                ToDoScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
+                                title = todosTab.title
+                                header = todosTab.title
+                                refreshVisible = true
+                                progress = importToDoAction()
+                                tabBarVisible.value = true
+                                breadcrumb = ""
+                            }
                             composable(roomTab.title) {
                                 RoomScreen(onChatScreen = { x, y ->
                                     navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
@@ -539,7 +553,7 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible
         NavigationBar(modifier = Modifier.height(height)) {
             // looping over each tab to generate the views and navigation for each item
             tabBarItems.forEachIndexed { index, tabBarItem ->
-                if((index == 5 && hasSpreed) || index != 5) {
+                if((index == 6 && hasSpreed) || index != 6) {
                     NavigationBarItem(
                         selected = selectedTabIndex == index,
                         onClick = {
