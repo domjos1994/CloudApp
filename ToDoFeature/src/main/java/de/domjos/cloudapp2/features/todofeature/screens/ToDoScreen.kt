@@ -690,7 +690,9 @@ fun ToDoDialog(
 }
 
 private fun stringToColor(color: String): Color {
-    return Color(android.graphics.Color.parseColor(color))
+    return try {
+        Color(android.graphics.Color.parseColor(color))
+    } catch (_: Exception) { Color.Transparent}
 }
 
 @Preview

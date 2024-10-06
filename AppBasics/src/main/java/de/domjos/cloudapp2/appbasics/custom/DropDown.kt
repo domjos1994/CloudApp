@@ -173,6 +173,7 @@ fun <T> DropDown(
                     onClick = {
                         onSelected(it)
                         selectedItem = if(it=="") initial else it
+                        expanded = !expanded
                     })
             }
         }
