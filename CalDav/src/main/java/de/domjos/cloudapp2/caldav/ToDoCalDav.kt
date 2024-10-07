@@ -66,9 +66,9 @@ class ToDoCalDav(private val authentication: Authentication?) {
     fun getToDoLists(): List<ToDoList> {
         val lst = mutableListOf<ToDoList>()
         this.sardine?.list(this.basePath)?.drop(1)?.forEach { item ->
-            val name = item.displayName
+            val label = item.displayName
 
-            if(name != null) {
+            if(label != null) {
                 val path = "${authentication?.url}${item.path}"
                 val props = item.customProps
                 val color = if (props.isEmpty())
@@ -77,7 +77,7 @@ class ToDoCalDav(private val authentication: Authentication?) {
                     props.map { it }.find { it.key.endsWith("calendar-color") }?.value ?: ""
 
                 if(!Helper.isDeleted(item)) {
-                    lst.add(ToDoList(name, color, path))
+                    lst.add(ToDoList(label, color, path))
                 }
             }
         }
@@ -121,8 +121,7 @@ class ToDoCalDav(private val authentication: Authentication?) {
         displayNameElement.textContent = toDoList.name
         propElement.appendChild(displayNameElement)
 
-        // Todo
-        val colorElement = document.createElement("d:x-apple-calendar-color")
+        val colorElement = document.createElementNS("http://apple.com/ns/ical/", "calendar-color")
         colorElement.textContent = toDoList.color
         propElement.appendChild(colorElement)
 

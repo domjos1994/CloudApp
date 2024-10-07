@@ -88,7 +88,7 @@ class ToDoCalDavTest {
 
             // insert items
             val uuid = UUID.randomUUID().toString()
-            val color = "#ff00ff"
+            val color = "#ff43ff"
             val lists = ToDoList(uuid, color, "")
             toDoCalDav.insertToDoList(lists)
 
