@@ -9,6 +9,7 @@ package de.domjos.cloudapp2.features.todofeature.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
@@ -28,6 +30,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -121,7 +125,7 @@ fun ToDoScreen(
     var dialog by remember { mutableStateOf(false) }
     var item by remember { mutableStateOf<ToDoItem?>(null) }
 
-    if(dialog && selected != null) {
+    if(dialog) {
         ToDoDialog({dialog=it}, item, selected, onInsertOrUpdateToDo, colorBackground, colorForeground)
     }
 
@@ -155,11 +159,12 @@ fun ToDoScreen(
                             items,
                             colorBackground,
                             colorForeground,
+                            onInsertOrUpdateToDo,
+                            onDeleteToDo,
                             {
                                 item = it
                                 dialog = true
-                            },
-                            onDeleteToDo
+                            }
                         )
                     }
                 }
@@ -172,14 +177,16 @@ fun ToDoScreen(
                     height = Dimension.wrapContent
                 }.padding(5.dp),
                     horizontalArrangement = Arrangement.End) {
-                    FloatingActionButton(
-                        {
-                            item = null
-                            dialog = true
-                        },
-                        containerColor = colorForeground,
-                    ) {
-                        Icon(Icons.Default.Add, stringResource(R.string.login_add), tint = colorBackground)
+                    if(selected != null) {
+                        FloatingActionButton(
+                            {
+                                item = null
+                                dialog = true
+                            },
+                            containerColor = colorForeground,
+                        ) {
+                            Icon(Icons.Default.Add, stringResource(R.string.login_add), tint = colorBackground)
+                        }
                     }
                 }
             }
@@ -193,15 +200,16 @@ fun ToDoList(
     colorBackground: Color,
     colorForeground: Color,
     onUpdate: (ToDoItem) -> Unit,
-    onDelete: (ToDoItem) -> Unit) {
+    onDelete: (ToDoItem) -> Unit,
+    onClick: (ToDoItem) -> Unit) {
     Column(Modifier.fillMaxSize().background(colorBackground)) {
         Column(Modifier.padding(5.dp)) {
             items.forEach { item ->
-                val checked by remember { mutableStateOf(item.status == Status.COMPLETED) }
                 Row(
                     Modifier
                         .padding(2.dp)
                         .height(44.dp)
+                        .clickable { onClick(item) }
                 ) {
                     Column(
                         Modifier
@@ -210,9 +218,9 @@ fun ToDoList(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
                         Checkbox(
-                            checked,
+                            item.isChecked(),
                             {
-                                if(checked) {
+                                if(it) {
                                     item.status = Status.COMPLETED
                                 } else {
                                     item.status = Status.IN_PROCESS
@@ -279,47 +287,76 @@ fun ListDropDown(
     colorBackground: Color,
     colorForeground: Color) {
 
-
     var dialog by remember { mutableStateOf(false) }
-    var item by remember { mutableStateOf<ListTuple?>(null) }
+    var expanded by remember { mutableStateOf(false) }
 
-    if(dialog) {
-        ListDialog({dialog=it}, item, onSave, onDelete, colorBackground, colorForeground)
-    }
-
-    Column(Modifier.height(60.dp)) {
-        Row(Modifier.fillMaxWidth().height(59.dp).background(colorBackground)) {
+    Column(Modifier.height(70.dp)) {
+        Row(Modifier.fillMaxWidth().height(69.dp).background(colorBackground)) {
             Column(Modifier.weight(9f).padding(5.dp)) {
-                DropDown(
-                    lists,
-                    selected,
-                    {
-                        if(it?.uid != null) {
-                            item = it
-                            onSelectList(it)
+                OutlinedTextField(
+                    selected?.name ?: "",
+                    { text ->
+                        val find = lists.find { tmp -> tmp.name == text }
+                        if(find?.uid != null) {
+                            onSelectList(find)
                         } else {
-                            item = null
                             onSelectList(null)
                         }
                     },
-                    { item -> item?.name ?: "" },
-                    stringResource(R.string.todos_list),
-                    colorBackground = colorBackground,
-                    colorForeground = colorForeground)
+                    label = {
+                        Text(
+                            stringResource(R.string.todos_list),
+                            color = colorForeground
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = colorForeground,
+                        unfocusedTextColor = colorForeground,
+                        focusedSupportingTextColor = colorForeground,
+                        unfocusedSupportingTextColor = colorForeground,
+                        focusedBorderColor = colorForeground,
+                        unfocusedBorderColor = colorForeground
+                    ),
+                    trailingIcon = {
+                        IconButton({
+                            expanded = !expanded
+                        }) {
+                            Icon(Icons.Default.ArrowDropDown, "Open Dropdown")
+                        }
+                    },
+                    readOnly = true
+                )
+                DropdownMenu(expanded, onDismissRequest = {expanded=false}) {
+                    lists.forEach { listItem ->
+                        DropdownMenuItem({Text(listItem.toString())}, {
+                            if(listItem.uid != null) {
+                                onSelectList(listItem)
+                            } else {
+                                onSelectList(null)
+                            }
+                            expanded = !expanded
+                        })
+                    }
+                }
             }
             Column(
-                Modifier.weight(1f).height(59.dp).padding(5.dp),
+                Modifier.weight(1f).height(69.dp).padding(5.dp),
                 verticalArrangement = Arrangement.Center) {
                 if(selected != null) {
                     Row(
                         Modifier
                             .height(10.dp).width(10.dp)
-                            .background(stringToColor(selected.color!!)),
+                            .background(stringToColor(selected.color ?: "")),
                         verticalAlignment = Alignment.CenterVertically) {}
                 }
             }
-            Column(Modifier.weight(1f).padding(5.dp)) {
-                IconButton({dialog = true}) {
+            Column(
+                Modifier.weight(1f).height(69.dp).padding(5.dp),
+                verticalArrangement = Arrangement.Center) {
+                IconButton({
+                    dialog = true
+                }) {
                     Icon(
                         Icons.Filled.Edit,
                         stringResource(R.string.sys_list_edit),
@@ -329,6 +366,10 @@ fun ListDropDown(
             }
         }
         HorizontalDivider(Modifier.fillMaxWidth().height(1.dp), color = colorForeground)
+    }
+
+    if(dialog) {
+        ListDialog({dialog=it}, selected, onSave, onDelete, colorBackground, colorForeground)
     }
 }
 
@@ -352,7 +393,9 @@ fun ListDialog(
                 .wrapContentHeight()
                 .border(1.dp, colorForeground, RoundedCornerShape(5.dp))) {
             var name by remember { mutableStateOf(TextFieldValue(listTuple?.name ?: "")) }
+            var isNameValid by remember { mutableStateOf(name.text.isNotEmpty()) }
             var color by remember { mutableStateOf(TextFieldValue(listTuple?.color ?: "")) }
+            var isColorValid by remember { mutableStateOf(colorValid(color.text)) }
 
             Column(Modifier
                 .background(colorBackground)
@@ -360,7 +403,10 @@ fun ListDialog(
                 Row {
                     OutlinedTextField(
                         name,
-                        {name = it},
+                        {
+                            name = it
+                            isNameValid = it.text.isNotEmpty()
+                        },
                         label = {
                             Text(
                                 stringResource(R.string.todos_list_name),
@@ -375,13 +421,17 @@ fun ListDialog(
                             unfocusedSupportingTextColor = colorForeground,
                             focusedBorderColor = colorForeground,
                             unfocusedBorderColor = colorForeground
-                        )
+                        ),
+                        isError = !isNameValid,
                     )
                 }
                 Row {
                     OutlinedTextField(
                         color,
-                        {color = it},
+                        {
+                            color = it
+                            isColorValid = colorValid(it.text)
+                        },
                         label = {
                             Text(
                                 stringResource(R.string.todos_list_color),
@@ -396,7 +446,8 @@ fun ListDialog(
                             unfocusedSupportingTextColor = colorForeground,
                             focusedBorderColor = colorForeground,
                             unfocusedBorderColor = colorForeground
-                        )
+                        ),
+                        isError = !isColorValid,
                     )
                 }
 
@@ -422,7 +473,8 @@ fun ListDialog(
 
                             onSave(tmp)
                             onShow(false)
-                        }) { Icon(Icons.Filled.Check, stringResource(R.string.sys_list_edit), tint = colorForeground) }
+                        }, enabled = (isNameValid && isColorValid))
+                        { Icon(Icons.Filled.Check, stringResource(R.string.sys_list_edit), tint = colorForeground) }
                     }
                 }
             }
@@ -430,11 +482,15 @@ fun ListDialog(
     }
 }
 
+private fun colorValid(color: String): Boolean {
+    return stringToColor(color) != Color.Transparent
+}
+
 @Composable
 fun ToDoDialog(
     onShow: (Boolean) -> Unit,
     toDoItem: ToDoItem?,
-    list: ListTuple,
+    list: ListTuple?,
     onSave: (ToDoItem) -> Unit,
     colorBackground: Color,
     colorForeground: Color) {
@@ -655,13 +711,16 @@ fun ToDoDialog(
                                 val id = toDoItem?.id ?: 0L
                                 val uid = toDoItem?.uid ?: ""
                                 val path = toDoItem?.path ?: ""
+                                val listUid = list?.uid ?: toDoItem?.listUid ?: ""
+                                val listName = list?.name ?: toDoItem?.listName ?: ""
+                                val listColor = list?.color ?: toDoItem?.listColor ?: ""
 
                                 val item = ToDoItem(
                                     id = id,
                                     uid = uid,
-                                    listUid = list.uid!!,
-                                    listName = list.name!!,
-                                    listColor = list.color!!,
+                                    listUid = listUid,
+                                    listName = listName,
+                                    listColor = listColor,
                                     summary = summary.text,
                                     start = start,
                                     end = end,
@@ -756,7 +815,7 @@ fun ToDoListPreview() {
         toDoLists.add(ToDoItem(2L, "", "", "List 2", "#ffff00", "Test 2", completed = 30))
         toDoLists.add(ToDoItem(3L, "", "", "List 2", "#ffff00", "Test 3", completed = 50))
 
-        ToDoList(toDoLists, Color.Blue, Color.White, {}) {}
+        ToDoList(toDoLists, Color.Blue, Color.White, {}, {}) {}
     }
 }
 

@@ -137,7 +137,7 @@ fun <T> DropDown(
                         Modifier.weight(8f),
                         horizontalAlignment = Alignment.End) {
                         Text(
-                            propertyLabel(selectedItem),
+                            selectedItem.toString(),
                             fontWeight = FontWeight.Normal,
                             color = colorForeground
                         )

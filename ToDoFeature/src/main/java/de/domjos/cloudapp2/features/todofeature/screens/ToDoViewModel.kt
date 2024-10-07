@@ -32,14 +32,18 @@ class ToDoViewModel @Inject constructor(
     fun loadLists() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val items = mutableListOf<ListTuple>()
-                items.add(ListTuple(null, "", null))
-                items.addAll(toDoRepository.getLists())
-                _lists.value = items
+                getLists()
             } catch (ex: Exception) {
                 printException(ex, this)
             }
         }
+    }
+
+    private fun getLists() {
+        val items = mutableListOf<ListTuple>()
+        items.add(ListTuple(null, "", null))
+        items.addAll(toDoRepository.getLists())
+        _lists.value = items
     }
 
     fun hasNoAuthentications(): Boolean {
@@ -50,7 +54,9 @@ class ToDoViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 toDoRepository.updateList(listTuple)
-                loadLists()
+                getLists()
+                _selected.value = listTuple
+                getToDos()
             } catch (ex: Exception) {
                 printException(ex, this)
             }
@@ -61,7 +67,9 @@ class ToDoViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 toDoRepository.deleteList(listTuple)
-                loadLists()
+                getLists()
+                _selected.value = null
+                getToDos()
             } catch (ex: Exception) {
                 printException(ex, this)
             }
@@ -83,20 +91,24 @@ class ToDoViewModel @Inject constructor(
 
     fun select(listTuple: ListTuple?) {
         _selected.value = listTuple
-        this.loadToDos()
+        loadToDos()
     }
 
     fun loadToDos() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if(_selected.value == null) {
-                    _items.value = toDoRepository.getToDoItems()
-                } else {
-                    _items.value = toDoRepository.getToDoItems(_selected.value?.uid)
-                }
+                getToDos()
             } catch (ex: Exception) {
                 printException(ex, this)
             }
+        }
+    }
+
+    private fun getToDos() {
+        if(_selected.value == null) {
+            _items.value = toDoRepository.getToDoItems()
+        } else {
+            _items.value = toDoRepository.getToDoItems(_selected.value?.uid)
         }
     }
 
@@ -108,7 +120,7 @@ class ToDoViewModel @Inject constructor(
                 } else {
                     toDoRepository.updateToDoItem(toDoItem)
                 }
-                loadToDos()
+                getToDos()
             } catch (ex: Exception) {
                 printException(ex, this)
             }
@@ -119,7 +131,7 @@ class ToDoViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 toDoRepository.deleteToDoItem(toDoItem)
-                loadToDos()
+                getToDos()
             } catch (ex: Exception) {
                 printException(ex, this)
             }

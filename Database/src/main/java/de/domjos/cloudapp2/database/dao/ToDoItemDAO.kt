@@ -43,4 +43,8 @@ data class ListTuple(
     var name: String?,
     @ColumnInfo(name = "list_color")
     var color: String?
-)
+) {
+    override fun toString(): String {
+        return this.name ?: ""
+    }
+}

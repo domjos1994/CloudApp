@@ -101,7 +101,7 @@ class DefaultToDoRepository @Inject constructor(
     }
 
     override fun insertToDoItem(toDoItem: ToDoItem) {
-        var find = this.toDoCalDav.getToDoLists().find { it.path == toDoItem.path }
+        var find = this.toDoCalDav.getToDoLists().find { it.path == toDoItem.listUid }
         if(find == null) {
             val toDoList = this.toDoCalDav.databaseToList(toDoItem)
             toDoList.path = this.toDoCalDav.insertToDoList(toDoList)
@@ -111,6 +111,7 @@ class DefaultToDoRepository @Inject constructor(
         toDo = this.toDoCalDav.insertToDo(find, toDo)
         toDoItem.path = toDo.path
         toDoItem.uid = toDo.uid
+        toDoItem.authId = authId
 
         this.toDoItemDAO.insertToDoItem(toDoItem)
 
@@ -118,6 +119,7 @@ class DefaultToDoRepository @Inject constructor(
 
     override fun updateToDoItem(toDoItem: ToDoItem) {
         val todo = toDoCalDav.databaseToToDo(toDoItem)
+        toDoItem.authId = authId
         toDoCalDav.updateToDo(todo)
         toDoItemDAO.updateToDoItem(toDoItem)
     }
