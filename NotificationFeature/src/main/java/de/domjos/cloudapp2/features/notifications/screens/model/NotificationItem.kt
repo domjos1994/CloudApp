@@ -6,8 +6,8 @@
 
 package de.domjos.cloudapp2.features.notifications.screens.model
 
-import android.graphics.drawable.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import de.domjos.cloudapp2.rest.model.notifications.Notification
 import java.util.Date
 
@@ -17,7 +17,7 @@ data class NotificationItem(
     val date: Date = Date(),
     val title: String = "",
     val description: String = "",
-    val icon: @Composable () -> Unit = {}) {
+    val icon: @Composable (Color) -> Unit = {}) {
 
     enum class Type {
         App,

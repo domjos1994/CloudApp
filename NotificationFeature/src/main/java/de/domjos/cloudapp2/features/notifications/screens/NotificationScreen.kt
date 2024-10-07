@@ -266,7 +266,7 @@ fun NotificationItem(notification: NotificationItem, colorBackground: Color, col
         modifier = Modifier
             .fillMaxWidth()
             .background(colorBackground)) {
-        notification.icon()
+        notification.icon(colorForeground)
 
 
         Column(modifier = Modifier

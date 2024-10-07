@@ -16,8 +16,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.automirrored.outlined.List
-import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Create
@@ -25,7 +26,6 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.DateRange
@@ -148,8 +148,8 @@ class MainActivity : ComponentActivity() {
             val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
             val contactsTab = TabBarItem(title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
             val todosTab = TabBarItem(title = stringResource(R.string.todos), selectedIcon = Icons.Filled.Check, unselectedIcon = Icons.Outlined.Check, header = stringResource(R.string.todos))
-            val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox, header = stringResource(id = R.string.chats))
-            val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.Filled.AccountBox, unselectedIcon = Icons.Outlined.AccountBox)
+            val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message, header = stringResource(id = R.string.chats))
+            val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message)
 
             // creating a list of all the tabs
             val tabBarItems = mutableListOf(notificationsTab, dataTab, notesTab, calendarsTab, contactsTab, todosTab, roomTab)
@@ -570,7 +570,7 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible
                             )
                         },
                         label = {
-                            if(showText) {
+                            if(showText && tabBarItems.size < 7) {
                                 Text(
                                     if (tabBarItem.header == "") tabBarItem.title else tabBarItem.header,
                                     fontSize = 10.sp

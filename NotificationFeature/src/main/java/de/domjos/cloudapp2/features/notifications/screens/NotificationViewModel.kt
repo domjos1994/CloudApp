@@ -98,7 +98,7 @@ class NotificationViewModel @Inject constructor(
                     }
 
 
-                    events.forEach {
+                    events.forEach { it ->
                         val start = try {stringToOtherFormat(it.string_from, format)} catch (_: Exception) {""}
                         val end = try {stringToOtherFormat(it.string_to, format)} catch (_: Exception) {""}
                         val description = "${it.title}: $start - $end".trim()
@@ -107,7 +107,7 @@ class NotificationViewModel @Inject constructor(
                             date = try {stringToDate(it.string_from)} catch (_: Exception) {Date()},
                             title = it.title,
                             description = description,
-                            icon = {Icon(imageVector = Icons.Filled.DateRange, contentDescription = description)}
+                            icon = {color -> Icon(imageVector = Icons.Filled.DateRange, contentDescription = description, tint = color)}
                         ))
                     }
                 }
