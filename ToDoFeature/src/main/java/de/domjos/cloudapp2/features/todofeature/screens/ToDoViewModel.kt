@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.data.repository.ToDoRepository
 import de.domjos.cloudapp2.database.dao.ListTuple
+import de.domjos.cloudapp2.database.model.todo.Status
 import de.domjos.cloudapp2.database.model.todo.ToDoItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -115,6 +116,7 @@ class ToDoViewModel @Inject constructor(
     fun insertOrUpdateToDo(toDoItem: ToDoItem?) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                toDoItem!!.checked = (toDoItem.status== Status.COMPLETED)
                 if(toDoItem!!.id == 0L) {
                     toDoRepository.insertToDoItem(toDoItem)
                 } else {

@@ -51,11 +51,10 @@ data class ToDoItem(
     @ColumnInfo("path", defaultValue = "")
     var path: String? = "",
     @ColumnInfo("authId", defaultValue = "0")
-    var authId: Long = 0L
+    var authId: Long = 0L,
+    @ColumnInfo("checked", defaultValue = "false")
+    var checked: Boolean = false
 ) {
-    fun isChecked(): Boolean {
-        return status == Status.COMPLETED
-    }
 }
 
 enum class Status {

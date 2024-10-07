@@ -19,7 +19,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -27,8 +29,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -159,13 +159,11 @@ fun ToDoScreen(
                             items,
                             colorBackground,
                             colorForeground,
-                            onInsertOrUpdateToDo,
-                            onDeleteToDo,
-                            {
-                                item = it
-                                dialog = true
-                            }
-                        )
+                            onDeleteToDo
+                        ) {
+                            item = it
+                            dialog = true
+                        }
                     }
                 }
 
@@ -199,7 +197,6 @@ fun ToDoList(
     items: List<ToDoItem>,
     colorBackground: Color,
     colorForeground: Color,
-    onUpdate: (ToDoItem) -> Unit,
     onDelete: (ToDoItem) -> Unit,
     onClick: (ToDoItem) -> Unit) {
     Column(Modifier.fillMaxSize().background(colorBackground)) {
@@ -217,21 +214,11 @@ fun ToDoList(
                             .height(40.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center) {
-                        Checkbox(
-                            item.isChecked(),
-                            {
-                                if(it) {
-                                    item.status = Status.COMPLETED
-                                } else {
-                                    item.status = Status.IN_PROCESS
-                                }
-                                onUpdate(item)
-                            },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = colorForeground,
-                                uncheckedColor = colorForeground
-                            )
-                        )
+                        if(item.checked) {
+                            Icon(Icons.Default.Check, item.summary, tint = colorForeground)
+                        } else {
+                            Icon(Icons.Default.Close, item.summary, tint = colorForeground)
+                        }
                     }
                     Column(
                         Modifier
@@ -506,6 +493,7 @@ fun ToDoDialog(
                 .border(1.dp, colorForeground, RoundedCornerShape(5.dp))
         ) {
             var summary by remember { mutableStateOf(TextFieldValue(toDoItem?.summary ?: "")) }
+            var isSummaryValid by remember { mutableStateOf(summary.text.isNotEmpty()) }
             var start by remember { mutableStateOf(toDoItem?.start ?: Date()) }
             var end by remember { mutableStateOf(toDoItem?.end ?: Date()) }
             var status by remember { mutableStateOf(toDoItem?.status?.name ?: "") }
@@ -517,11 +505,16 @@ fun ToDoDialog(
             var categories by remember { mutableStateOf(TextFieldValue(toDoItem?.categories ?: "")) }
 
             Column(Modifier
-                .background(colorBackground)) {
+                .background(colorBackground)
+                .height(500.dp)
+                .verticalScroll(rememberScrollState())) {
                 Row(Modifier.padding(5.dp)) {
                     OutlinedTextField(
                         value = summary,
-                        onValueChange = { summary = it },
+                        onValueChange = {
+                            summary = it
+                            isSummaryValid = it.text.isNotEmpty()
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         label = {
                             Text(stringResource(R.string.todos_summary), color = colorForeground)
@@ -533,7 +526,8 @@ fun ToDoDialog(
                             unfocusedSupportingTextColor = colorForeground,
                             focusedBorderColor = colorForeground,
                             unfocusedBorderColor = colorForeground
-                        )
+                        ),
+                        isError = !isSummaryValid
                     )
                 }
                 Row(Modifier.padding(5.dp)) {
@@ -734,7 +728,7 @@ fun ToDoDialog(
                                 )
                                 onSave(item)
                                 onShow(false)
-                            }) {
+                            }, enabled = isSummaryValid) {
                             Icon(
                                 Icons.Default.Check,
                                 stringResource(R.string.login_close),
@@ -815,7 +809,7 @@ fun ToDoListPreview() {
         toDoLists.add(ToDoItem(2L, "", "", "List 2", "#ffff00", "Test 2", completed = 30))
         toDoLists.add(ToDoItem(3L, "", "", "List 2", "#ffff00", "Test 3", completed = 50))
 
-        ToDoList(toDoLists, Color.Blue, Color.White, {}, {}) {}
+        ToDoList(toDoLists, Color.Blue, Color.White, {}) {}
     }
 }
 
