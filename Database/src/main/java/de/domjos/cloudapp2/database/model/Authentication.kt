@@ -37,6 +37,8 @@ data class Authentication(
     var slogan: String? = "",
     @ColumnInfo("spreed", defaultValue = "")
     var spreed: String? = "",
+    @ColumnInfo("notes", defaultValue = "true")
+    var notes: String? = "true",
     @ColumnInfo("thUrl", defaultValue = "")
     var thUrl: String? = "",
     @ColumnInfo("type", defaultValue = "NC")

@@ -23,6 +23,43 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         R.drawable.baseline_access_time_24, {"${it.toInt()} min"}, 1.0f.rangeTo(200.0f)
     )
 
+    // features
+    val featureNotificationsPreference = createSwitchPreference(
+        Settings.featureNotifications, true, stringResource(R.string.notifications),
+        String.format(stringResource(R.string.settings_features_show), stringResource(R.string.notifications)),
+        R.drawable.baseline_notifications_24
+    )
+    val featureDataPreference = createSwitchPreference(
+        Settings.featureData, true, stringResource(R.string.data),
+        String.format(stringResource(R.string.settings_features_show), stringResource(R.string.data)),
+        R.drawable.baseline_folder_24
+    )
+    val featureNotesPreference = createSwitchPreference(
+        Settings.featureNotes, true, stringResource(R.string.notes),
+        String.format(stringResource(R.string.settings_features_show), stringResource(R.string.notes)),
+        R.drawable.baseline_note_24
+    )
+    val featureContactsPreference = createSwitchPreference(
+        Settings.featureContacts, true, stringResource(R.string.contacts),
+        String.format(stringResource(R.string.settings_features_show), stringResource(R.string.contacts)),
+        R.drawable.baseline_person_24
+    )
+    val featureCalendarsPreference = createSwitchPreference(
+        Settings.featureCalendars, true, stringResource(R.string.calendars),
+        String.format(stringResource(R.string.settings_features_show), stringResource(R.string.calendars)),
+        R.drawable.baseline_calendar_month_24
+    )
+    val featureToDosPreference = createSwitchPreference(
+        Settings.featureToDos, true, stringResource(R.string.todos),
+        String.format(stringResource(R.string.settings_features_show), stringResource(R.string.todos)),
+        R.drawable.baseline_check_24
+    )
+    val featureChatsPreference = createSwitchPreference(
+        Settings.featureChats, true, stringResource(R.string.chats),
+        String.format(stringResource(R.string.settings_features_show), stringResource(R.string.chats)),
+        R.drawable.baseline_chat_24
+    )
+
     // cloud
     val cloudThemePreference = createSwitchPreference(
         Settings.themeFromCloudKey, true, R.string.settings_theme_cloud_title,
@@ -105,6 +142,13 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         R.string.settings_data_show_md_header, R.drawable.baseline_picture_as_pdf_24
     )
 
+    val featureGroup = Preference.PreferenceGroup(stringResource(R.string.settings_features), true,
+        listOf(
+            featureNotificationsPreference, featureDataPreference, featureNotesPreference,
+            featureContactsPreference, featureCalendarsPreference, featureToDosPreference,
+            featureChatsPreference
+        )
+    )
     val cloudGroup = Preference.PreferenceGroup(stringResource(id = R.string.settings_cloud_title), true, listOf(cloudThemePreference, cloudThemeMobilePreference))
     val notificationGroup = Preference.PreferenceGroup(stringResource(R.string.settings_notifications), true, listOf(notificationTypeAppPreference, notificationTypeServerPreference, notificationTimePreference))
     val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference, cardavRegularityPreference))
@@ -112,7 +156,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val dataGroup = Preference.PreferenceGroup(stringResource(R.string.data), true, listOf(filesInInternal, pdfInInternal, imgInInternal, textInInternal, mdInInternal))
 
     PreferenceScreen(
-        items = listOf(timeSpanPreference, cloudGroup, notificationGroup, contactGroup, calendarGroup, dataGroup),
+        items = listOf(timeSpanPreference, featureGroup, cloudGroup, notificationGroup, contactGroup, calendarGroup, dataGroup),
         dataStore = viewModel.init(),
         statusBarPadding = true
     )
@@ -138,6 +182,18 @@ fun createSwitchPreference(key: Preferences.Key<Boolean>, default: Boolean, titl
     return Preference.PreferenceItem.SwitchPreference(
         createPreferenceRequest(key, default),
         stringResource(titleId), stringResource(headerId),
+        false,
+        {Image(painterResource(resId), key.name)},
+        true
+
+    )
+}
+
+@Composable
+fun createSwitchPreference(key: Preferences.Key<Boolean>, default: Boolean, titleId: String, headerId: String, resId: Int): Preference.PreferenceItem.SwitchPreference {
+    return Preference.PreferenceItem.SwitchPreference(
+        createPreferenceRequest(key, default),
+        titleId, headerId,
         false,
         {Image(painterResource(resId), key.name)},
         true

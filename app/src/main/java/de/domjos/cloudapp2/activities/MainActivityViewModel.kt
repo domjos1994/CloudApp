@@ -3,6 +3,7 @@ package de.domjos.cloudapp2.activities
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.MutableLiveData
@@ -26,6 +27,32 @@ class MainActivityViewModel @Inject constructor(
     private val settings: Settings
 ) : ViewModel() {
     var message = MutableLiveData<String?>()
+
+    fun setVisibility(items: MutableList<TabBarItem>, onFinish: (MutableList<TabBarItem>) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val tmp = authenticationRepository.getLoggedInUser()
+                val hasSpreed = tmp?.spreed.equals("true")
+                val hasNotes = tmp?.notes.equals("true")
+                onFinish(items.map { item ->
+                    when(item.id) {
+                        "notifications" -> item.visible = settings.getSetting<Boolean>(Settings.featureNotifications, true)
+                        "data" -> item.visible = settings.getSetting<Boolean>(Settings.featureData, true)
+                        "notes" -> item.visible = hasNotes && settings.getSetting<Boolean>(Settings.featureNotes, true)
+                        "calendars" -> item.visible = settings.getSetting<Boolean>(Settings.featureCalendars, true)
+                        "contacts" -> item.visible = settings.getSetting<Boolean>(Settings.featureContacts, true)
+                        "todos" -> item.visible = settings.getSetting<Boolean>(Settings.featureToDos, true)
+                        "rooms" -> item.visible = hasSpreed && settings.getSetting<Boolean>(Settings.featureChats, true)
+                        "chats" -> item.visible = hasSpreed && settings.getSetting<Boolean>(Settings.featureChats, true)
+                    }
+                    item
+                } as MutableList)
+            } catch (ex: Exception) {
+                message.postValue(ex.message)
+                Log.e(this.javaClass.name, ex.message, ex)
+            }
+        }
+    }
 
     fun getCapabilities(onResult: (Authentication?) -> Unit, authentication: Authentication?) {
         viewModelScope.launch(Dispatchers.IO) {

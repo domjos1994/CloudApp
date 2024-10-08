@@ -4,6 +4,8 @@
  * General Public License V3.
  */
 
+@file:Suppress("PropertyName")
+
 package de.domjos.cloudapp2.rest.model.capabilities
 
 import kotlinx.serialization.Serializable
@@ -12,7 +14,7 @@ import kotlinx.serialization.Serializable
 data class Data(val version: Version, val capabilities: Capabilities)
 
 @Serializable
-data class Capabilities(val notifications: Notifications?, val spreed: Spreed?, val theming: Theming)
+data class Capabilities(val notifications: Notifications?, val notes: Notes?, val spreed: Spreed?, val theming: Theming)
 
 @Serializable
 data class Version(val major: Int, val minor: Int, val micro: Int, val string: String, val edition: String, val extendedSupport: Boolean)
@@ -56,6 +58,9 @@ data class Spreed(val features: Array<String>) {
         return features.contentHashCode()
     }
 }
+
+@Serializable
+data class Notes(val api_version: Array<String>?, val version: String?)
 
 @Serializable
 data class Theming(

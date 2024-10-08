@@ -117,11 +117,13 @@ import de.domjos.cloudapp2.worker.ContactWorker
 
 
 data class TabBarItem(
+    val id: String,
     val title: String,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector,
     val badgeAmount: Int? = null,
-    val header: String = ""
+    val header: String = "",
+    var visible: Boolean = true
 )
 
 
@@ -138,21 +140,18 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            // state for spreed
-            var hasSpreed by remember { mutableStateOf(false) }
-
             // create tabs
-            val notificationsTab = TabBarItem(title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
-            val dataTab = TabBarItem(title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
-            val notesTab = TabBarItem(title = stringResource(id = R.string.notes), selectedIcon = Icons.Filled.Create, unselectedIcon = Icons.Outlined.Create)
-            val calendarsTab = TabBarItem(title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
-            val contactsTab = TabBarItem(title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
-            val todosTab = TabBarItem(title = stringResource(R.string.todos), selectedIcon = Icons.Filled.Check, unselectedIcon = Icons.Outlined.Check, header = stringResource(R.string.todos))
-            val roomTab = TabBarItem(title = stringResource(id = R.string.chats_room), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message, header = stringResource(id = R.string.chats))
-            val chatsTab = TabBarItem(title = stringResource(id = R.string.chats), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message)
+            val notificationsTab = TabBarItem(id="notifications", title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
+            val dataTab = TabBarItem(id="data", title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
+            val notesTab = TabBarItem(id="notes", title = stringResource(id = R.string.notes), selectedIcon = Icons.Filled.Create, unselectedIcon = Icons.Outlined.Create)
+            val calendarsTab = TabBarItem(id="calendars", title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
+            val contactsTab = TabBarItem(id="contacts", title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
+            val todosTab = TabBarItem(id="todos", title = stringResource(R.string.todos), selectedIcon = Icons.Filled.Check, unselectedIcon = Icons.Outlined.Check, header = stringResource(R.string.todos))
+            val roomTab = TabBarItem(id="rooms", title = stringResource(id = R.string.chats_room), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message, header = stringResource(id = R.string.chats))
+            val chatsTab = TabBarItem(id="chats", title = stringResource(id = R.string.chats), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message)
 
             // creating a list of all the tabs
-            val tabBarItems = mutableListOf(notificationsTab, dataTab, notesTab, calendarsTab, contactsTab, todosTab, roomTab)
+            var tabBarItems = remember { mutableListOf(notificationsTab, dataTab, notesTab, calendarsTab, contactsTab, todosTab, roomTab) }
             val authentications = stringResource(id = R.string.login_authentications)
             val settings = stringResource(id = R.string.settings)
             val permissions = stringResource(R.string.permissions)
@@ -197,6 +196,9 @@ class MainActivity : ComponentActivity() {
 
             // updates the theme if connection and so on
             var updateTheme: (Authentication?) -> Unit = {}
+            var updateNavBar: () -> Unit = {
+                viewModel.setVisibility(tabBarItems) { items -> tabBarItems = items }
+            }
             LaunchedEffect(isConnected) {
                 updateTheme = {auth: Authentication? ->
                     viewModel.getCloudTheme {
@@ -211,7 +213,6 @@ class MainActivity : ComponentActivity() {
                                         icon = data.thumbNail
                                         authTitle = "(${data.thUrl})"
                                         hasAuthentications = viewModel.hasAuthentications()
-                                        hasSpreed = data.spreed.equals("true")
                                     }
                                 }, auth)
                             } else {
@@ -224,6 +225,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 updateTheme(null)
+                updateNavBar()
             }
 
             // initiates the worker to sync data from dav-server
@@ -273,7 +275,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     Scaffold(
-                        bottomBar = { TabView(tabBarItems, navController, tabBarVisible, hasSpreed) },
+                        bottomBar = { TabView(tabBarItems, navController, tabBarVisible, updateNavBar) },
                         topBar = {
                             Column {
                                 Row {
@@ -371,7 +373,7 @@ class MainActivity : ComponentActivity() {
                                            if(menuExpanded) {
                                                Menu(
                                                    {menuExpanded = it},
-                                                   updateTheme,
+                                                   updateTheme, updateNavBar,
                                                    true,
                                                    {navController.navigate(settings)},
                                                    {navController.navigate(permissions)})
@@ -512,15 +514,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit) {
+fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, updateNavBar: () -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
         DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = {
             updateTheme(null)
+            updateNavBar()
             onSettings()
             onExpanded(false)
         })
         DropdownMenuItem(text = { Text(stringResource(R.string.permissions)) }, onClick = {
             updateTheme(null)
+            updateNavBar()
             onPermissions()
             onExpanded(false)
         })
@@ -532,13 +536,14 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(intent)
                 onExpanded(false)
+                updateNavBar()
             } catch (_: Exception) {}
         })
     }
 }
 
 @Composable
-fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>, hasSpreed: Boolean) {
+fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>, updateNavBar: () -> Unit) {
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -553,10 +558,11 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible
         NavigationBar(modifier = Modifier.height(height)) {
             // looping over each tab to generate the views and navigation for each item
             tabBarItems.forEachIndexed { index, tabBarItem ->
-                if((index == 6 && hasSpreed) || index != 6) {
+                if(tabBarItem.visible) {
                     NavigationBarItem(
                         selected = selectedTabIndex == index,
                         onClick = {
+                            updateNavBar()
                             selectedTabIndex = index
                             navController.navigate(tabBarItem.title)
                         },
@@ -570,7 +576,7 @@ fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible
                             )
                         },
                         label = {
-                            if(showText && tabBarItems.size < 7) {
+                            if(showText && tabBarItems.filter { it.visible }.size < 7) {
                                 Text(
                                     if (tabBarItem.header == "") tabBarItem.title else tabBarItem.header,
                                     fontSize = 10.sp
@@ -617,13 +623,13 @@ fun TabBarBadgeView(count: Int? = null) {
 @Composable
 fun TabBarPreview() {
     val items = mutableListOf<TabBarItem>()
-    items.add(TabBarItem("Test 1", Icons.Filled.Person, Icons.Filled.Person, null, "Test 1"))
-    items.add(TabBarItem("Test 2", Icons.Filled.Person, Icons.Filled.Person, null, "Test 2"))
-    items.add(TabBarItem("Test 3", Icons.Filled.Person, Icons.Filled.Person, null, "Test 3"))
-    items.add(TabBarItem("Test 4", Icons.Filled.Person, Icons.Filled.Person, null, "Test 4"))
-    items.add(TabBarItem("Test 5", Icons.Filled.Person, Icons.Filled.Person, null, "Test 5"))
+    items.add(TabBarItem("Test 1", "Test 1", Icons.Filled.Person, Icons.Filled.Person, null, "Test 1"))
+    items.add(TabBarItem("Test 2", "Test 2", Icons.Filled.Person, Icons.Filled.Person, null, "Test 2"))
+    items.add(TabBarItem("Test 3", "Test 3", Icons.Filled.Person, Icons.Filled.Person, null, "Test 3"))
+    items.add(TabBarItem("Test 4", "Test 4", Icons.Filled.Person, Icons.Filled.Person, null, "Test 4"))
+    items.add(TabBarItem("Test 5", "Test 5", Icons.Filled.Person, Icons.Filled.Person, null, "Test 5"))
 
     CloudAppTheme {
-        TabView(tabBarItems = items, navController = rememberNavController(), visible = mutableStateOf(true), hasSpreed = true)
+        TabView(tabBarItems = items, navController = rememberNavController(), visible = mutableStateOf(true)) {}
     }
 }

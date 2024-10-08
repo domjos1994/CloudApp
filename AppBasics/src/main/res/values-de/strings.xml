@@ -2,7 +2,10 @@
 <resources>
     <string name="notifications">News</string>
     <string name="auth_test">Verbindung testen</string>
+
     <string name="settings">Einstellungen</string>
+    <string name="settings_features">Features</string>
+    <string name="settings_features_show">Zeige %s an</string>
     <string name="settings_timeSpan_title">Zeitdifferenz</string>
     <string name="settings_timeSpan_header">Zeitdifferenz um Chats zu aktualisieren (in Sekunden)</string>
     <string name="settings_cloud_title">Cloud</string>

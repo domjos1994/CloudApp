@@ -42,7 +42,14 @@ class Settings(private val context: Context) {
         val dataShowTextInInternalViewer = booleanPreferencesKey("user_data_show_text")
         val dataShowMarkDownInInternalViewer = booleanPreferencesKey("user_data_show_markdown")
 
-
+        // features
+        val featureNotifications = booleanPreferencesKey("feature_notifications")
+        val featureData = booleanPreferencesKey("feature_data")
+        val featureNotes = booleanPreferencesKey("feature_notes")
+        val featureContacts = booleanPreferencesKey("feature_contacts")
+        val featureCalendars = booleanPreferencesKey("feature_calendars")
+        val featureToDos = booleanPreferencesKey("feature_todos")
+        val featureChats = booleanPreferencesKey("feature_chats")
     }
 
     // general settings
@@ -113,6 +120,15 @@ class Settings(private val context: Context) {
             preferences[dataShowImageInInternalViewer] = showImgInternal
             preferences[dataShowTextInInternalViewer] = showTxtInternal
             preferences[dataShowMarkDownInInternalViewer] = showMarkDownInternal
+
+            // feature settings
+            preferences[featureNotifications] = true
+            preferences[featureData] = true
+            preferences[featureNotes] = true
+            preferences[featureContacts] = true
+            preferences[featureCalendars] = true
+            preferences[featureToDos] = true
+            preferences[featureChats] = true
         }
     }
 

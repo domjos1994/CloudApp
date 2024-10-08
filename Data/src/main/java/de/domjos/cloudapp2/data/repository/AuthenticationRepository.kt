@@ -87,6 +87,7 @@ class DefaultAuthenticationRepository @Inject constructor(
             authentication.colorForeground = capabilities?.capabilities?.theming?.`color-text` ?: ""
             authentication.serverVersion = capabilities?.version?.string ?: ""
             authentication.spreed = if(capabilities?.capabilities?.spreed != null) "true" else "false"
+            authentication.notes = if(capabilities?.capabilities?.notes != null) "true" else "false"
             authentication.thUrl = capabilities?.capabilities?.theming?.url ?: ""
             val icon = capabilities?.capabilities?.theming?.logo ?: ""
             if(icon.isNotEmpty()) {

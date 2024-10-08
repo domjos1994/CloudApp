@@ -37,7 +37,7 @@ import de.domjos.cloudapp2.database.model.todo.ToDoItem
         Contact::class, Address::class, Phone::class, Email::class,
         ToDoItem::class
    ],
-    version = 23,
+    version = 24,
     autoMigrations = [
         AutoMigration(1, 2),
         AutoMigration(2, 3),
@@ -60,7 +60,8 @@ import de.domjos.cloudapp2.database.model.todo.ToDoItem
         AutoMigration(19, 20, DeleteEventFromTo::class),
         AutoMigration(20, 21),
         AutoMigration(21, 22),
-        AutoMigration(22, 23)
+        AutoMigration(22, 23),
+        AutoMigration(23, 24)
     ]
 )
 @TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class, ToDoStatusConverter::class)
