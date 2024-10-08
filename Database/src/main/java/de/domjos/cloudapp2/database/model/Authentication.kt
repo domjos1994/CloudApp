@@ -71,6 +71,7 @@ data class Authentication(
         if (colorBackground != other.colorBackground) return false
         if (slogan != other.slogan) return false
         if (spreed != other.spreed) return false
+        if (notes != other.notes) return false
         if (thUrl != other.thUrl) return false
 
         return true
@@ -88,6 +89,7 @@ data class Authentication(
         result = 31 * result + colorBackground.hashCode()
         result = 31 * result + slogan.hashCode()
         result = 31 * result + spreed.hashCode()
+        result = 31 * result + notes.hashCode()
         result = 31 * result + thUrl.hashCode()
         return result
     }

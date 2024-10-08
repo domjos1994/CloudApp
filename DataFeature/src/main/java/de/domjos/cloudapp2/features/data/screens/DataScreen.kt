@@ -66,7 +66,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -293,7 +292,7 @@ fun getFileName(uri: Uri, context: Context): String? {
         result = uri.path
         val cut = result!!.lastIndexOf('/')
         if (cut != -1) {
-            result = result!!.substring(cut + 1)
+            result = result.substring(cut + 1)
         }
     }
     return result
@@ -321,7 +320,7 @@ fun DataItem(
     var showDeleteShareDialog by remember { mutableStateOf(false) }
     var showShareDialog by remember { mutableStateOf(false) }
     var showPublicShareDialog by remember { mutableStateOf(false) }
-    val canDelete = parentItem?.sharedWithMe?.can_delete ?: true
+    val canDelete = parentItem?.sharedWithMe?.can_delete != false
     var share by remember { mutableStateOf(item.sharedFromMe) }
     var shareId by remember { mutableIntStateOf(0) }
     val clipboardManager = LocalClipboardManager.current

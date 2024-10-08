@@ -3,7 +3,6 @@ package de.domjos.cloudapp2.activities
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.res.stringResource
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.MutableLiveData
@@ -33,7 +32,7 @@ class MainActivityViewModel @Inject constructor(
             try {
                 val tmp = authenticationRepository.getLoggedInUser()
                 val hasSpreed = tmp?.spreed.equals("true")
-                val hasNotes = tmp?.notes.equals("true")
+                val hasNotes = tmp?.notes.equals("true") || tmp?.notes.equals("1")
                 onFinish(items.map { item ->
                     when(item.id) {
                         "notifications" -> item.visible = settings.getSetting<Boolean>(Settings.featureNotifications, true)

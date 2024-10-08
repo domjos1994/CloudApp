@@ -19,6 +19,7 @@ import de.domjos.cloudapp2.rest.requests.ShareRequest
 import de.domjos.cloudapp2.webdav.WebDav
 import de.domjos.cloudapp2.webdav.model.Item
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.InputStream
 import javax.inject.Inject
@@ -85,26 +86,27 @@ class DefaultDataRepository @Inject constructor(
 
     override suspend fun getList(): List<Item> {
         path = webDav!!.getSimplePath()
-        val items = webDav!!.getList()
-        /*if(shares != null) {
-            items.forEach { item ->
-                shares?.collect { shares ->
-                    shares.forEach { share ->
-                        if(item.path.endsWith(share.file_target)) {
-                            item.sharedWithMe = share
-                        }
+        var items = webDav!!.getList()
+        if(shares != null) {
+            shares?.first()?.forEach { share ->
+                items = items.map { item ->
+                    if(share.path.endsWith("/${item.name}")) {
+                        item.sharedWithMe = share
                     }
-                }
-                sharesByMe?.collect {shares ->
-                    shares.forEach { share ->
-                        if(item.path.endsWith(share.file_target)) {
-                            item.sharedFromMe = share
-                        }
-                    }
-
+                    item
                 }
             }
-        }*/
+        }
+        if(sharesByMe != null) {
+            sharesByMe?.first()?.forEach { share ->
+                items = items.map { item ->
+                    if(share.path.endsWith("/${item.name}")) {
+                        item.sharedFromMe = share
+                    }
+                    item
+                }
+            }
+        }
         return items
     }
 

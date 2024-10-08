@@ -61,7 +61,7 @@ class AuthenticationViewModel @Inject constructor(
     }
 
     fun updateAuthentication(authentication: Authentication, msg: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val result = authenticationRepository.update(authenticationRepository.updateTheme(authentication, true), msg)
                 if(result != "") {
