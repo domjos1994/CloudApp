@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -139,7 +140,17 @@ fun Header(
                     },
                         Modifier
                             .weight(2.0f)
-                            .height(50.dp))
+                            .height(50.dp),
+                    colors = SwitchDefaults.colors(
+                        checkedBorderColor = colorForeground,
+                        checkedIconColor = colorBackground,
+                        checkedThumbColor = colorBackground,
+                        checkedTrackColor = colorForeground,
+                        uncheckedBorderColor = colorForeground,
+                        uncheckedIconColor = colorBackground,
+                        uncheckedThumbColor = colorBackground,
+                        uncheckedTrackColor = colorForeground
+                    ))
                     Text(strServer, Modifier.weight(3.0f), color = colorForeground, textAlign = TextAlign.Center)
                     Switch(server, onCheckedChange = {
                         server = it
@@ -147,7 +158,17 @@ fun Header(
                     },
                         Modifier
                             .weight(2.0f)
-                            .height(50.dp))
+                            .height(50.dp),
+                    colors = SwitchDefaults.colors(
+                        checkedBorderColor = colorForeground,
+                        checkedIconColor = colorBackground,
+                        checkedThumbColor = colorBackground,
+                        checkedTrackColor = colorForeground,
+                        uncheckedBorderColor = colorForeground,
+                        uncheckedIconColor = colorBackground,
+                        uncheckedThumbColor = colorBackground,
+                        uncheckedTrackColor = colorForeground
+                    ))
                 }
             }
         }
