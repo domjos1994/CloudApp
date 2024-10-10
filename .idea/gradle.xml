@@ -19,6 +19,7 @@
             <option value="$PROJECT_DIR$/Data" />
             <option value="$PROJECT_DIR$/DataFeature" />
             <option value="$PROJECT_DIR$/Database" />
+            <option value="$PROJECT_DIR$/ExportFeature" />
             <option value="$PROJECT_DIR$/NotesFeature" />
             <option value="$PROJECT_DIR$/NotificationFeature" />
             <option value="$PROJECT_DIR$/REST" />

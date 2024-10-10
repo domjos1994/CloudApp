@@ -46,7 +46,9 @@ class NotificationRequest(authentication: Authentication?) : BasicRequest(authen
                         } else {
                             throw Exception(ocs.ocs.meta.message)
                         }
-                    } catch (_: Exception) {emit(listOf())}
+                    } catch (ex: Exception) {
+                        print(ex)
+                    }
                 }
             } else {
                 emit(listOf())

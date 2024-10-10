@@ -77,6 +77,7 @@ dependencies {
     implementation(project(":DataFeature"))
     implementation(project(":NotificationFeature"))
     implementation(project(":NotesFeature"))
+    implementation(project(":ExportFeature"))
     implementation(project(":CalDav"))
     implementation(project(":CarDav"))
     implementation(libs.androidx.work.runtime.ktx)

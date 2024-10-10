@@ -87,6 +87,7 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
+import de.dojodev.cloudapp2.features.exportfeature.screens.ExportScreen
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ConnectionType
 import de.domjos.cloudapp2.appbasics.helper.Notifications
@@ -155,6 +156,7 @@ class MainActivity : ComponentActivity() {
             val authentications = stringResource(id = R.string.login_authentications)
             val settings = stringResource(id = R.string.settings)
             val permissions = stringResource(R.string.permissions)
+            val export = stringResource(R.string.export)
 
             // creating our navController
             val navController = rememberNavController()
@@ -376,7 +378,8 @@ class MainActivity : ComponentActivity() {
                                                    updateTheme, updateNavBar,
                                                    true,
                                                    {navController.navigate(settings)},
-                                                   {navController.navigate(permissions)})
+                                                   {navController.navigate(permissions)},
+                                                   {navController.navigate(export)})
                                            }
                                        }
                                    )
@@ -505,6 +508,15 @@ class MainActivity : ComponentActivity() {
                                 PermissionScreen { back() }
                                 breadcrumb = ""
                             }
+                            composable(export) {
+                                title = export
+                                header = export
+                                ExportScreen(
+                                    colorBackground = colorBackground,
+                                    colorForeground = colorForeground
+                                )
+                                breadcrumb = ""
+                            }
                         }
                     }
                 }
@@ -514,7 +526,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, updateNavBar: () -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit) {
+fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, updateNavBar: () -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit, onExport: () -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
         DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = {
             updateTheme(null)
@@ -526,6 +538,12 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
             updateTheme(null)
             updateNavBar()
             onPermissions()
+            onExpanded(false)
+        })
+        DropdownMenuItem(text = { Text(stringResource(R.string.export)) }, onClick = {
+            updateTheme(null)
+            updateNavBar()
+            onExport()
             onExpanded(false)
         })
         val context = LocalContext.current

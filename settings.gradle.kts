@@ -17,6 +17,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven(url = "https://jitpack.io")
+        maven(url = "https://oss.sonatype.org/content/repositories/snapshots/")
     }
 }
 
@@ -36,3 +37,4 @@ include(":Data")
 include(":WebDav")
 include(":NotesFeature")
 include(":ToDoFeature")
+include(":ExportFeature")

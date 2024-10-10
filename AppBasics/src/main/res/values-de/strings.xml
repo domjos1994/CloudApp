@@ -87,6 +87,16 @@
     <string name="import_insert">Füge Daten ein…</string>
     <string name="import_item" formatted="true">Importiere %s…</string>
 
+    <string name="export">Exportieren</string>
+    <string name="export_name">Datei-Name</string>
+    <string name="export_extensions">Erweiterungen</string>
+    <string name="export_types">Typen</string>
+    <string name="export_open">Datei nach dem Export öffnen</string>
+    <string name="export_do">Exportieren</string>
+    <string name="export_success">Daten wurden erfolgreich exportiert!</string>
+    <string name="export_fetch">Daten holen…</string>
+    <string name="export_write">Datei schreiben…</string>
+
     <string name="data">Daten</string>
     <string name="data_file_add">Datei hinzufügen</string>
     <string name="data_folder_add">Ordner hinzufügen</string>

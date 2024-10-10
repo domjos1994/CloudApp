@@ -93,6 +93,17 @@
     <string name="import_insert">Insert Data…</string>
     <string name="import_item" formatted="true">Import %s…</string>
 
+    <string name="export">Export</string>
+    <string name="export_name">File-Name</string>
+    <string name="export_extensions">Extensions</string>
+    <string name="export_types">Types</string>
+    <string name="export_open">Open File after export</string>
+    <string name="export_do">Export</string>
+    <string name="export_success">Data exported successfully!</string>
+    <string name="export_fetch">Fetch Data…</string>
+    <string name="export_write">Write File…</string>
+
+
     <string name="data">Data</string>
     <string name="data_breadcrumb" translatable="false">Breadcrumb</string>
     <string name="data_file_add">Add file</string>

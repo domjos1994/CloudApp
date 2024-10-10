@@ -17,6 +17,7 @@ hilt = "2.51"
 hilt-compose = "1.2.0"
 okhttp3 = "4.12.0"
 json = "1.7.1"
+xml = "0.0.1-SNAPSHOT"
 rules = "1.6.1"
 coil = "2.7.0"
 sardine = "0.9"
@@ -64,6 +65,7 @@ hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-com
 okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
 kotlin-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "json" }
 kotlin-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "json" }
+kotlin-serialization-xml = { group = "com.ryanharter.kotlinx.serialization", name = "kotlinx-serialization-xml", version.ref = "xml" }
 androidx-rules = { group = "androidx.test", name = "rules", version.ref = "rules" }
 coil = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
