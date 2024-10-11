@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.hiltLibrary)
     alias(libs.plugins.kaptLibrary)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.serializationLibrary)
 }
 
 android {
@@ -54,6 +55,14 @@ dependencies {
     implementation(libs.kotlin.serialization)
     implementation(libs.kotlin.serialization.xml)
     implementation(libs.kotlin.serialization.json)
+
+    // icf, vcf
+    implementation(libs.ical4j)
+    implementation(libs.ez.vcard)
+
+    // coil
+    implementation(libs.coil)
+    implementation(libs.coil.svg)
 
     // compose
     implementation(libs.androidx.activity.compose)

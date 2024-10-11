@@ -19,6 +19,7 @@ import de.domjos.cloudapp2.rest.requests.NoteRequest
 import de.domjos.cloudapp2.rest.requests.NotificationRequest
 import de.domjos.cloudapp2.rest.requests.RoomRequest
 import de.domjos.cloudapp2.webdav.WebDav
+import java.io.File
 
 abstract class BaseExportBuilder(context: Context) : ExportBuilder {
     protected val notifications = context.getString(R.string.notifications)
@@ -91,6 +92,16 @@ abstract class BaseExportBuilder(context: Context) : ExportBuilder {
         this.chatRequest = ChatRequest(this.authenticationDAO.getSelectedItem())
         this.avatarRequest = AvatarRequest(this.authenticationDAO.getSelectedItem())
         this.webDav = WebDav(this.authenticationDAO.getSelectedItem()!!)
+    }
+
+    protected fun writeFile(content: String) {
+        val file = File(path)
+        if(!file.exists()) {
+            file.createNewFile()
+        }
+        file.bufferedWriter().use { out ->
+            out.write(content)
+        }
     }
 
     protected abstract suspend fun exportNotifications(): String

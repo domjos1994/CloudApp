@@ -72,7 +72,7 @@ class CSVExportBuilder(private val context: Context): BaseExportBuilder(context)
     override suspend fun exportData(): String {
         update(context.getString(R.string.export_fetch))
 
-        var items = ConcurrentLinkedQueue<Item>()
+        val items = ConcurrentLinkedQueue<Item>()
         items.addAll(super.webDav.getList())
         items.forEach { item -> addItems(item, items)}
 
@@ -263,10 +263,15 @@ class CSVExportBuilder(private val context: Context): BaseExportBuilder(context)
                         contact.additional ?: "",
                         contact.birthDay.toString(),
                         contact.categories.joinToString(","),
-                        contact.phoneNumbers.map { "${it.value}:" + it.types.map { m -> m.name }.joinToString("-") }.joinToString(","),
-                        contact.addresses.map {
-                            "${it.street}, ${it.postalCode} ${it.locality}, ${it.country}, ${it.extendedAddress}" + it.types.map { m -> m.name }.joinToString("-") }.joinToString(","),
-                        contact.emailAddresses.map { it.value }.joinToString(","),
+                        contact.phoneNumbers.joinToString(",") {
+                            "${it.value}:" + it.types.joinToString("-") { m -> m.name }
+                        },
+                        contact.addresses.joinToString(",") {
+                            "${it.street}, ${it.postalCode} ${it.locality}, ${it.country}, ${it.extendedAddress}" + it.types.joinToString(
+                                "-"
+                            ) { m -> m.name }
+                        },
+                        contact.emailAddresses.joinToString(",") { it.value },
                         contact.addressBook
                     )
                 )
@@ -332,7 +337,7 @@ class CSVExportBuilder(private val context: Context): BaseExportBuilder(context)
         val items = mutableMapOf<Room, List<Message>>()
         super.roomRequest.getRooms().collect { rooms ->
             rooms.forEach { room ->
-                items.put(room, super.chatRequest.getChats(token = room.token))
+                items[room] = super.chatRequest.getChats(token = room.token)
             }
         }
 

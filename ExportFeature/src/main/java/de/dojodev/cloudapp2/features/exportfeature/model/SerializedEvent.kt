@@ -12,6 +12,24 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class SerializedEvents(
+    val items: Array<SerializedEvent>
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as SerializedEvents
+
+        return items.contentEquals(other.items)
+    }
+
+    override fun hashCode(): Int {
+        return items.contentHashCode()
+    }
+}
+
+@Serializable
 @OptIn(ExperimentalSerializationApi::class)
 data class SerializedEvent(
     @XmlAttribute val id: Long,

@@ -17,7 +17,7 @@ class JSONExportBuilder(private val context: Context): XMLExportBuilder(context)
     override suspend fun exportNotifications(): String {
         super.exportNotifications()
 
-        val content = Json.encodeToString(super.value)
+        val content = Json.encodeToString(super.serializedNotifications)
         this.writeFile(content)
 
         update(context.getString(R.string.export_success))
@@ -27,7 +27,7 @@ class JSONExportBuilder(private val context: Context): XMLExportBuilder(context)
     override suspend fun exportData(): String {
         super.exportData()
 
-        val content = Json.encodeToString(super.value)
+        val content = Json.encodeToString(super.serializedDataItems)
         this.writeFile(content)
 
         update(context.getString(R.string.export_success))
@@ -37,7 +37,7 @@ class JSONExportBuilder(private val context: Context): XMLExportBuilder(context)
     override suspend fun exportNotes(): String {
         super.exportNotes()
 
-        val content = Json.encodeToString(super.value)
+        val content = Json.encodeToString(super.serializedNotes)
         this.writeFile(content)
 
         update(context.getString(R.string.export_success))
@@ -47,7 +47,7 @@ class JSONExportBuilder(private val context: Context): XMLExportBuilder(context)
     override suspend fun exportCalendars(): String {
         super.exportCalendars()
 
-        val content = Json.encodeToString(super.value)
+        val content = Json.encodeToString(super.serializedEvents)
         this.writeFile(content)
 
         update(context.getString(R.string.export_success))
@@ -57,7 +57,7 @@ class JSONExportBuilder(private val context: Context): XMLExportBuilder(context)
     override suspend fun exportContacts(): String {
         super.exportContacts()
 
-        val content = Json.encodeToString(super.value)
+        val content = Json.encodeToString(super.serializedContacts)
         this.writeFile(content)
 
         update(context.getString(R.string.export_success))
@@ -67,7 +67,7 @@ class JSONExportBuilder(private val context: Context): XMLExportBuilder(context)
     override suspend fun exportToDos(): String {
         super.exportToDos()
 
-        val content = Json.encodeToString(super.value)
+        val content = Json.encodeToString(super.serializedTodos)
         this.writeFile(content)
 
         update(context.getString(R.string.export_success))
@@ -77,7 +77,7 @@ class JSONExportBuilder(private val context: Context): XMLExportBuilder(context)
     override suspend fun exportChats(): String {
         super.exportChats()
 
-        val content = Json.encodeToString(super.value)
+        val content = Json.encodeToString(super.serializedChats)
         this.writeFile(content)
 
         update(context.getString(R.string.export_success))

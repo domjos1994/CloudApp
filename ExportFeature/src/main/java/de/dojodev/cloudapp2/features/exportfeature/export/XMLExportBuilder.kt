@@ -11,14 +11,21 @@ import com.ryanharter.kotlinx.serialization.xml.Xml
 import de.dojodev.cloudapp2.features.exportfeature.base.BaseExportBuilder
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedAddress
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedChat
+import de.dojodev.cloudapp2.features.exportfeature.model.SerializedChats
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedContact
+import de.dojodev.cloudapp2.features.exportfeature.model.SerializedContacts
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedData
+import de.dojodev.cloudapp2.features.exportfeature.model.SerializedDataItems
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedEmailAddress
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedEvent
+import de.dojodev.cloudapp2.features.exportfeature.model.SerializedEvents
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedNote
+import de.dojodev.cloudapp2.features.exportfeature.model.SerializedNotes
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedNotification
+import de.dojodev.cloudapp2.features.exportfeature.model.SerializedNotifications
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedPhoneNumber
 import de.dojodev.cloudapp2.features.exportfeature.model.SerializedTodo
+import de.dojodev.cloudapp2.features.exportfeature.model.SerializedTodos
 import de.dojodev.cloudapp2.features.exportfeature.model.Share
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.rest.model.msg.Message
@@ -27,18 +34,23 @@ import de.domjos.cloudapp2.rest.model.room.Room
 import de.domjos.cloudapp2.webdav.model.Item
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
-import java.io.File
 import java.util.concurrent.ConcurrentLinkedQueue
 
 @OptIn(ExperimentalSerializationApi::class)
 open class XMLExportBuilder(private val context: Context): BaseExportBuilder(context) {
-    protected lateinit var value: Any
+    protected lateinit var serializedNotifications: SerializedNotifications
+    protected lateinit var serializedDataItems: SerializedDataItems
+    protected lateinit var serializedNotes: SerializedNotes
+    protected lateinit var serializedEvents: SerializedEvents
+    protected lateinit var serializedContacts: SerializedContacts
+    protected lateinit var serializedTodos: SerializedTodos
+    protected lateinit var serializedChats: SerializedChats
     protected open var writeFile: Boolean = true
 
     override suspend fun exportNotifications(): String {
         update(context.getString(R.string.export_fetch))
 
-        var notifications = ArrayList<SerializedNotification>()
+        val notifications = ArrayList<SerializedNotification>()
         super.notificationRequest.getNotifications().collect {items ->
             notifications.addAll(
                 items.filter { super.id==null || it.notification_id==super.id }
@@ -53,8 +65,10 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
         update(context.getString(R.string.export_write))
 
-        value = notifications
-        val content = Xml.Default.encodeToString(value)
+        this.serializedNotifications = SerializedNotifications(
+            items = notifications.toTypedArray()
+        )
+        val content = Xml.Default.encodeToString(this.serializedNotifications)
         if(writeFile) this.writeFile(content)
 
         if(writeFile) update(context.getString(R.string.export_success))
@@ -64,8 +78,8 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
     override suspend fun exportData(): String {
         update(context.getString(R.string.export_fetch))
 
-        var items = ConcurrentLinkedQueue<Item>()
-        var serializedItems = ConcurrentLinkedQueue<SerializedData>()
+        val items = ConcurrentLinkedQueue<Item>()
+        val serializedItems = ConcurrentLinkedQueue<SerializedData>()
         items.addAll(super.webDav.getList())
         serializedItems.addAll(items.map {
             SerializedData(it.name, it.directory, it.exists, it.type,
@@ -78,8 +92,10 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
         update(context.getString(R.string.export_write))
 
-        value = serializedItems
-        val content = Xml.Default.encodeToString(serializedItems)
+        this.serializedDataItems = SerializedDataItems(
+            serializedItems.toTypedArray()
+        )
+        val content = Xml.Default.encodeToString(this.serializedDataItems)
         if(writeFile) this.writeFile(content)
 
         if(writeFile) update(context.getString(R.string.export_success))
@@ -127,8 +143,10 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
         update(context.getString(R.string.export_write))
 
-        value = serializedNotes
-        val content = Xml.Default.encodeToString(serializedNotes)
+        this.serializedNotes = SerializedNotes(
+            serializedNotes.toTypedArray()
+        )
+        val content = Xml.Default.encodeToString(this.serializedNotes)
         if(writeFile) this.writeFile(content)
 
         if(writeFile) update(context.getString(R.string.export_success))
@@ -150,8 +168,10 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
         update(context.getString(R.string.export_write))
 
-        value = serializedEvents
-        val content = Xml.Default.encodeToString(serializedEvents)
+        this.serializedEvents = SerializedEvents(
+            serializedEvents.toTypedArray()
+        )
+        val content = Xml.Default.encodeToString(this.serializedEvents)
         if(writeFile) this.writeFile(content)
 
         if(writeFile) update(context.getString(R.string.export_success))
@@ -190,7 +210,9 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
         update(context.getString(R.string.export_write))
 
-        value = serializedContacts
+        this.serializedContacts = SerializedContacts(
+            serializedContacts.toTypedArray()
+        )
         val content = Xml.Default.encodeToString(serializedContacts)
         if(writeFile) this.writeFile(content)
 
@@ -213,8 +235,10 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
         update(context.getString(R.string.export_write))
 
-        value = serializedTodos
-        val content = Xml.Default.encodeToString(serializedTodos)
+        this.serializedTodos = SerializedTodos(
+            serializedTodos.toTypedArray()
+        )
+        val content = Xml.Default.encodeToString(this.serializedTodos)
         if(writeFile) this.writeFile(content)
 
         if(writeFile) update(context.getString(R.string.export_success))
@@ -227,7 +251,7 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
         val items = mutableMapOf<Room, List<Message>>()
         super.roomRequest.getRooms().collect { rooms ->
             rooms.forEach { room ->
-                items.put(room, super.chatRequest.getChats(token = room.token))
+                items[room] = super.chatRequest.getChats(token = room.token)
             }
         }
         val serializedChats = mutableListOf<SerializedChat>()
@@ -245,8 +269,10 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
         update(context.getString(R.string.export_write))
 
-        value = serializedChats
-        val content = Xml.Default.encodeToString(serializedChats)
+        this.serializedChats = SerializedChats(
+            serializedChats.toTypedArray()
+        )
+        val content = Xml.Default.encodeToString(this.serializedChats)
         if(writeFile) this.writeFile(content)
 
         if(writeFile) update(context.getString(R.string.export_success))
@@ -259,15 +285,5 @@ open class XMLExportBuilder(private val context: Context): BaseExportBuilder(con
 
     override fun getExtension(): List<String> {
         return listOf("xml")
-    }
-
-    protected fun writeFile(content: String) {
-        val file = File(super.path)
-        if(!file.exists()) {
-            file.createNewFile()
-        }
-        file.bufferedWriter().use { out ->
-            out.write(content)
-        }
     }
 }
