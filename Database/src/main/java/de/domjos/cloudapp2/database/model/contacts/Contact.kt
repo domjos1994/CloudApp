@@ -101,6 +101,10 @@ data class Contact(
         result = 31 * result + photo.contentHashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "$prefix $givenName $familyName $suffix".trim()
+    }
 }
 
 @Entity(

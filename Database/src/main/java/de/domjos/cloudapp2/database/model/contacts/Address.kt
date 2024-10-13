@@ -36,8 +36,7 @@ data class Address(
     var region: String? = "",
     @ColumnInfo("postalCode", defaultValue = "")
     var postalCode: String? = "",
-    var country: String? = "") {
-}
+    var country: String? = "")
 
 enum class AddressType {
     domestic,

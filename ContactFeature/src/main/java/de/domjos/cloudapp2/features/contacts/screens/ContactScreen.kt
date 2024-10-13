@@ -10,10 +10,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -37,6 +39,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +49,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -61,6 +66,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -808,11 +814,13 @@ fun BottomSheet(
     openEmail: (String) -> Unit,
     hasPhone: () -> Boolean) {
 
-
-    val name =
-        "${contact.suffix} ${contact.givenName} ${contact.familyName} ${contact.prefix}".trim()
+    val name = contact.toString()
 
     val context = LocalContext.current
+    val iconColor = OutlinedTextFieldDefaults.colors().focusedTextColor
+    val backColor = BottomSheetDefaults.ContainerColor
+    val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+    val dt = sdf.format(contact.birthDay!!)
 
     ModalBottomSheet(onDismissRequest = { setShowBottomSheet(false) }) {
         Row(
@@ -837,7 +845,8 @@ fun BottomSheet(
                     Image(
                         painterResource(id = R.drawable.baseline_person_24),
                         contentDescription = name,
-                        Modifier
+                        colorFilter = ColorFilter.tint(iconColor),
+                        modifier = Modifier
                             .width(100.dp)
                             .height(100.dp)
                             .clip(RoundedCornerShape(10.dp))
@@ -847,7 +856,8 @@ fun BottomSheet(
                 Image(
                     painterResource(id = R.drawable.baseline_person_24),
                     contentDescription = name,
-                    Modifier
+                    colorFilter = ColorFilter.tint(iconColor),
+                    modifier = Modifier
                         .width(100.dp)
                         .height(100.dp)
                         .clip(RoundedCornerShape(10.dp))
@@ -864,10 +874,11 @@ fun BottomSheet(
             Text(
                 name,
                 fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
+                fontSize = 18.sp,
+                modifier = Modifier.basicMarquee()
             )
         }
-        Separator(Color.Black)
+        Separator(iconColor)
         if(contact.birthDay != null) {
             Row(
                 Modifier
@@ -876,17 +887,16 @@ fun BottomSheet(
                     .padding(5.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
-                val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-                val dt = sdf.format(contact.birthDay!!)
                 Column(
                     Modifier
                         .weight(1f)
                         .padding(5.dp),
-                    horizontalAlignment = Alignment.End) {
+                    horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         stringResource(id = R.string.contact_birthDate),
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp)
+                        fontSize = 18.sp
+                    )
                 }
                 Column(
                     Modifier
@@ -963,35 +973,27 @@ fun BottomSheet(
                 }
             }
         }
-        Separator(Color.Black)
+        Separator(iconColor)
         contact.phoneNumbers.forEach { number ->
-            var types = ""
-            number.types.forEach { type ->
-                types += "${type.name} "
-            }
-            types = types.trim()
-
             Row(
                 Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .padding(5.dp),
+                    .padding(1.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
                 Column(
                     Modifier
-                        .weight(5f)
-                        .padding(5.dp),
-                    horizontalAlignment = Alignment.End) {
-                    Text(
-                        types,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp)
+                        .weight(1f)
+                        .padding(1.dp)) {
+                    IconButton(onClick = { openPhone(number.value) }, enabled = hasPhone()) {
+                        Icon(Icons.Filled.Phone, number.value)
+                    }
                 }
                 Column(
                     Modifier
-                        .weight(14f)
-                        .padding(5.dp),
+                        .weight(5f)
+                        .padding(1.dp),
                     horizontalAlignment = Alignment.Start) {
                     Text(
                         number.value,
@@ -1001,28 +1003,39 @@ fun BottomSheet(
                 }
                 Column(
                     Modifier
-                        .weight(2f)
-                        .padding(5.dp)) {
-                    IconButton(onClick = { openPhone(number.value) }, enabled = hasPhone()) {
-                        Icon(Icons.Filled.Phone, number.value)
+                        .weight(4f)
+                        .padding(1.dp),
+                    horizontalAlignment = Alignment.End) {
+                    FlowRow {
+                        number.types.forEach { type ->
+                            Tag(getPhoneTypeLabel(type), iconColor, backColor)
+                        }
                     }
                 }
             }
         }
 
-        Separator(Color.Black)
+        Separator(iconColor)
         contact.emailAddresses.forEach { email ->
             Row(
                 Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .padding(5.dp),
+                    .padding(1.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
                 Column(
                     Modifier
+                        .weight(2f)
+                        .padding(1.dp)) {
+                    IconButton(onClick = { openEmail(email.value) }) {
+                        Icon(Icons.Filled.Email, email.value)
+                    }
+                }
+                Column(
+                    Modifier
                         .weight(18f)
-                        .padding(5.dp),
+                        .padding(1.dp),
                     horizontalAlignment = Alignment.Start) {
                     Text(
                         email.value,
@@ -1030,47 +1043,46 @@ fun BottomSheet(
                         fontSize = 18.sp
                     )
                 }
-                Column(
-                    Modifier
-                        .weight(2f)
-                        .padding(5.dp)) {
-                    IconButton(onClick = { openEmail(email.value) }) {
-                        Icon(Icons.Filled.Email, email.value)
-                    }
-                }
             }
         }
 
-        Separator(Color.Black)
+        Separator(iconColor)
         contact.addresses.forEach { address ->
-            var types = ""
-            address.types.forEach { type ->
-                types += "${type.name} "
-            }
-            types = types.trim()
-
             Row(
                 Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .padding(5.dp),
+                    .padding(1.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
-                Column(
-                    Modifier
-                        .weight(1f)
-                        .padding(5.dp),
-                    horizontalAlignment = Alignment.End) {
-                    Text(
-                        types,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp)
+                FlowRow {
+                    address.types.forEach { type ->
+                        Tag(getAddressTypeLabel(type), iconColor, backColor)
+                    }
                 }
+            }
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .padding(1.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically) {
                 if(address.postOfficeAddress != null) {
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
+                        horizontalAlignment = Alignment.End) {
+                        Text(
+                            stringResource(R.string.contact_addresses_postOfficeAddress),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp)
+                    }
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             address.postOfficeAddress!!,
@@ -1085,13 +1097,13 @@ fun BottomSheet(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .padding(5.dp),
+                        .padding(1.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             stringResource(id = R.string.contact_addresses_street),
@@ -1101,7 +1113,7 @@ fun BottomSheet(
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             address.street,
@@ -1116,13 +1128,13 @@ fun BottomSheet(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .padding(5.dp),
+                        .padding(1.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             stringResource(id = R.string.contact_addresses_locality),
@@ -1132,7 +1144,7 @@ fun BottomSheet(
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             "${address.postalCode} ${address.locality}",
@@ -1147,13 +1159,13 @@ fun BottomSheet(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .padding(5.dp),
+                        .padding(1.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             stringResource(id = R.string.contact_addresses_region),
@@ -1163,7 +1175,7 @@ fun BottomSheet(
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             address.region!!,
@@ -1178,13 +1190,13 @@ fun BottomSheet(
                     Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .padding(5.dp),
+                        .padding(1.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.End) {
                         Text(
                             stringResource(id = R.string.contact_addresses_country),
@@ -1194,7 +1206,7 @@ fun BottomSheet(
                     Column(
                         Modifier
                             .weight(1f)
-                            .padding(5.dp),
+                            .padding(1.dp),
                         horizontalAlignment = Alignment.Start) {
                         Text(
                             address.country!!,
@@ -1237,7 +1249,7 @@ fun BottomSheet(
             }
         }
 
-        Separator(Color.Black)
+        Separator(iconColor)
         if(contact.contactId != "") {
             Row(
                 Modifier
@@ -1577,6 +1589,46 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
     }
 }
 
+@Composable
+fun getAddressTypeLabel(type: AddressType): String {
+    return when(type) {
+        AddressType.domestic -> stringResource(R.string.contact_addresses_type_domestic)
+        AddressType.home -> stringResource(R.string.contact_addresses_type_home)
+        AddressType.work -> stringResource(R.string.contact_addresses_type_work)
+        AddressType.postal -> stringResource(R.string.contact_addresses_type_postal)
+        AddressType.parcel -> stringResource(R.string.contact_addresses_type_parcel)
+        AddressType.international -> stringResource(R.string.contact_addresses_type_international)
+        else -> ""
+    }
+}
+
+@Composable
+fun getPhoneTypeLabel(type: PhoneType): String {
+    return when(type) {
+        PhoneType.HOME -> stringResource(R.string.contact_phone_home)
+        PhoneType.CELL -> stringResource(R.string.contact_phone_cell)
+        PhoneType.PREF -> stringResource(R.string.contact_phone_pref)
+        PhoneType.WORK -> stringResource(R.string.contact_phone_work)
+        PhoneType.FAX -> stringResource(R.string.contact_phone_fax)
+        PhoneType.VOICE -> stringResource(R.string.contact_phone_voice)
+        else -> ""
+    }
+}
+
+@Composable
+private fun Tag(item: String, colorBackground: Color, colorForeground: Color) {
+    Column(Modifier.padding(1.dp)) {
+        Row(Modifier.background(color = colorBackground, shape = RoundedCornerShape(3.dp))) {
+            Column(Modifier.padding(1.dp)) {
+                Icon(Icons.Default.Star, contentDescription = item, tint = colorForeground)
+            }
+            Column(Modifier.padding(1.dp)) {
+                Text(item, color = colorForeground, fontSize = 10.sp)
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -1629,11 +1681,43 @@ fun EditDialogPreview() {
     }
 }
 
+@Preview(showBackground = true)
+@Composable
+fun TagPreview() {
+    CloudAppTheme {
+        Tag("Test", Color.Blue, Color.White)
+    }
+}
+
 fun fakeContact(id: Int): Contact {
     val bDate = Calendar.getInstance()
     bDate.set(1960, 1, 1)
     bDate.add(Calendar.DAY_OF_MONTH, id)
-    return Contact(0L,
-        "$id", "", "", "", "Doe", "John$id", "",
-        bDate.time, "", null, "Test", "", -1L, -1L, 0L)
+    val contact =  Contact(0L,
+        "$id", "", "Suffix", "Prefix", "Doe", "John$id", "Additional",
+        bDate.time, "Organization", null, "Test", "", -1L, -1L, 0L)
+    contact.phoneNumbers.add(fakeNumber(0))
+    contact.phoneNumbers.add(fakeNumber(1))
+    contact.emailAddresses.add(fakeEmail(0))
+    contact.emailAddresses.add(fakeEmail(1))
+    contact.addresses.add(fakeAddress(0))
+    contact.addresses.add(fakeAddress(1))
+    return contact
+}
+
+fun fakeNumber(id: Long): Phone {
+    return Phone(id, "$id", "01234 56789", mutableListOf(PhoneType.CELL, PhoneType.HOME))
+}
+
+fun fakeEmail(id: Long): Email {
+    return Email(id, "$id", "test@test.de")
+}
+
+fun fakeAddress(id: Long): Address {
+    return Address(
+        id, "$id",
+        mutableListOf(AddressType.postal, AddressType.home, AddressType.work),
+        "postOfficeAddress", "extendedAddress", "Street",
+        "Locality", "Region", "postalCode", "Country"
+    )
 }
