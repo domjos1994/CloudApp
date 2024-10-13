@@ -183,6 +183,7 @@ class MainActivity : ComponentActivity() {
             val isWifi = connectionType === ConnectionType.Wifi
             var hasAuthentications by remember { mutableStateOf(viewModel.hasAuthentications()) }
             val toAuths = {navController.navigate(authentications)}
+            val toPermissions = {navController.navigate(permissions)}
             val tabBarVisible = remember { mutableStateOf(true) }
             val back = {
                 navController.navigate(notificationsTab.title)
@@ -198,7 +199,7 @@ class MainActivity : ComponentActivity() {
 
             // updates the theme if connection and so on
             var updateTheme: (Authentication?) -> Unit = {}
-            var updateNavBar: () -> Unit = {
+            val updateNavBar: () -> Unit = {
                 viewModel.setVisibility(tabBarItems) { items -> tabBarItems = items }
             }
             LaunchedEffect(isConnected) {
@@ -452,7 +453,7 @@ class MainActivity : ComponentActivity() {
                                 breadcrumb = ""
                             }
                             composable(contactsTab.title) {
-                                ContactScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
+                                ContactScreen(toAuths = toAuths, toPermissions = toPermissions, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = contactsTab.title
                                 header = contactsTab.title
                                 refreshVisible = true

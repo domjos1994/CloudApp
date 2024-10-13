@@ -132,10 +132,12 @@ class ContactViewModel @Inject constructor(
         return contactRepository.hasAuthentications()
     }
 
-    fun openPhone(phone: String, context: Context) {
+    fun openPhone(phone: String, toPermissions: () -> Unit, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 op(context, phone)
+            } catch (ex: SecurityException) {
+                viewModelScope.launch(Dispatchers.Main) { toPermissions() }
             } catch (ex: Exception) {
                 printException(ex, this)
             }

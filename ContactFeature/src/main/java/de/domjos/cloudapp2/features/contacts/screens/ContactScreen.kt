@@ -110,7 +110,13 @@ import java.util.Locale
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit) {
+fun ContactScreen(
+    viewModel: ContactViewModel = hiltViewModel(),
+    colorBackground: Color,
+    colorForeground: Color,
+    toAuths: () -> Unit,
+    toPermissions: () -> Unit) {
+
     val context = LocalContext.current
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
     val addressBooks by viewModel.addressBooks.collectAsStateWithLifecycle()
@@ -156,7 +162,7 @@ fun ContactScreen(viewModel: ContactViewModel = hiltViewModel(), colorBackground
             viewModel.loadAddresses(available)
         },
         openEmail = {mail: String -> viewModel.openEmail(mail, context)},
-        openPhone = {phone: String -> viewModel.openPhone(phone, context)},
+        openPhone = {phone: String -> viewModel.openPhone(phone, toPermissions, context)},
         hasPhone = {viewModel.hasPhoneFeature(context)}
     )
 }
