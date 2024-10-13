@@ -344,7 +344,7 @@ fun <T> ListItem(item: ListItem<T>, selected: Boolean, onSelectedChanged: (Boole
                     }
                 }
                 actions.forEach { action:ActionItem<T> ->
-                    if(action.visible) {
+                    if(action.visible(item)) {
                         Column(
                             Modifier
                                 .weight(1.0f)
@@ -359,7 +359,7 @@ fun <T> ListItem(item: ListItem<T>, selected: Boolean, onSelectedChanged: (Boole
                     }
                 }
                 item.actions.forEach {action: ActionItem<T> ->
-                    if(action.visible) {
+                    if(action.visible(item)) {
                         Column(
                             Modifier
                                 .weight(1.0f)
@@ -414,7 +414,7 @@ data class ListItem<T>(val title: String, val description: String, val icon: Ima
     var id: T? = null
 }
 
-data class ActionItem<T>(val name: String, val icon: ImageVector? = null, val painter: Painter? = null, val action: (ListItem<T>) -> Boolean, val color: Color = Color.Transparent, val visible: Boolean = true)
+data class ActionItem<T>(val name: String, val icon: ImageVector? = null, val painter: Painter? = null, val action: (ListItem<T>) -> Boolean, val color: Color = Color.Transparent, val visible: (ListItem<T>) -> Boolean = {true})
 data class MultiActionItem<T>(val name: String, val icon: ImageVector? = null, val painter: Painter? = null, val action: (List<ListItem<T>>) -> Boolean, val visible: Boolean = true)
 
 @Preview(showBackground = true)

@@ -6,7 +6,6 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -64,7 +63,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -263,7 +261,7 @@ fun ContactScreen(
                                 } else {false}
                             },
                             color = Color.Red,
-                            visible = canInsert
+                            visible = {canInsert}
                         ),
                         actions = listOf(
                             ActionItem(
@@ -278,6 +276,12 @@ fun ContactScreen(
                                         }
                                     } catch (_: Exception) {}
                                     false
+                                },
+                                visible = {item ->
+                                    val c = contacts.find { it.id == item.id }
+                                    if(c != null) {
+                                        c.phoneNumbers.size != 0
+                                    } else { false }
                                 }
                             ),
                             ActionItem(
@@ -317,7 +321,7 @@ fun ContactScreen(
                                         true
                                     } else {false}
                                 },
-                                visible = canInsert
+                                visible = {canInsert}
                             )
                         ),
                         multiActions = listOf(
