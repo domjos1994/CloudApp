@@ -1003,10 +1003,8 @@ fun BottomSheet(
                     Modifier
                         .weight(2f)
                         .padding(5.dp)) {
-                    if(hasPhone()) {
-                        IconButton(onClick = { openPhone(number.value) }) {
-                            Icon(Icons.Filled.Phone, number.value)
-                        }
+                    IconButton(onClick = { openPhone(number.value) }, enabled = hasPhone()) {
+                        Icon(Icons.Filled.Phone, number.value)
                     }
                 }
             }
