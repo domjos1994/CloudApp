@@ -1,10 +1,13 @@
 package de.domjos.cloudapp2.activities
 
+import android.accounts.AccountManager
 import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -256,6 +259,16 @@ class MainActivity : ComponentActivity() {
                 val calWorker = viewModel.createWorkRequest(calendarPeriod, calendarFlexPeriod, CalendarWorker::class.java)
                 if(calWorker != null) {
                     manager.enqueue(calWorker)
+                }
+            } catch (ex: Exception) {
+                viewModel.message.postValue(ex.message)
+            }
+
+            try {
+                val manager = AccountManager.get(context)
+                manager.accounts.forEach { account ->
+                    ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
+                    ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, contactPeriod.toLong())
                 }
             } catch (ex: Exception) {
                 viewModel.message.postValue(ex.message)

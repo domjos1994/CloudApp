@@ -200,7 +200,7 @@ fun PreviewPermissionComponent() {
 
 @Composable
 private fun createSyncAccount(): Account {
-    val account = AuthenticatorService.getAccount(LocalContext.current, "de.domjos.cloudapp.account")
+    val account = AuthenticatorService.getAccount(LocalContext.current, "de.domjos.cloudapp2.account")
     val accountManager = LocalContext.current.getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
     accountManager.addAccountExplicitly(account, null, null)
 

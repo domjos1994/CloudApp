@@ -17,6 +17,8 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredName
 import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
 import android.provider.ContactsContract.RawContacts
 import android.util.Log
+import de.domjos.cloudapp2.cardav.CarDav
+import de.domjos.cloudapp2.cardav.model.AddressBook
 import de.domjos.cloudapp2.database.DB
 import de.domjos.cloudapp2.database.model.contacts.Address
 import de.domjos.cloudapp2.database.model.contacts.AddressType
@@ -34,6 +36,14 @@ class ContactSyncAdapter @JvmOverloads constructor(
     private val contentResolver: ContentResolver = context.contentResolver
 ) : AbstractThreadedSyncAdapter(context, autoInitialize, allowParallelSyncs) {
     private var account: Account? = null
+    private var addressBooks: List<AddressBook>? = null
+
+    private fun getGroupNames(db: DB) {
+        if(addressBooks == null) {
+            val carDav = CarDav(db.authenticationDao().getSelectedItem())
+            addressBooks = carDav.getAddressBooks()
+        }
+    }
 
     override fun onPerformSync(
         account: Account?,
@@ -44,13 +54,14 @@ class ContactSyncAdapter @JvmOverloads constructor(
     ) {
         this.account = account
         val db = DB.newInstance(this.context)
+        this.getGroupNames(db)
         val id = db.authenticationDao().getSelectedItem()?.id
 
         if(id != null) {
             val phones = db.contactDao().getAllWithPhones(id)
             val addresses = db.contactDao().getAllWithAddresses(id)
             val emails = db.contactDao().getAllWithEmails(id)
-            db.contactDao().getAll(id).forEach { contact ->
+            db.contactDao().getAll(id).forEach       { contact ->
                 val groupId = this.addOrGetGroup(account, contact.addressBook, provider!!)
                 val phoneItems = LinkedList<de.domjos.cloudapp2.database.model.contacts.Phone>()
                 val emailItems = LinkedList<de.domjos.cloudapp2.database.model.contacts.Email>()
@@ -94,6 +105,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                     } else {
                         if(lastUpdated>contact.lastUpdatedContactPhone!!) {
                             // ToDo
+                            println()
                         } else {
                             val uri = Uri.withAppendedPath(
                                 ContactsContract.Data.CONTENT_URI,
@@ -120,6 +132,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         val uri = Uri.withAppendedPath(ContactsContract.Data.CONTENT_URI, "$contactId")
                         if(lastUpdated>contact.lastUpdatedContactPhone!!) {
                             // ToDo
+                            println()
                         } else {
                             provider.delete(
                                 uri,
@@ -138,7 +151,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         values.put(Phone.RAW_CONTACT_ID, contactId)
                         values.put(Phone.MIMETYPE, Phone.CONTENT_ITEM_TYPE)
                         values.put(Phone.NUMBER, phone.value)
-                        if(phone.types.size > 0) {
+                        if(phone.types.isNotEmpty()) {
                             when(phone.types[0]) {
                                 PhoneType.CELL -> values.put(Phone.TYPE, "mobile")
                                 PhoneType.PREF -> values.put(Phone.TYPE, "main")
@@ -154,6 +167,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         } else {
                             if(lastUpdated>contact.lastUpdatedContactPhone!!) {
                                 // todo
+                                println()
                             } else {
                                 val selectionClause = "${Phone.NUMBER}=?"
                                 val selectionArgs = arrayOf(phone.value)
@@ -187,7 +201,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
                         values.put(StructuredPostal.REGION, address.region)
                         values.put(StructuredPostal.POSTCODE, address.postalCode)
                         values.put(StructuredPostal.COUNTRY, address.country)
-                        if(address.types.size > 0) {
+                        if(address.types.isNotEmpty()) {
                             when(address.types[0]) {
                                 AddressType.home-> values.put(StructuredPostal.TYPE, "home")
                                 AddressType.work ->values.put(StructuredPostal.TYPE, "work")
@@ -260,14 +274,15 @@ class ContactSyncAdapter @JvmOverloads constructor(
 
     @Throws(java.lang.Exception::class)
     private fun addOrGetGroup(account: Account?, group: String, provider: ContentProviderClient): Long {
+        val label = this.addressBooks?.find { it.name == group }?.label ?: group
         val lst = getContactLists(provider)
-        return if(lst.containsKey(group)) {
-            lst[group]!!
+        return if(lst.containsKey(label)) {
+            lst[label]!!
         } else {
             val contentValues = ContentValues()
             contentValues.put(ContactsContract.Groups.ACCOUNT_NAME, account!!.name)
             contentValues.put(ContactsContract.Groups.ACCOUNT_TYPE, account.type)
-            contentValues.put(ContactsContract.Groups.TITLE, group)
+            contentValues.put(ContactsContract.Groups.TITLE, label)
             contentValues.put(ContactsContract.Groups.GROUP_VISIBLE, 1)
             contentValues.put(ContactsContract.Groups.SHOULD_SYNC, true)
             val newGroupUri = provider.insert(

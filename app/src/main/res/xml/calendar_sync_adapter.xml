@@ -2,7 +2,7 @@
 <sync-adapter
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:contentAuthority="com.android.calendar"
-    android:accountType="de.domjos.cloudapp.account"
+    android:accountType="de.domjos.cloudapp2.account"
     android:userVisible="true"
     android:supportsUploading="true"
     android:allowParallelSyncs="false"
