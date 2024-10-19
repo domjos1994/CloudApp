@@ -57,9 +57,11 @@ class MainActivityViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 var tmp = authentication ?: authenticationRepository.getLoggedInUser()
-                tmp = authenticationRepository.updateTheme(tmp!!, false)
-                authenticationRepository.update(tmp, "")
-                onResult(tmp)
+                if(tmp != null) {
+                    tmp = authenticationRepository.updateTheme(tmp, false)
+                    authenticationRepository.update(tmp, "")
+                    onResult(tmp)
+                }
             } catch (ex: Exception) {
                 message.postValue(ex.message)
                 Log.e(this.javaClass.name, ex.message, ex)
@@ -127,6 +129,12 @@ class MainActivityViewModel @Inject constructor(
     fun getContactWorkerPeriod(onGet: (Float) -> Unit) {
         viewModelScope.launch {
             onGet(settings.getSetting(Settings.cardavRegularityKey, 0.0f))
+        }
+    }
+
+    fun getContactSyncPeriod(onGet: (Float) -> Unit) {
+        viewModelScope.launch {
+            onGet(settings.getSetting(Settings.contactRegularityKey, 0.0f))
         }
     }
 

@@ -59,6 +59,7 @@
         </provider>
         <service
             android:name=".services.ContactSyncService"
+            android:label="@string/app_name"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter"/>
@@ -70,6 +71,7 @@
         </service>
         <service
             android:name=".services.CalendarSyncService"
+            android:label="@string/app_name"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.content.SyncAdapter"/>

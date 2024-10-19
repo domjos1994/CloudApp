@@ -18,6 +18,7 @@ import ezvcard.parameter.TelephoneType
 import ezvcard.property.Birthday
 import ezvcard.property.Categories
 import ezvcard.property.Organization
+import ezvcard.property.Revision
 import ezvcard.property.StructuredName
 import ezvcard.property.Telephone
 import ezvcard.property.Uid
@@ -266,8 +267,14 @@ class CarDav(private val authentication: Authentication?) {
             }
         }
 
+        var uid = vCard.uid.value
+        if(uid.trim().lowercase().startsWith("http")) {
+            val lastPart = uid.split("/")[uid.split("/").size - 1]
+            uid = lastPart.replace(".vcf", "")
+        }
+
         val contact = Contact(0L,
-            vCard.uid.value, path, suffix, prefix,
+            uid, path, suffix, prefix,
             family, given, additional,
             birthday, organization, photo, addressBook.name, "", 0L, Date().time, authentication?.id!!)
         contact.categories = lst
@@ -340,7 +347,7 @@ class CarDav(private val authentication: Authentication?) {
         vCard.structuredName.given = contact.givenName
         vCard.structuredName.additionalNames.addAll(contact.additional?.split(",")?.toList()!!)
         vCard.organization = organization
-
+        vCard.revision = Revision(Date().toInstant())
         return vCard
     }
 

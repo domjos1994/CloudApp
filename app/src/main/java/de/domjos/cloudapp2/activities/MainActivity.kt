@@ -1,6 +1,5 @@
 package de.domjos.cloudapp2.activities
 
-import android.accounts.AccountManager
 import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Intent
@@ -111,8 +110,10 @@ import de.domjos.cloudapp2.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp2.features.todofeature.screens.ToDoScreen
 import de.domjos.cloudapp2.features.todofeature.screens.importToDoAction
 import de.domjos.cloudapp2.screens.AuthenticationScreen
+import de.domjos.cloudapp2.screens.LogScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp2.screens.PermissionScreen
+import de.domjos.cloudapp2.services.AuthenticatorService
 import de.domjos.cloudapp2.widgets.CalendarWidget
 import de.domjos.cloudapp2.widgets.ContactsWidget
 import de.domjos.cloudapp2.widgets.NewsWidget
@@ -129,7 +130,6 @@ data class TabBarItem(
     val header: String = "",
     var visible: Boolean = true
 )
-
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -171,7 +171,7 @@ class MainActivity : ComponentActivity() {
             var progress by remember { mutableStateOf<((updateProgress: (Float, String) -> Unit, finishProgress: () -> Unit)-> Unit)?>(null) }
             val context = LocalContext.current
             var notification: NotificationCompat.Builder?
-            val import = String.format(stringResource(R.string.import_item), "").trim()
+            val import = String.format(stringResource(R.string.import_loading), "").trim()
             val viewModel: MainActivityViewModel = hiltViewModel()
             val tmpBackground = MaterialTheme.colorScheme.primaryContainer
             val tmpForeground = MaterialTheme.colorScheme.primary
@@ -201,86 +201,105 @@ class MainActivity : ComponentActivity() {
             }
 
             // updates the theme if connection and so on
-            var updateTheme: (Authentication?) -> Unit = {}
-            val updateNavBar: () -> Unit = {
-                viewModel.setVisibility(tabBarItems) { items -> tabBarItems = items }
-            }
-            LaunchedEffect(isConnected) {
-                updateTheme = {auth: Authentication? ->
-                    viewModel.getCloudTheme {
-                        viewModel.getCloudThemeMobile { mobile ->
-                            val isMobile = mobile || isWifi
+            val updateTheme: (Authentication?) -> Unit = {auth: Authentication? ->
+                viewModel.getCloudTheme {
+                    viewModel.getCloudThemeMobile { mobile ->
+                        val isMobile = mobile || isWifi
 
-                            if(isConnected && it && isMobile) {
-                                viewModel.getCapabilities({ data ->
-                                    if(data != null) {
-                                        colorBackground = Color(android.graphics.Color.parseColor(data.colorBackground))
-                                        colorForeground = Color(android.graphics.Color.parseColor(data.colorForeground))
-                                        icon = data.thumbNail
-                                        authTitle = "(${data.thUrl})"
-                                        hasAuthentications = viewModel.hasAuthentications()
-                                    }
-                                }, auth)
-                            } else {
-                                colorBackground = tmpBackground
-                                colorForeground = tmpForeground
-                                icon = null
-                                authTitle = ""
-                            }
+                        if(isConnected && it && isMobile) {
+                            viewModel.getCapabilities({ data ->
+                                if(data != null) {
+                                    colorBackground = Color(android.graphics.Color.parseColor(data.colorBackground))
+                                    colorForeground = Color(android.graphics.Color.parseColor(data.colorForeground))
+                                    icon = data.thumbNail
+                                    authTitle = "(${data.thUrl})"
+                                    hasAuthentications = viewModel.hasAuthentications()
+                                }
+                            }, auth)
+                        } else {
+                            colorBackground = tmpBackground
+                            colorForeground = tmpForeground
+                            icon = null
+                            authTitle = ""
                         }
                     }
                 }
-                updateTheme(null)
-                updateNavBar()
             }
 
-            // initiates the worker to sync data from dav-server
-            var contactPeriod by remember { mutableFloatStateOf(0.0F) }
-            var contactFlexPeriod by remember { mutableFloatStateOf(0.0F) }
-            var calendarPeriod by remember { mutableFloatStateOf(0.0F) }
-            var calendarFlexPeriod by remember { mutableFloatStateOf(0.0F) }
+            val initWorker: () -> Unit = {
+                // initiates the worker to sync data from dav-server
+                try {
+                    var contactPeriod = 0.0F
+                    var contactFlexPeriod = 0.0F
+                    var calendarPeriod = 0.0F
+                    var calendarFlexPeriod = 0.0F
 
-            try {
-                viewModel.getContactWorkerPeriod {
-                    contactPeriod = it * 60F * 1000F
-                    contactFlexPeriod = it * 120F * 1000F
-                }
-                viewModel.getCalendarWorkerPeriod {
-                    calendarPeriod = it * 60F * 1000F
-                    calendarFlexPeriod = it * 120F * 1000F
-                }
+                    viewModel.getContactWorkerPeriod {
+                        contactPeriod = it * 60F * 1000F
+                        contactFlexPeriod = it * 120F * 1000F
+                    }
+                    viewModel.getCalendarWorkerPeriod {
+                        calendarPeriod = it * 60F * 1000F
+                        calendarFlexPeriod = it * 120F * 1000F
+                    }
 
-                val manager = WorkManager.getInstance(context)
-                val conWorker = viewModel.createWorkRequest(calendarPeriod, calendarFlexPeriod, ContactWorker::class.java)
-                if(conWorker != null) {
-                    manager.enqueue(conWorker)
-                }
+                    val manager = WorkManager.getInstance(context)
+                    val conWorker = viewModel.createWorkRequest(contactPeriod, contactFlexPeriod, ContactWorker::class.java)
+                    if(conWorker != null) {
+                        manager.enqueue(conWorker)
+                    }
 
-                val calWorker = viewModel.createWorkRequest(calendarPeriod, calendarFlexPeriod, CalendarWorker::class.java)
-                if(calWorker != null) {
-                    manager.enqueue(calWorker)
+                    val calWorker = viewModel.createWorkRequest(calendarPeriod, calendarFlexPeriod, CalendarWorker::class.java)
+                    if(calWorker != null) {
+                        manager.enqueue(calWorker)
+                    }
+                } catch (ex: Exception) {
+                    viewModel.message.postValue(ex.message)
                 }
-            } catch (ex: Exception) {
-                viewModel.message.postValue(ex.message)
             }
 
-            try {
-                val manager = AccountManager.get(context)
-                manager.accounts.forEach { account ->
+            val initSyncAdapter: () -> Unit = {
+                try {
+                    var contactPollFrequency = 0L
+                    viewModel.getContactSyncPeriod {
+                        contactPollFrequency = if(it.toLong() == 0L) {
+                            15 * 60L
+                        } else {
+                            it.toLong() * 60L
+                        }
+                    }
+                    val account = AuthenticatorService.getAccount(context, "de.domjos.cloudapp2.account")
+                    ContentResolver.removePeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
                     ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
-                    ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, contactPeriod.toLong())
+                    ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
+                    ContentResolver.requestSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
+                } catch (ex: Exception) {
+                    viewModel.message.postValue(ex.message)
                 }
-            } catch (ex: Exception) {
-                viewModel.message.postValue(ex.message)
             }
 
-            try {
-                // updates the widgets
-                viewModel.updateWidget(NewsWidget(), context)
-                viewModel.updateWidget(CalendarWidget(), context)
-                viewModel.updateWidget(ContactsWidget(), context)
-            } catch (ex: Exception) {
-                viewModel.message.postValue(ex.message)
+            val updateNavBar: () -> Unit = {
+                viewModel.setVisibility(tabBarItems) { items -> tabBarItems = items }
+            }
+
+            val updateWidgets: () -> Unit = {
+                try {
+                    // updates the widgets
+                    viewModel.updateWidget(NewsWidget(), context)
+                    viewModel.updateWidget(CalendarWidget(), context)
+                    viewModel.updateWidget(ContactsWidget(), context)
+                } catch (ex: Exception) {
+                    viewModel.message.postValue(ex.message)
+                }
+            }
+
+
+            LaunchedEffect(isConnected) {
+                updateTheme(null)
+                initWorker()
+                initSyncAdapter()
+                updateNavBar()
+                updateWidgets()
             }
 
             CloudAppTheme {
@@ -393,7 +412,8 @@ class MainActivity : ComponentActivity() {
                                                    true,
                                                    {navController.navigate(settings)},
                                                    {navController.navigate(permissions)},
-                                                   {navController.navigate(export)})
+                                                   {navController.navigate(export)},
+                                                   {navController.navigate("log")})
                                            }
                                        }
                                    )
@@ -531,6 +551,15 @@ class MainActivity : ComponentActivity() {
                                 )
                                 breadcrumb = ""
                             }
+                            composable("log") {
+                                title = "Log"
+                                header = "Log"
+                                LogScreen(
+                                    colorBackground = colorBackground,
+                                    colorForeground = colorForeground
+                                )
+                                breadcrumb = ""
+                            }
                         }
                     }
                 }
@@ -540,7 +569,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, updateNavBar: () -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit, onExport: () -> Unit) {
+fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, updateNavBar: () -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit, onExport: () -> Unit, onLog: () -> Unit) {
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
         DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = {
             updateTheme(null)
@@ -560,6 +589,7 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
             onExport()
             onExpanded(false)
         })
+        DropdownMenuItem(text = {Text("Log")}, onClick = {onLog()})
         val context = LocalContext.current
         DropdownMenuItem(text = { Text(stringResource(R.string.documentations)) }, onClick = {
             try {

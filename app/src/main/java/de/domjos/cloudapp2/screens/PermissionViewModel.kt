@@ -44,9 +44,11 @@ class PermissionViewModel @Inject constructor(
     fun addContactSync(account: Account, contactRegularity: Float) {
         try {
             // contact
+            ContentResolver.removePeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
             ContentResolver.setIsSyncable(account, ContactsContract.AUTHORITY, 1)
             ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
-            ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle(), (contactRegularity * 60 * 1000).toLong())
+            ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, (contactRegularity * 60).toLong())
+            ContentResolver.requestSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
         } catch (ex: Exception) {
             this.message.postValue(ex.message)
             Log.e(this.javaClass.name, ex.message, ex)
@@ -56,9 +58,11 @@ class PermissionViewModel @Inject constructor(
     fun addCalendarSync(account: Account, calendarRegularity: Float) {
         try {
             // calendar
+            ContentResolver.removePeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY)
             ContentResolver.setIsSyncable(account, CalendarContract.AUTHORITY, 1)
             ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
-            ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle(), (calendarRegularity * 60 * 1000).toLong())
+            ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY, (calendarRegularity * 60 * 1000).toLong())
+            ContentResolver.requestSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
         } catch (ex: Exception) {
             this.message.postValue(ex.message)
             Log.e(this.javaClass.name, ex.message, ex)

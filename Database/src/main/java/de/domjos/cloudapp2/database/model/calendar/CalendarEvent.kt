@@ -50,4 +50,10 @@ data class CalendarEvent(
     @ColumnInfo("path", defaultValue = "")
     var path: String = "",
     @ColumnInfo("recurrence", defaultValue = "")
-    var recurrence: String = "")
+    var recurrence: String = "",
+    @ColumnInfo("deleted", defaultValue = "0")
+    var deleted: Int = 0) {
+
+    @ColumnInfo("lastUpdatedEventApp", defaultValue = "-1")
+    var lastUpdatedEventApp: Long? = -1
+}

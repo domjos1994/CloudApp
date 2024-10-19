@@ -96,9 +96,10 @@
     <string name="contact_open_phone">Kontakt anrufen</string>
     <string name="contact_open_email">Email verfassen</string>
 
-    <string name="import_delete">Lösche alle Daten…</string>
-    <string name="import_insert">Füge Daten ein…</string>
-    <string name="import_item" formatted="true">Importiere %s…</string>
+    <string name="import_loading">Alle Daten laden…</string>
+    <string name="import_delete">Lösche %s von %s…</string>
+    <string name="import_insert">Füge %s in %s ein…</string>
+    <string name="import_update">Aktualisiere %s auf %s…</string>
 
     <string name="export">Exportieren</string>
     <string name="export_name">Datei-Name</string>

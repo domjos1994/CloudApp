@@ -2,9 +2,11 @@ package de.domjos.cloudapp2.data.repository
 
 import de.domjos.cloudapp2.cardav.CarDav
 import de.domjos.cloudapp2.cardav.model.AddressBook
+import de.domjos.cloudapp2.data.syncer.ContactSync
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
 import de.domjos.cloudapp2.database.model.contacts.Contact
+import java.util.Date
 import java.util.LinkedList
 import java.util.UUID
 import javax.inject.Inject
@@ -14,7 +16,7 @@ interface ContactRepository {
 
     suspend fun loadAddressBooks(hasInternet: Boolean): List<AddressBook>
     fun loadContacts(addressBook: String = ""): List<Contact>
-    fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, deleteLabel: String, insertLabel: String, importLabel: String)
+    fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, loadingLabel: String, deleteLabel: String, insertLabel: String, importLabel: String)
     fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact)
     fun deleteContact(hasInternet: Boolean, contact: Contact)
     fun hasAuthentications(): Boolean
@@ -51,62 +53,13 @@ class DefaultContactRepository @Inject constructor(
     override fun importContacts(
         updateProgress: (Float, String) -> Unit,
         onFinish: ()->Unit,
+        loadingLabel: String,
         deleteLabel: String,
         insertLabel: String,
         importLabel: String) {
-        try {
-            // delete all
-            updateProgress(0.0f, deleteLabel)
-            this.contactDAO.getAll(this.authenticationDAO.getSelectedItem()?.id!!)
-                .forEach { this.contactDAO.deleteContact(it) }
 
-            val lst = this.loader.getAddressBooks()
-            updateProgress(0.0f, insertLabel)
-            lst.forEach { item ->
-                // contacts
-                val contacts = this.loader.getContacts(item)
-                var items = 0
-                val factor = 1.0f / contacts.size
-
-                contacts.forEach { contact ->
-                    val uid = contact.uid!!
-                    try {
-                        if(this.authenticationDAO.getSelectedItem() != null) {
-                            val tmp = this.contactDAO.getAll(this.authenticationDAO.getSelectedItem()!!.id, uid)
-                            if(tmp != null) {
-                                contact.contactId = tmp.contactId
-                                contact.lastUpdatedContactPhone = tmp.lastUpdatedContactPhone
-                            }
-                        }
-                        contactDAO.deleteAddresses(uid)
-                        contactDAO.deleteEmails(uid)
-                        contactDAO.deletePhones(uid)
-                        contactDAO.deleteContact(uid)
-                    } catch (_: Exception) {}
-
-                    contactDAO.insertContact(contact)
-                    for(i in 0..<contact.addresses.size) {
-                        if(contact.addresses[i].street != "") {
-                            contact.addresses[i].contactId = uid
-                            contact.addresses[i].id = contactDAO.insertAddress(contact.addresses[i])
-                        }
-                    }
-                    for(i in 0..<contact.phoneNumbers.size) {
-                        contact.phoneNumbers[i].contactId = uid
-                        contact.phoneNumbers[i].id = contactDAO.insertPhone(contact.phoneNumbers[i])
-                    }
-                    for(i in 0..<contact.emailAddresses.size) {
-                        contact.emailAddresses[i].contactId = uid
-                        contact.emailAddresses[i].id = contactDAO.insertEmail(contact.emailAddresses[i])
-                    }
-
-                    items++
-                    updateProgress(factor * items, String.format(importLabel, if(item.label!=null) item.label!! else item.name))
-                }
-            }
-        } finally {
-            onFinish()
-        }
+        val sync = ContactSync(contactDAO, authenticationDAO)
+        sync.sync(updateProgress, onFinish, loadingLabel, deleteLabel, insertLabel, importLabel)
     }
 
     override fun loadContacts(addressBook: String): List<Contact> {
@@ -144,19 +97,11 @@ class DefaultContactRepository @Inject constructor(
 
     override fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact) {
         contact.authId = authenticationDAO.getSelectedItem()!!.id
-        var newItem = false
         if(contact.uid == "") {
             contact.uid = UUID.randomUUID().toString()
-            newItem = true
-        }
-        if(hasInternet) {
-            if(newItem) {
-                contact.path = this.loader.insertContact(contact)
-            } else {
-                this.loader.updateContact(contact)
-            }
         }
         contact.addressBook = this.addressBook
+        contact.lastUpdatedContactApp = Date().time
 
         val uid = contact.uid!!
         try {
@@ -189,7 +134,6 @@ class DefaultContactRepository @Inject constructor(
     }
 
     override fun deleteContact(hasInternet: Boolean, contact: Contact) {
-        this.loader.deleteContact(contact)
-        this.contactDAO.deleteContact(contact)
+        this.contactDAO.deleteContact(contact.id)
     }
 }

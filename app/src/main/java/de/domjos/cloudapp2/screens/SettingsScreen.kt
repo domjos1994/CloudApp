@@ -97,9 +97,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
 
     // contacts
     val contactRegularityPreference = createSeekBarPreference(
-        Settings.contactRegularityKey, 1.0f, R.string.settings_contact_regularity_title,
+        Settings.contactRegularityKey, 15.0f, R.string.settings_contact_regularity_title,
         R.string.settings_contact_regularity_header, R.drawable.baseline_access_time_24,
-        {"${it.toInt()} min"}, 1.0f.rangeTo(60.0f)
+        {"${it.toInt()} min"}, 15.0f.rangeTo(60.0f)
     )
     val cardavRegularityPreference = createSeekBarPreference(
         Settings.cardavRegularityKey, 0.0f, R.string.settings_cardav_regularity_title,
@@ -109,9 +109,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
 
     // calendar
     val calendarRegularityPreference = createSeekBarPreference(
-        Settings.calendarRegularityKey, 1.0f, R.string.settings_calendar_regularity_title,
+        Settings.calendarRegularityKey, 15.0f, R.string.settings_calendar_regularity_title,
         R.string.settings_calendar_regularity_header, R.drawable.baseline_access_time_24,
-        {"${it.toInt()} min"}, 1.0f.rangeTo(60.0f)
+        {"${it.toInt()} min"}, 15.0f.rangeTo(60.0f)
     )
     val caldavRegularityPreference = createSeekBarPreference(
         Settings.caldavRegularityKey, 0.0f, R.string.settings_caldav_regularity_title,

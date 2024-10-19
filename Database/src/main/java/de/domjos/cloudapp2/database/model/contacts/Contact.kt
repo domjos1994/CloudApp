@@ -54,8 +54,12 @@ data class Contact(
     @ColumnInfo("lastUpdatedContactServer", defaultValue = "-1")
     var lastUpdatedContactServer: Long? = -1,
     @ColumnInfo("authId", defaultValue = "0")
-    var authId: Long
+    var authId: Long,
+    @ColumnInfo("deleted", defaultValue = "0")
+    var deleted: Int = 0
 ) {
+    @ColumnInfo("lastUpdatedContactApp", defaultValue = "-1")
+    var lastUpdatedContactApp: Long? = -1
     @Ignore var addresses: MutableList<Address> = mutableListOf()
     @Ignore var phoneNumbers: MutableList<Phone> = mutableListOf()
     @Ignore var emailAddresses: MutableList<Email> = mutableListOf()
@@ -80,6 +84,7 @@ data class Contact(
         if (phoneNumbers != other.phoneNumbers) return false
         if (emailAddresses != other.emailAddresses) return false
         if (!photo.contentEquals(other.photo)) return false
+        if (deleted != other.deleted) return false
 
         return true
     }
@@ -99,6 +104,7 @@ data class Contact(
         result = 31 * result + phoneNumbers.hashCode()
         result = 31 * result + emailAddresses.hashCode()
         result = 31 * result + photo.contentHashCode()
+        result = 31 * result + deleted.hashCode()
         return result
     }
 

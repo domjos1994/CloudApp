@@ -63,8 +63,11 @@ interface ContactDAO {
      * @param authId id of authentication
      * @return list of contacts
      */
-    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    @Query("SELECT * FROM contacts WHERE authId=:authId AND deleted=0")
     fun getAll(authId: Long): List<Contact>
+
+    @Query("SELECT * FROM contacts WHERE authId=:authId AND deleted=1")
+    fun getDeletedItems(authId: Long): List<Contact>
 
     /**
      * Get contact
@@ -72,7 +75,7 @@ interface ContactDAO {
      * @param uid id of contact
      * @return contact
      */
-    @Query("SELECT * FROM contacts WHERE authId=:authId and uid=:uid")
+    @Query("SELECT * FROM contacts WHERE authId=:authId and uid=:uid AND deleted=0")
     fun getAll(authId: Long, uid: String): Contact?
 
     /**
@@ -80,7 +83,7 @@ interface ContactDAO {
      * @param authId id of authentication
      * @return list of contacts with addresses
      */
-    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    @Query("SELECT * FROM contacts WHERE authId=:authId AND deleted=0")
     @Transaction
     fun getAllWithAddresses(authId: Long): List<ContactWithAddresses>
 
@@ -89,7 +92,7 @@ interface ContactDAO {
      * @param authId id of authentication
      * @return list of contacts with emails
      */
-    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    @Query("SELECT * FROM contacts WHERE authId=:authId AND deleted=0")
     @Transaction
     fun getAllWithEmails(authId: Long): List<ContactWithEmails>
 
@@ -98,7 +101,7 @@ interface ContactDAO {
      * @param authId id of authentication
      * @return list of contacts with phones
      */
-    @Query("SELECT * FROM contacts WHERE authId=:authId")
+    @Query("SELECT * FROM contacts WHERE authId=:authId AND deleted=0")
     @Transaction
     fun getAllWithPhones(authId: Long): List<ContactWithPhones>
 
@@ -107,7 +110,7 @@ interface ContactDAO {
      * @param authId id of authentication
      * @return list of address-books
      */
-    @Query("SELECT DISTINCT addressBook FROM contacts WHERE authId=:authId")
+    @Query("SELECT DISTINCT addressBook FROM contacts WHERE authId=:authId AND deleted=0")
     fun getAddressBooks(authId: Long): List<String>
 
     /**
@@ -116,7 +119,7 @@ interface ContactDAO {
      * @param addressBook address-book
      * @return list of contacts
      */
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId AND deleted=0")
     fun getAddressBook(addressBook: String, authId: Long): List<Contact>
 
     /**
@@ -125,7 +128,7 @@ interface ContactDAO {
      * @param addressBook address-book
      * @return list of contacts and addresses
      */
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId AND deleted=0")
     @Transaction
     fun getAddressBookWithAddresses(addressBook: String, authId: Long): List<ContactWithAddresses>
 
@@ -135,7 +138,7 @@ interface ContactDAO {
      * @param addressBook address-book
      * @return list of contacts and emails
      */
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId AND deleted=0")
     @Transaction
     fun getAddressBookWithEmails(addressBook: String, authId: Long): List<ContactWithEmails>
 
@@ -145,7 +148,7 @@ interface ContactDAO {
      * @param addressBook address-book
      * @return list of contacts and phones
      */
-    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId")
+    @Query("SELECT * FROM contacts WHERE addressBook=:addressBook and authId=:authId AND deleted=0")
     @Transaction
     fun getAddressBookWithPhones(addressBook: String, authId: Long): List<ContactWithPhones>
 
@@ -155,7 +158,7 @@ interface ContactDAO {
      * @param lastUpdated timestamp
      * @param id id
      */
-    @Query("UPDATE contacts SET contactId=:contactId, lastUpdatedContactPhone=:lastUpdated WHERE id=:id")
+    @Query("UPDATE contacts SET contactId=:contactId, lastUpdatedContactPhone=:lastUpdated WHERE id=:id AND deleted=0")
     fun updateContactSync(contactId: String, lastUpdated: Long, id: Long)
 
     /**
@@ -163,7 +166,7 @@ interface ContactDAO {
      * @param contact the contact
      */
     @Insert
-    fun insertContact(contact: Contact)
+    fun insertContact(contact: Contact): Long
 
     /**
      * Update a contact
@@ -179,11 +182,14 @@ interface ContactDAO {
     @Delete
     fun deleteContact(contact: Contact)
 
+    @Query("UPDATE contacts SET deleted=1 WHERE id=:id")
+    fun deleteContact(id: Long)
+
     /**
      * Delete a contact by uid
      * @param uid the contact
      */
-    @Query("DELETE FROM contacts WHERE uid=:uid")
+    @Query("UPDATE contacts SET deleted=1 WHERE uid=:uid")
     fun deleteContact(uid: String)
 
     /**

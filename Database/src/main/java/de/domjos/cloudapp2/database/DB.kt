@@ -22,8 +22,10 @@ import de.domjos.cloudapp2.database.converters.ToDoStatusConverter
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
+import de.domjos.cloudapp2.database.dao.LogDAO
 import de.domjos.cloudapp2.database.dao.ToDoItemDAO
 import de.domjos.cloudapp2.database.model.Authentication
+import de.domjos.cloudapp2.database.model.Log
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp2.database.model.contacts.Address
 import de.domjos.cloudapp2.database.model.contacts.Contact
@@ -35,9 +37,9 @@ import de.domjos.cloudapp2.database.model.todo.ToDoItem
     entities = [
         Authentication::class, CalendarEvent::class,
         Contact::class, Address::class, Phone::class, Email::class,
-        ToDoItem::class
+        ToDoItem::class, Log::class
    ],
-    version = 24,
+    version = 27,
     autoMigrations = [
         AutoMigration(1, 2),
         AutoMigration(2, 3),
@@ -61,7 +63,10 @@ import de.domjos.cloudapp2.database.model.todo.ToDoItem
         AutoMigration(20, 21),
         AutoMigration(21, 22),
         AutoMigration(22, 23),
-        AutoMigration(23, 24)
+        AutoMigration(23, 24),
+        AutoMigration(24, 25),
+        AutoMigration(25, 26),
+        AutoMigration(26, 27)
     ]
 )
 @TypeConverters(DateConverter::class, AddressTypeConverter::class, PhoneTypeConverter::class, ToDoStatusConverter::class)
@@ -70,6 +75,7 @@ abstract class DB : RoomDatabase() {
     abstract fun calendarEventDao(): CalendarEventDAO
     abstract fun contactDao(): ContactDAO
     abstract fun todoItemDao(): ToDoItemDAO
+    abstract fun logDao(): LogDAO
 
     companion object {
         fun newInstance(context: Context): DB {

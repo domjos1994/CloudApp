@@ -17,6 +17,7 @@ import de.domjos.cloudapp2.database.DB
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
+import de.domjos.cloudapp2.database.dao.LogDAO
 import de.domjos.cloudapp2.database.dao.ToDoItemDAO
 import javax.inject.Singleton
 
@@ -42,6 +43,11 @@ class DatabaseModule {
     @Provides
     fun provideToDoItemDao(db: DB): ToDoItemDAO {
         return db.todoItemDao()
+    }
+
+    @Provides
+    fun provideLogDao(db: DB): LogDAO {
+        return db.logDao()
     }
 
     @Provides
