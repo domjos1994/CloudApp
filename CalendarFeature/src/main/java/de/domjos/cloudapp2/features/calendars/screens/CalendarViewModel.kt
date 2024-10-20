@@ -73,7 +73,7 @@ class CalendarViewModel @Inject constructor(
                 calendarRepository.import(
                     updateProgress,
                     context.getString(R.string.import_loading),
-                    context.getString(R.string.import_insert)
+                    "%s"
                 )
                 _events.value = calendarRepository.loadData(calendar, start, end)
                 _date.value = Date(start)

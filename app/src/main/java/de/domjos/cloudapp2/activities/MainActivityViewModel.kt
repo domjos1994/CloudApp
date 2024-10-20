@@ -138,6 +138,11 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
+    fun getCalendarSyncPeriod(onGet: (Float) -> Unit) {
+        viewModelScope.launch {
+            onGet(settings.getSetting(Settings.calendarRegularityKey, 0.0f))
+        }
+    }
 
     fun getCalendarWorkerPeriod(onGet: (Float) -> Unit) {
         viewModelScope.launch {

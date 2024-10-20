@@ -66,7 +66,7 @@ class DefaultCalendarRepository @Inject constructor(
                         val id = this.authenticationDAO.getSelectedItem()!!.id
                         val tmp = this.calendarEventDAO.getAll(id, uid)
                         if(tmp != null) {
-                            event.eventId = tmp.eventId
+                            //event.eventId = tmp.eventId
                             event.lastUpdatedEventPhone = tmp.lastUpdatedEventPhone
                         }
                         this.calendarEventDAO.clear(id, uid)

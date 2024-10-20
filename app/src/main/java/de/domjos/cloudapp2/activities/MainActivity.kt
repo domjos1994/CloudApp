@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -273,6 +274,28 @@ class MainActivity : ComponentActivity() {
                     ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
                     ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
                     ContentResolver.requestSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
+                } catch (ex: Exception) {
+                    viewModel.message.postValue(ex.message)
+                }
+
+                try {
+                    val extras = Bundle().apply {
+                        putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true)
+                        putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true)
+                    }
+                    var contactPollFrequency = 0L
+                    viewModel.getCalendarSyncPeriod {
+                        contactPollFrequency = if(it.toLong() == 0L) {
+                            15 * 60L
+                        } else {
+                            it.toLong() * 60L
+                        }
+                    }
+                    val account = AuthenticatorService.getAccount(context, "de.domjos.cloudapp2.account")
+                    ContentResolver.removePeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY)
+                    ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
+                    ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
+                    ContentResolver.requestSync(account, CalendarContract.AUTHORITY, extras)
                 } catch (ex: Exception) {
                     viewModel.message.postValue(ex.message)
                 }
