@@ -56,4 +56,8 @@ data class CalendarEvent(
 
     @ColumnInfo("lastUpdatedEventApp", defaultValue = "-1")
     var lastUpdatedEventApp: Long? = -1
+
+    override fun toString(): String {
+        return title
+    }
 }

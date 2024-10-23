@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
@@ -917,6 +918,7 @@ fun NewEditDialog(
             TextFieldValue(calendars.find { it.name == (event?.calendar ?: "") }?.label ?: "")
         )
     }
+    var isCalendarValid by remember { mutableStateOf(calendar.text.isNotEmpty()) }
     var showDropDown by remember { mutableStateOf(false) }
 
     Dialog(
@@ -1112,7 +1114,7 @@ fun NewEditDialog(
                             value = calendar,
                             trailingIcon = {
                                 IconButton(onClick = { showDropDown = !showDropDown }) {
-                                    Icon(Icons.Default.Clear,
+                                    Icon(Icons.Default.ArrowDropDown,
                                         contentDescription = stringResource(R.string.calendars)
                                     )
                                 }
@@ -1120,12 +1122,14 @@ fun NewEditDialog(
                             onValueChange = {
                                 calendar = it
                             },
-                            label = {Text(stringResource(id = R.string.calendars))}
+                            label = {Text(stringResource(id = R.string.calendars))},
+                            isError = !isCalendarValid
                         )
                         DropdownMenu(showDropDown, {showDropDown = false}) {
                             calendars.forEach {
                                 DropdownMenuItem({Text(it.label)}, onClick = {
                                     calendar = TextFieldValue(it.label)
+                                    isCalendarValid = calendar.text.isNotEmpty()
                                     showDropDown = false
                                 })
                             }
@@ -1196,7 +1200,7 @@ fun NewEditDialog(
 
                             onSave(calendarEvent)
                             onShowDialog(false)
-                        }, enabled = isTitleValid && isFromValid && isToValid) {
+                        }, enabled = isTitleValid && isFromValid && isToValid && isCalendarValid) {
                             Icon(Icons.Default.Check, stringResource(R.string.sys_delete_item))
                         }
                     }

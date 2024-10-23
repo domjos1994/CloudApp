@@ -50,7 +50,7 @@ class ContactSync(
                 serverContacts.addAll(this.loader.getContacts(addressBook))
             }
             val sizeApp = appContacts.size
-            val sizeServer = appContacts.size
+            val sizeServer = serverContacts.size
             val factor = 100.0f / (sizeApp + sizeServer)
 
             appContacts.forEach { appContact ->

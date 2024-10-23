@@ -44,6 +44,9 @@ interface CalendarEventDAO {
     @Query("SELECT DISTINCT calendar FROM calendarEvents WHERE authId=:authId AND deleted=0")
     fun getCalendars(authId: Long): List<String>
 
+    @Query("SELECT * FROM calendarEvents WHERE authId=:authId AND deleted=1")
+    fun getDeletedItems(authId: Long): List<CalendarEvent>
+
     /**
      * Get Flow with List of Calendars
      * @return Flow with List with calendar-names
@@ -108,6 +111,9 @@ interface CalendarEventDAO {
 
     @Query("UPDATE calendarEvents SET deleted=1 WHERE id=:id")
     fun deleteCalendarEvent(id: Long)
+
+    @Query("UPDATE calendarEvents SET deleted=1 WHERE uid=:uid")
+    fun deleteCalendarEvent(uid: String)
 
     /**
      * Clear data by authentication and uid

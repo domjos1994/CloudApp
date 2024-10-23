@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import de.domjos.cloudapp2.data.repository.DefaultCalendarRepository
+import de.domjos.cloudapp2.data.syncer.CalendarSync
 import de.domjos.cloudapp2.database.DB
 
 class CalendarWorker(private val context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
@@ -17,8 +17,8 @@ class CalendarWorker(private val context: Context, workerParams: WorkerParameter
                     .allowMainThreadQueries()
                     .build()
 
-            val repo = DefaultCalendarRepository(db.authenticationDao(), db.calendarEventDao())
-            repo.import({_,_->}, "", "")
+            val syncer = CalendarSync(db.calendarEventDao(), db.authenticationDao())
+            syncer.sync()
             Result.success()
         } catch (_: Exception) {
             Result.failure()

@@ -177,12 +177,12 @@ class CalendarCalDav(private val authentication: Authentication?) {
         if(this.sardine != null) {
             val calendar = this.modelToICal(calendarEvent)
             if(calendar != null) {
-                this.sardine?.put("${basePath}/${calendarEvent.calendar}/${calendarEvent.uid}.ics", Helper.getData(calendar))
+                this.sardine?.put("${authentication?.url}${calendarEvent.path}", Helper.getData(calendar))
             }
         }
     }
 
-    fun newCalendarEvent(calendarModel: CalendarModel, calendarEvent: CalendarEvent) {
+    fun newCalendarEvent(calendarModel: CalendarModel, calendarEvent: CalendarEvent): String {
         if(this.sardine != null) {
             val uid = UUID.randomUUID().toString()
             calendarEvent.uid = uid
@@ -190,7 +190,9 @@ class CalendarCalDav(private val authentication: Authentication?) {
             if(calendar != null) {
                 this.sardine?.put("${basePath}/${calendarModel.name}/$uid.ics", Helper.getData(calendar))
             }
+            return uid
         }
+        return ""
     }
 
     fun deleteCalendarEvent(calendarEvent: CalendarEvent) {
