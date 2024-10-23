@@ -541,7 +541,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(roomTab.title) {
                                 RoomScreen(onChatScreen = { x, y ->
-                                    navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
+                                    navController.navigate("${chatsTab.id}/$x/$y")
                                 }, toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = chatsTab.title
                                 header = roomTab.title
@@ -550,7 +550,7 @@ class MainActivity : ComponentActivity() {
                                 breadcrumb = ""
                             }
                             composable(
-                                "${chatsTab.title}/{lookIntoFuture}/{token}",
+                                "${chatsTab.id}/{lookIntoFuture}/{token}",
                                     arguments = listOf(
                                         navArgument("lookIntoFuture") { type = NavType.IntType },
                                         navArgument("token") { type = NavType.StringType }
