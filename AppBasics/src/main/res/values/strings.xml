@@ -176,6 +176,14 @@
     <string name="todos_start">Start</string>
     <string name="todos_end">End</string>
     <string name="todos_status">Status</string>
+    <string name="todos_status_tentative">tentative</string>
+    <string name="todos_status_confirmed">confirmed</string>
+    <string name="todos_status_cancelled">cancelled</string>
+    <string name="todos_status_needs_action">needs actions</string>
+    <string name="todos_status_completed">completed</string>
+    <string name="todos_status_in_process">in process</string>
+    <string name="todos_status_draft">draft</string>
+    <string name="todos_status_final">final</string>
     <string name="todos_completed">Completed (in %)</string>
     <string name="todos_priority">Priority (from 0–9)</string>
     <string name="todos_location">Location</string>

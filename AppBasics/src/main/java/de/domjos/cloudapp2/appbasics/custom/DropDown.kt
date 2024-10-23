@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package de.domjos.cloudapp2.appbasics.custom
 
 import android.content.res.Configuration
@@ -73,7 +75,8 @@ fun DropDown(
                 focusedBorderColor = colorForeground,
                 unfocusedBorderColor = colorForeground
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            readOnly = true
         )
         DropdownMenu(
             expanded = expanded,

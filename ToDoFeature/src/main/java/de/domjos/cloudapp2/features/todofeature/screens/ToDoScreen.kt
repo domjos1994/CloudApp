@@ -496,8 +496,24 @@ fun ToDoDialog(
             var isSummaryValid by remember { mutableStateOf(summary.text.isNotEmpty()) }
             var start by remember { mutableStateOf(toDoItem?.start ?: Date()) }
             var end by remember { mutableStateOf(toDoItem?.end ?: Date()) }
-            var status by remember { mutableStateOf(toDoItem?.status?.name ?: "") }
-            val statusList = Status.entries.toList().map { it.name }
+            val statusLabelList = mutableMapOf<String, String>()
+            statusLabelList[stringResource(R.string.todos_status_tentative)] = Status.TENTATIVE.name
+            statusLabelList[stringResource(R.string.todos_status_confirmed)] = Status.CONFIRMED.name
+            statusLabelList[stringResource(R.string.todos_status_cancelled)] = Status.CANCELLED.name
+            statusLabelList[stringResource(R.string.todos_status_needs_action)] = Status.NEEDS_ACTION.name
+            statusLabelList[stringResource(R.string.todos_status_completed)] = Status.COMPLETED.name
+            statusLabelList[stringResource(R.string.todos_status_in_process)] = Status.IN_PROCESS.name
+            statusLabelList[stringResource(R.string.todos_status_draft)] = Status.DRAFT.name
+            statusLabelList[stringResource(R.string.todos_status_final)] = Status.FINAL.name
+            var value = ""
+            if((toDoItem?.status?.name ?: "") != "") {
+                statusLabelList.entries.forEach { entry ->
+                    if(entry.value == (toDoItem?.status?.name ?: "")) {
+                        value = entry.key
+                    }
+                }
+            }
+            var status by remember { mutableStateOf(value) }
             var priority by remember { mutableFloatStateOf(toDoItem?.priority?.toFloat() ?: 4f) }
             var completed by remember { mutableFloatStateOf(toDoItem?.completed?.toFloat() ?: 30f) }
             var location by remember { mutableStateOf(TextFieldValue(toDoItem?.location ?: "")) }
@@ -570,7 +586,7 @@ fun ToDoDialog(
                 }
                 Row(Modifier.padding(5.dp)) {
                     DropDown(
-                        items = statusList,
+                        items = statusLabelList.keys.toList(),
                         initial = status,
                         onSelected = { status = it },
                         label = stringResource(R.string.todos_status),
@@ -718,7 +734,7 @@ fun ToDoDialog(
                                     summary = summary.text,
                                     start = start,
                                     end = end,
-                                    status = ToDoStatusConverter().fromString(status),
+                                    status = ToDoStatusConverter().fromString(statusLabelList.getOrDefault(status, "")),
                                     completed = completed.toInt(),
                                     priority = priority.toInt(),
                                     location = location.text,

@@ -166,6 +166,14 @@
     <string name="todos_start">Start</string>
     <string name="todos_end">Endef</string>
     <string name="todos_status">Status</string>
+    <string name="todos_status_tentative">vorläufig</string>
+    <string name="todos_status_confirmed">bestätigt</string>
+    <string name="todos_status_cancelled">abgebrochen</string>
+    <string name="todos_status_needs_action">Handlungsbedarf</string>
+    <string name="todos_status_completed">beendet</string>
+    <string name="todos_status_in_process">in Bearbeitung</string>
+    <string name="todos_status_draft">Entwurf</string>
+    <string name="todos_status_final">abgeschlossen</string>
     <string name="todos_completed">Erreicht (in %)</string>
     <string name="todos_priority">Priorität (von 0–9)</string>
     <string name="todos_location">Ort</string>
