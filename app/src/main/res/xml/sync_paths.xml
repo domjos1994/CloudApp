@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright (c) 2024 Dominic Joas
+  ~ This file is part of the CloudApp-Project and licensed under the
+  ~ General Public License V3.
+  -->
+
+<paths>
+    <external-media-path name="sync" path="sync/*"/>
+</paths>

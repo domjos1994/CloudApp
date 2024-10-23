@@ -91,6 +91,7 @@ import coil.request.ImageRequest
 import coil.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
 import de.dojodev.cloudapp2.features.exportfeature.screens.ExportScreen
+import de.domjos.cloudapp2.adapter.FileSyncAdapter
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ConnectionType
 import de.domjos.cloudapp2.appbasics.helper.Notifications
@@ -110,7 +111,6 @@ import de.domjos.cloudapp2.features.notesfeature.NotesScreen
 import de.domjos.cloudapp2.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp2.features.todofeature.screens.ToDoScreen
 import de.domjos.cloudapp2.features.todofeature.screens.importToDoAction
-import de.domjos.cloudapp2.providers.FileProvider
 import de.domjos.cloudapp2.screens.AuthenticationScreen
 import de.domjos.cloudapp2.screens.LogScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -135,6 +135,10 @@ data class TabBarItem(
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        const val ACCOUNT = "de.domjos.cloudapp2.account"
+    }
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -270,7 +274,7 @@ class MainActivity : ComponentActivity() {
                             it.toLong() * 60L
                         }
                     }
-                    val account = AuthenticatorService.getAccount(context, "de.domjos.cloudapp2.account")
+                    val account = AuthenticatorService.getAccount(context, ACCOUNT)
                     ContentResolver.removePeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
                     ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
                     ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
@@ -292,7 +296,7 @@ class MainActivity : ComponentActivity() {
                             it.toLong() * 60L
                         }
                     }
-                    val account = AuthenticatorService.getAccount(context, "de.domjos.cloudapp2.account")
+                    val account = AuthenticatorService.getAccount(context, ACCOUNT)
                     ContentResolver.removePeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY)
                     ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
                     ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
@@ -301,10 +305,10 @@ class MainActivity : ComponentActivity() {
                     viewModel.message.postValue(ex.message)
                 }
                 try {
-                    val account = AuthenticatorService.getAccount(context, "de.domjos.cloudapp2.account")
-                    ContentResolver.removePeriodicSync(account, FileProvider.AUTHORITY, Bundle.EMPTY)
-                    ContentResolver.setSyncAutomatically(account, FileProvider.AUTHORITY, true)
-                    ContentResolver.requestSync(account, FileProvider.AUTHORITY, Bundle.EMPTY)
+                    val account = AuthenticatorService.getAccount(context, ACCOUNT)
+                    ContentResolver.removePeriodicSync(account, FileSyncAdapter.AUTHORITY, Bundle.EMPTY)
+                    ContentResolver.setSyncAutomatically(account, FileSyncAdapter.AUTHORITY, true)
+                    ContentResolver.requestSync(account, FileSyncAdapter.AUTHORITY, Bundle.EMPTY)
                 } catch (ex: Exception) {
                     viewModel.message.postValue(ex.message)
                 }

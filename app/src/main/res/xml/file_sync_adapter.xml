@@ -11,5 +11,5 @@
     android:accountType="de.domjos.cloudapp2.account"
     android:userVisible="true"
     android:supportsUploading="true"
-    android:allowParallelSyncs="true"
+    android:allowParallelSyncs="false"
     android:isAlwaysSyncable="true"/>
