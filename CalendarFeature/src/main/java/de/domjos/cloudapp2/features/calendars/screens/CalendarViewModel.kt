@@ -87,7 +87,7 @@ class CalendarViewModel @Inject constructor(
     fun insertCalendar(calendarEvent: CalendarEvent) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if(calendarEvent.uid.isNotEmpty() && calendarEvent.id != 0L) {
+                if(calendarEvent.id != 0L) {
                     calendarRepository.update(calendarEvent)
                 } else {
                     calendarRepository.insert(calendarEvent)

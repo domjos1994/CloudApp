@@ -110,6 +110,7 @@ import de.domjos.cloudapp2.features.notesfeature.NotesScreen
 import de.domjos.cloudapp2.features.notifications.screens.NotificationScreen
 import de.domjos.cloudapp2.features.todofeature.screens.ToDoScreen
 import de.domjos.cloudapp2.features.todofeature.screens.importToDoAction
+import de.domjos.cloudapp2.providers.FileProvider
 import de.domjos.cloudapp2.screens.AuthenticationScreen
 import de.domjos.cloudapp2.screens.LogScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -296,6 +297,14 @@ class MainActivity : ComponentActivity() {
                     ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
                     ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
                     ContentResolver.requestSync(account, CalendarContract.AUTHORITY, extras)
+                } catch (ex: Exception) {
+                    viewModel.message.postValue(ex.message)
+                }
+                try {
+                    val account = AuthenticatorService.getAccount(context, "de.domjos.cloudapp2.account")
+                    ContentResolver.removePeriodicSync(account, FileProvider.AUTHORITY, Bundle.EMPTY)
+                    ContentResolver.setSyncAutomatically(account, FileProvider.AUTHORITY, true)
+                    ContentResolver.requestSync(account, FileProvider.AUTHORITY, Bundle.EMPTY)
                 } catch (ex: Exception) {
                     viewModel.message.postValue(ex.message)
                 }

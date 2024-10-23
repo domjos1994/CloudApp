@@ -5,6 +5,7 @@ import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.webdav.model.Item
 import okhttp3.OkHttpClient
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.time.Duration
@@ -93,6 +94,20 @@ class WebDav(private val authentication: Authentication) {
             }
         }
     }
+
+    fun openResource(item: Item): ByteArray {
+        if(!item.directory) {
+            val stream = this.sardine.get(item.path)
+            val baos = ByteArrayOutputStream()
+            baos.use { output ->
+                stream.copyTo(output)
+            }
+            stream.close()
+            return baos.toByteArray()
+        }
+        return ByteArray(0)
+    }
+
 
     fun delete(item: Item) {
         this.sardine.delete(item.path)

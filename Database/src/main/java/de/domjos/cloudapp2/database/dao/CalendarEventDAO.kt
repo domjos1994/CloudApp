@@ -90,7 +90,7 @@ interface CalendarEventDAO {
      * @param calendarEvent event
      */
     @Insert
-    fun insertCalendarEvent(calendarEvent: CalendarEvent)
+    fun insertCalendarEvent(calendarEvent: CalendarEvent): Long
 
     /**
      * Update existing event

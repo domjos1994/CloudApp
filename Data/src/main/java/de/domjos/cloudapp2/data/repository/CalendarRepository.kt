@@ -123,6 +123,7 @@ class DefaultCalendarRepository @Inject constructor(
 
         if(item != null) {
             calendarEvent.authId = authenticationDAO.getSelectedItem()!!.id
+            calendarEvent.lastUpdatedEventApp = Date().time
             this.calendarEventDAO.insertCalendarEvent(calendarEvent)
             this.calendarCalDav.newCalendarEvent(item, calendarEvent)
         }
@@ -133,6 +134,7 @@ class DefaultCalendarRepository @Inject constructor(
         val item = this.calendarCalDav.getCalendars().find { it.name == calendarEvent.calendar }
 
         if(item != null) {
+            calendarEvent.lastUpdatedEventApp = Date().time
             this.calendarEventDAO.updateCalendarEvent(calendarEvent)
             this.calendarCalDav.updateCalendarEvent(calendarEvent)
         }

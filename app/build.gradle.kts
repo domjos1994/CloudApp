@@ -80,6 +80,7 @@ dependencies {
     implementation(project(":ExportFeature"))
     implementation(project(":CalDav"))
     implementation(project(":CarDav"))
+    implementation(project(":WebDav"))
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.datastore.preferences.core.jvm)

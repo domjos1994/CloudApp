@@ -3,4 +3,5 @@
     <string name="widget_news">Top 3 Neuigkeiten</string>
     <string name="widget_contacts">Kontakte</string>
     <string name="widget_calendar">Events in den nächsten 2 Wochen</string>
+    <string name="files">Dateien</string>
 </resources>

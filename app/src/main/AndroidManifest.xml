@@ -80,6 +80,16 @@
                 android:resource="@xml/calendar_sync_adapter" />
         </service>
         <service
+            android:name=".services.FileSyncService"
+            android:label="@string/app_name"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.content.SyncAdapter"/>
+            </intent-filter>
+            <meta-data android:name="android.content.SyncAdapter"
+                android:resource="@xml/file_sync_adapter" />
+        </service>
+        <service
             android:name=".services.AuthenticatorService"
             android:exported="false">
             <intent-filter>
@@ -129,5 +139,11 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/calendar_widget_info"/>
         </receiver>
+        <provider
+            android:name=".providers.FileProvider"
+            android:label="@string/files"
+            android:authorities="de.dojodev.file_provider"
+            android:exported="false"
+            android:grantUriPermissions="true" />
     </application>
 </manifest>
