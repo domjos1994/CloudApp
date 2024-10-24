@@ -6,4 +6,5 @@
     android:userVisible="true"
     android:supportsUploading="true"
     android:allowParallelSyncs="false"
-    android:isAlwaysSyncable="true"/>
+    android:isAlwaysSyncable="true"
+    android:label="@string/app_name"/>

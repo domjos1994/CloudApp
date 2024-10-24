@@ -64,7 +64,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -723,6 +722,36 @@ fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: C
     }
 }
 
+fun readableDate(data: String): String {
+    val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+    val dateTimeFormat = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
+    var date: Date? = null
+    try {
+        date = dateTimeFormat.parse(data)
+    } catch (_: Exception) {
+        try {
+            date = dateFormat.parse(data)
+        } catch (_: Exception) {}
+    }
+    if(date != null) {
+        var time = " HH:mm:ss"
+        val cal = Calendar.getInstance(Locale.getDefault())
+        cal.time = date
+        if(cal.get(Calendar.HOUR_OF_DAY) == 0 && cal.get(Calendar.MINUTE) == 0 && cal.get(Calendar.SECOND) == 0) {
+            time = ""
+        }
+
+        if(Locale.getDefault() == Locale.GERMANY) {
+            val readableFormat = SimpleDateFormat("dd.MM.yyyy$time", Locale.getDefault())
+            return readableFormat.format(date)
+        } else {
+            val readableFormat = SimpleDateFormat("yyyy-MM-dd$time", Locale.getDefault())
+            return readableFormat.format(date)
+        }
+    }
+    return data
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
@@ -746,28 +775,56 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .padding(5.dp)) {
-            Column(
-                modifier = Modifier.weight(4f),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(event.string_from, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("-", fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
-            }
-            Column(
-                modifier = Modifier.weight(4f),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(event.string_to, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+            val start = readableDate(event.string_from)
+            val end = readableDate(event.string_to)
+            if(start == end) {
+                Column(
+                    modifier = Modifier.weight(9f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(start, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
+                }
+            } else {
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        start,
+                        fontSize = 14.sp,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        "-",
+                        fontSize = 14.sp,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(4f),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        end,
+                        fontSize = 14.sp,
+                        fontStyle = FontStyle.Normal,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
             }
         }
+        HorizontalDivider()
         if(event.location != "") {
             Row(
                 Modifier
@@ -775,18 +832,13 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                     .wrapContentHeight()
                     .padding(5.dp)) {
                 Column(
-                    modifier = Modifier.weight(4f),
+                    modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.Center) {
                     Icon(Icons.Filled.LocationOn, event.location)
                 }
                 Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {}
-                Column(
-                    modifier = Modifier.weight(4f),
+                    modifier = Modifier.weight(9f),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center) {
                     Text(event.location, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
@@ -800,18 +852,13 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                     .wrapContentHeight()
                     .padding(5.dp)) {
                 Column(
-                    modifier = Modifier.weight(4f),
+                    modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.Center) {
                     Icon(Icons.Filled.DateRange, event.calendar)
                 }
                 Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {}
-                Column(
-                    modifier = Modifier.weight(4f),
+                    modifier = Modifier.weight(9f),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center) {
                     Text(event.calendar, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
@@ -825,24 +872,20 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                     .wrapContentHeight()
                     .padding(5.dp)) {
                 Column(
-                    modifier = Modifier.weight(4f),
+                    modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.Center) {
                     Icon(Icons.Filled.Info, event.categories)
                 }
                 Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {}
-                Column(
-                    modifier = Modifier.weight(4f),
+                    modifier = Modifier.weight(9f),
                     horizontalAlignment = Alignment.Start,
                     verticalArrangement = Arrangement.Center) {
                     Text(event.categories, fontSize = 14.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
                 }
             }
         }
+        HorizontalDivider()
         if(event.description != "") {
             Row(
                 Modifier
@@ -857,7 +900,7 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 }
             }
         }
-
+        HorizontalDivider()
         if(event.eventId != "") {
             val context = LocalContext.current
             Row(
@@ -1229,7 +1272,8 @@ fun EventViewPreview() {
     }
 }
 
-@PreviewScreenSizes
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ScreenPreview() {
     val lst = mutableListOf(fakeEvent(1), fakeEvent(2), fakeEvent(3))
@@ -1237,6 +1281,7 @@ fun ScreenPreview() {
 }
 
 @Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun EditDialogPreview() {
     CloudAppTheme {
@@ -1250,6 +1295,15 @@ fun EditDialogPreview() {
         ) {
 
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun BottomSheetPreview() {
+    CloudAppTheme {
+        EventView(fakeEvent(0L)) { }
     }
 }
 
