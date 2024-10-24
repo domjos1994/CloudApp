@@ -64,6 +64,7 @@ data class Contact(
     @Ignore var phoneNumbers: MutableList<Phone> = mutableListOf()
     @Ignore var emailAddresses: MutableList<Email> = mutableListOf()
     @Ignore var categories: MutableList<String> = mutableListOf()
+    @Ignore var contactToChat: Boolean = false
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

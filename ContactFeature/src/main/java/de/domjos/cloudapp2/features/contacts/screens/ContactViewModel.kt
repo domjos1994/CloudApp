@@ -159,6 +159,20 @@ class ContactViewModel @Inject constructor(
         }
     }
 
+    fun openChat(contact: Contact, onOpen: (String) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val token = contactRepository.getOrCreateChat(contact)
+                viewModelScope.launch(Dispatchers.Main) {
+                    onOpen(token)
+                }
+            } catch (ex: Exception) {
+                printException(ex, this)
+                onOpen("")
+            }
+        }
+    }
+
     @Suppress("SameParameterValue")
     private fun hasPermission(permission: String, context: Context): Boolean {
         return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED

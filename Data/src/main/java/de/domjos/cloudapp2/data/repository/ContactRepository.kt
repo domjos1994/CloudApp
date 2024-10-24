@@ -6,6 +6,12 @@ import de.domjos.cloudapp2.data.syncer.ContactSync
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
 import de.domjos.cloudapp2.database.model.contacts.Contact
+import de.domjos.cloudapp2.rest.model.room.RoomInput
+import de.domjos.cloudapp2.rest.model.room.Type
+import de.domjos.cloudapp2.rest.model.shares.Types
+import de.domjos.cloudapp2.rest.requests.AutocompleteRequest
+import de.domjos.cloudapp2.rest.requests.RoomRequest
+import kotlinx.coroutines.flow.first
 import java.util.Date
 import java.util.LinkedList
 import java.util.UUID
@@ -15,7 +21,8 @@ interface ContactRepository {
     val contacts: List<Contact>
 
     suspend fun loadAddressBooks(hasInternet: Boolean): List<AddressBook>
-    fun loadContacts(addressBook: String = ""): List<Contact>
+    suspend fun loadContacts(addressBook: String = ""): List<Contact>
+    suspend fun getOrCreateChat(contact: Contact): String
     fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, loadingLabel: String, deleteLabel: String, insertLabel: String, importLabel: String)
     fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact)
     fun deleteContact(hasInternet: Boolean, contact: Contact)
@@ -62,8 +69,15 @@ class DefaultContactRepository @Inject constructor(
         sync.sync(updateProgress, onFinish, loadingLabel, deleteLabel, insertLabel, importLabel)
     }
 
-    override fun loadContacts(addressBook: String): List<Contact> {
+    override suspend fun loadContacts(addressBook: String): List<Contact> {
         this.addressBook = addressBook
+        val items = try {
+            val auth = this.authenticationDAO.getSelectedItem()
+            val auto = AutocompleteRequest(auth)
+            auto.getItem(Types.User, "").first()
+        } catch (_: Exception) {
+            listOf()
+        }
         this.contacts = contactDAO.getAddressBook(addressBook, authenticationDAO.getSelectedItem()!!.id)
         val phones = contactDAO.getAddressBookWithPhones(addressBook, authenticationDAO.getSelectedItem()!!.id)
         val addresses = contactDAO.getAddressBookWithAddresses(addressBook, authenticationDAO.getSelectedItem()!!.id)
@@ -90,9 +104,46 @@ class DefaultContactRepository @Inject constructor(
                     contact.emailAddresses.addAll(it.emails)
                 }
             }
+
+
+            contact.contactToChat = items.any { it == contact.familyName }
         }
 
         return this.contacts
+    }
+
+    override suspend fun getOrCreateChat(contact: Contact): String {
+        try {
+            val request = RoomRequest(this.authenticationDAO.getSelectedItem())
+            val rooms = request.getRooms().first()
+            var fRooms = rooms.filter {
+                it.type == Type.OneToOne.value &&
+                        it.name == contact.familyName
+
+            }
+            if(fRooms.isNotEmpty()) {
+                return fRooms[0].token
+            } else {
+                val roomInput = RoomInput(
+                    roomType = Types.User.value,
+                    invite = contact.familyName ?: "",
+                    roomName = contact.familyName
+                )
+                request.addRoom(roomInput)
+                fRooms = request.getRooms().first().filter {
+                    it.type == Types.toInt(Types.User) &&
+                            it.name == contact.familyName
+
+                }
+                return if(fRooms.isNotEmpty()) {
+                    fRooms[0].token
+                } else {
+                    ""
+                }
+            }
+        } catch (_: Exception) {
+            return ""
+        }
     }
 
     override fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact) {

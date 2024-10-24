@@ -522,7 +522,13 @@ class MainActivity : ComponentActivity() {
                                 breadcrumb = ""
                             }
                             composable(contactsTab.title) {
-                                ContactScreen(toAuths = toAuths, toPermissions = toPermissions, colorBackground = colorBackground, colorForeground = colorForeground)
+                                ContactScreen(
+                                    toAuths = toAuths,
+                                    toPermissions = toPermissions,
+                                    toChat = {navController.navigate("${chatsTab.id}/0/${it}")},
+                                    colorBackground = colorBackground,
+                                    colorForeground = colorForeground
+                                )
                                 title = contactsTab.title
                                 header = contactsTab.title
                                 refreshVisible = true

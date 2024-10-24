@@ -121,7 +121,8 @@ fun ContactScreen(
     colorBackground: Color,
     colorForeground: Color,
     toAuths: () -> Unit,
-    toPermissions: () -> Unit) {
+    toPermissions: () -> Unit,
+    toChat: (String) -> Unit) {
 
     val context = LocalContext.current
     val contacts by viewModel.contacts.collectAsStateWithLifecycle()
@@ -169,6 +170,11 @@ fun ContactScreen(
         },
         openEmail = {mail: String -> viewModel.openEmail(mail, context)},
         openPhone = {phone: String -> viewModel.openPhone(phone, toPermissions, context)},
+        openChat = {contact: Contact -> viewModel.openChat(contact) {token ->
+            if(token.isNotEmpty()) {
+                toChat(token)
+            }
+        }},
         hasPhone = {viewModel.hasPhoneFeature(context)}
     )
 }
@@ -195,6 +201,7 @@ fun ContactScreen(
     onDelete: (Contact) -> Unit,
     openEmail: (String) -> Unit,
     openPhone: (String) -> Unit,
+    openChat: (Contact) -> Unit,
     hasPhone: () -> Boolean) {
 
     var showDialog by remember { mutableStateOf(false) }
@@ -264,7 +271,7 @@ fun ContactScreen(
                         onSwipeToStart = ActionItem(
                             name = stringResource(R.string.sys_list_delete),
                             icon = Icons.Default.Delete,
-                            action = { item ->
+                            action = { item:ListItem<Long> ->
                                 val c = contacts.find { it.id == item.id }
                                 if(c != null) {
                                     contact = c
@@ -277,9 +284,24 @@ fun ContactScreen(
                         ),
                         actions = listOf(
                             ActionItem(
+                                name = stringResource(R.string.chats),
+                                painter = painterResource(R.drawable.baseline_chat_24),
+                                action = {item:ListItem<Long> ->
+                                    val c = contacts.find { it.id == item.id }
+                                    if(c != null) {
+                                        openChat(c)
+                                    }
+                                    false
+                                },
+                                visible = {item ->
+                                    val c = contacts.find { it.id == item.id }
+                                    c?.contactToChat ?: false
+                                }
+                            ),
+                            ActionItem(
                                 name = stringResource(R.string.contact_open_phone),
                                 painter  = painterResource(R.drawable.baseline_phone_24),
-                                action = {item ->
+                                action = {item:ListItem<Long> ->
                                     try {
                                         val c = contacts.find { it.id == item.id }
                                         if(c != null) {
@@ -820,7 +842,7 @@ fun BottomSheet(
     val iconColor = OutlinedTextFieldDefaults.colors().focusedTextColor
     val backColor = BottomSheetDefaults.ContainerColor
     val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    val dt = sdf.format(contact.birthDay!!)
+    val dt = sdf.format(contact.birthDay ?: Date())
 
     ModalBottomSheet(onDismissRequest = { setShowBottomSheet(false) }) {
         Row(
@@ -1648,6 +1670,7 @@ fun ContactScreenPreview() {
             onDelete = {},
             openEmail = {},
             openPhone = {},
+            openChat = {},
             hasPhone = {true}
         )
     }
