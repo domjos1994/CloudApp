@@ -65,6 +65,7 @@ import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
+import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.appbasics.helper.Separator
@@ -172,7 +173,7 @@ fun NotesScreen(
                 height = Dimension.fillToConstraints
                 width = Dimension.fillToConstraints
             }) {
-            if(hasAuths) {
+            if(hasAuths && items.isNotEmpty()) {
                 val painter = painterResource(R.drawable.ic_eye)
                 ComposeList(
                     onReload = {onReload()},
@@ -235,8 +236,10 @@ fun NotesScreen(
                         )
                     )
                 )
-            } else {
+            } else if(!hasAuths) {
                 NoAuthenticationItem(colorForeground, colorBackground, toAuths)
+            } else {
+                NoEntryItem(colorForeground, colorBackground)
             }
         }
         if(isConnected) {
