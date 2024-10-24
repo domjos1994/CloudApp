@@ -4,6 +4,7 @@ package de.domjos.cloudapp2.features.data.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -33,6 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
@@ -42,6 +44,8 @@ import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -82,7 +86,6 @@ import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ConfirmationDialog
-import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.FabItem
 import de.domjos.cloudapp2.appbasics.custom.LoadingItem
 import de.domjos.cloudapp2.appbasics.custom.MultiFloatingActionButton
@@ -292,7 +295,7 @@ fun getFileName(uri: Uri, context: Context): String? {
         result = uri.path
         val cut = result!!.lastIndexOf('/')
         if (cut != -1) {
-            result = result.substring(cut + 1)
+            result = result!!.substring(cut + 1)
         }
     }
     return result
@@ -601,7 +604,7 @@ fun ShareDialog(
     onDelete: (Int) -> Unit) {
 
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    var shareType by remember { mutableIntStateOf(share?.share_type ?: 0) }
+    var shareType by remember { mutableStateOf(TextFieldValue(if(share != null) Types.fromInt(share.share_type).name else "")) }
     var shareName by remember { mutableStateOf(TextFieldValue(share?.share_with ?: "")) }
     var isShareNameValid by remember { mutableStateOf(share?.share_with?.isNotEmpty() ?: false) }
     var permission by remember { mutableStateOf(intToPermissions(share?.permissions ?: 1)) }
@@ -612,7 +615,7 @@ fun ShareDialog(
     var isNoteValid by remember { mutableStateOf(false) }
     val isUpdate by remember { mutableStateOf((share?.id ?: 0L) != 0L) }
     var isExpireDateValid by remember { mutableStateOf(true) }
-    val shareTypes = Types.entries.map { it.name }
+    var showDropDown by remember { mutableStateOf(false) }
     val permissions = Permissions.entries.map { it.name }
 
     Dialog(
@@ -626,31 +629,42 @@ fun ShareDialog(
                 if(!isUpdate) {
                     Row(
                         Modifier
-                            .padding(1.dp)
-                            .height(50.dp)
+                            .padding(5.dp)
+                            .fillMaxWidth()
                     ) {
-                        DropDown(
-                            items = shareTypes,
-                            initial = Types.fromInt(shareType).name,
-                            label = stringResource(R.string.data_shared_type),
-                            onSelected = {
-                                shareType = Types.toInt(Types.fromString(it))
-                                isShareNameValid = if(shareType==3) true else shareName.text.isNotEmpty()
-                            })
+                        OutlinedTextField(
+                            value = shareType,
+                            onValueChange = {shareType = it},
+                            label = {Text(stringResource(R.string.data_shared_type))},
+                            trailingIcon = {
+                                IconButton({showDropDown=!showDropDown}) {
+                                    Icon(Icons.Default.ArrowDropDown, stringResource(R.string.data_shared_type))
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        DropdownMenu(showDropDown, {showDropDown = false}) {
+                            Types.entries.forEach { entry ->
+                                DropdownMenuItem({Text(entry.name)}, onClick =  {
+                                    shareType = TextFieldValue(entry.name)
+                                    showDropDown = false
+                                })
+                            }
+                        }
                     }
                     Row(
                         Modifier
                             .padding(5.dp)
-                            .height(60.dp)) {
+                            .fillMaxWidth()) {
                         AutocompleteTextField(
                             value = shareName,
                             onValueChange = {
                                 shareName = it
-                                isShareNameValid = Validator.check(shareType==3, 1, 255, it.text)
+                                isShareNameValid = Validator.check(shareType.text==Types.fromInt(3).name, 1, 255, it.text)
                             },
                             label = {Text(stringResource(R.string.data_shared_name))},
                             onAutoCompleteChange = {
-                                onAutoComplete(it.text, Types.fromInt(shareType))
+                                onAutoComplete(it.text, Types.fromString(shareType.text))
                             },
                             multi = true,
                             isError = !isShareNameValid
@@ -659,8 +673,8 @@ fun ShareDialog(
                 }
                 Row(
                     Modifier
-                        .padding(1.dp)
-                        .height(60.dp)) {
+                        .padding(5.dp)
+                        .fillMaxWidth()) {
                     AutocompleteTextField(
                         value = TextFieldValue(permission),
                         onValueChange = {
@@ -677,28 +691,32 @@ fun ShareDialog(
                 Row(
                     Modifier
                         .padding(5.dp)
-                        .height(50.dp)) {
+                        .fillMaxWidth()) {
                     Column(
                         Modifier
                             .weight(1f)
-                            .height(40.dp),
+                            .height(20.dp),
                         verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.End) {
-                        Text(stringResource(id = R.string.data_shared_public))
+                        horizontalAlignment = Alignment.Start) {
+                        Checkbox(
+                            checked = publicUpload == "true",
+                            onCheckedChange = {publicUpload = (if(it) "true" else "false")}
+                        )
                     }
                     Column(
                         Modifier
-                            .weight(1f)
-                            .height(40.dp),
+                            .weight(9f)
+                            .height(20.dp),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.Start) {
-                        Checkbox(checked = publicUpload == "true", onCheckedChange = {publicUpload = (if(it) "true" else "false")})
+                        Text(stringResource(id = R.string.data_shared_public))
                     }
                 }
                 Row(
                     Modifier
                         .padding(5.dp)
-                        .wrapContentHeight()) {
+                        .wrapContentHeight()
+                        .fillMaxWidth()) {
                     OutlinedPasswordField(
                         value = password,
                         onValueChange = {
@@ -710,13 +728,15 @@ fun ShareDialog(
                 Row(
                     Modifier
                         .padding(5.dp)
-                        .wrapContentHeight()) {
+                        .wrapContentHeight()
+                        .fillMaxWidth()) {
                     OutlinedTextField(
                         value = expireDate,
                         onValueChange = {
                             expireDate=it
                             isExpireDateValid = Validator.checkDate(it.text, "yyyy-MM-dd")
                         },
+                        modifier = Modifier.fillMaxWidth(),
                         label = {Text(stringResource(id = R.string.data_shared_expiredDate))},
                         isError = !isExpireDateValid
                     )
@@ -724,13 +744,15 @@ fun ShareDialog(
                 Row(
                     Modifier
                         .padding(5.dp)
-                        .wrapContentHeight()) {
+                        .wrapContentHeight()
+                        .fillMaxWidth()) {
                     OutlinedTextField(
                         value = note,
                         onValueChange = {
                             note = it
                             isNoteValid = Validator.check(false, 2, 500, it.text)
                         },
+                        modifier = Modifier.fillMaxWidth(),
                         label = {Text(stringResource(R.string.data_shared_note))},
                         isError = !isNoteValid
                     )
@@ -767,7 +789,7 @@ fun ShareDialog(
                             } else {
                                 val path = item.path
                                 val insertShare = InsertShare(
-                                    path, shareType, shareName.text, publicUpload, password.text,
+                                    path, Types.toInt(Types.fromString(shareType.text)), shareName.text, publicUpload, password.text,
                                     permVal, expireDate.text, note.text
                                 )
                                 onInsert(insertShare)
@@ -1098,29 +1120,6 @@ fun DataScreenPreview() {
     }
 }*/
 
-@Preview(showBackground = true)
-@Composable
-fun DataItemPreview() {
-    CloudAppTheme {
-        DataItem(
-            item = fake(0L),
-            parentItem = fake(0L),
-            colorBackground = Color.Red,
-            colorForeground = Color.Blue,
-            onAutoComplete = {_,_-> listOf() },
-            onClick = {_,_ ->},
-            onExists = {_->true},
-            onDelete = {},
-            onSetCutElement = {},
-            onMoveFolder = {},
-            hasCutElement = true,
-            cutPath = "",
-            onInsertShare = {_,_->},
-            onDeleteShare = {_->}
-        ) {_,_,_-> }
-    }
-}
-
 //@Preview(showBackground = true)
 //@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 //@Composable
@@ -1130,21 +1129,30 @@ fun DataItemPreview() {
     }
 }*/
 
-/*@Preview(showBackground = true)
+@Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-fun ShareDialogPreview() {
+fun ShareDialogUpdatePreview() {
     CloudAppTheme {
         ShareDialog(showDialog = {}, share = fakeShare(1), item = fake(1), onAutoComplete = {_,_-> listOf() }, onUpdate = { _, _ ->}, onInsert = {}) {}
     }
-}*/
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun ShareDialogInsertPreview() {
+    CloudAppTheme {
+        ShareDialog(showDialog = {}, share = fakeShare(0L), item = fake(1), onAutoComplete = {_,_-> listOf() }, onUpdate = { _, _ ->}, onInsert = {}) {}
+    }
+}
 
 
 fun fake(id: Long): Item {
     return Item("Test $id", true, "Test", "")
 }
 
-/*fun fakeShare(id: Long): Share {
+fun fakeShare(id: Long): Share {
     return Share(id, id.toInt(), "$id", "$id", id.toInt(),
         can_edit = false,
         can_delete = false,
@@ -1153,4 +1161,4 @@ fun fake(id: Long): Item {
         file_target = "",
         note = ""
     )
-}*/
+}

@@ -63,10 +63,22 @@ enum class Types(val value: Int) {
     Talk(10);
 
     companion object {
-        fun fromInt(value: Int) = entries.first { it.value == value }
-        fun toInt(value: Types) = entries.first { it == value }.value
+        fun fromInt(value: Int): Types = try {
+            entries.first { it.value == value }
+        } catch (_: Exception) {
+            User
+        }
+        fun toInt(value: Types): Int = try {
+            entries.first { it == value }.value
+        } catch (_: Exception) {
+            0
+        }
 
-        fun fromString(value: String) = entries.first { it.name == value }
+        fun fromString(value: String): Types = try {
+            entries.first { it.name == value }
+        } catch (_: Exception) {
+            User
+        }
     }
 }
 
@@ -77,11 +89,4 @@ enum class Permissions(val value: Int) {
     Delete(8),
     Share(16),
     All(31);
-
-    companion object {
-        fun fromInt(value: Int) = Permissions.entries.first { it.value == value }
-        fun toInt(value: Permissions) = Permissions.entries.first { it == value }.value
-
-        fun fromString(value: String) = Permissions.entries.first { it.name == value }
-    }
 }
