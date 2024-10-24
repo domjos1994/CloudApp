@@ -12,4 +12,7 @@
     <string name="share_data_upload">Hochladen</string>
     <string name="share_save">Speichern</string>
     <string name="share_save_success">Daten erfolgreich gespeichert!</string>
+
+    <string name="log">Sync-Log</string>
+    <string name="donate">Spenden</string>
 </resources>

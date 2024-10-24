@@ -2,6 +2,7 @@ package de.domjos.cloudapp2.activities
 
 import android.annotation.SuppressLint
 import android.content.ContentResolver
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
@@ -20,15 +21,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.automirrored.outlined.Help
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.outlined.Message
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.ImportExport
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.PermDeviceInformation
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.DateRange
@@ -525,7 +532,7 @@ class MainActivity : ComponentActivity() {
                                 ContactScreen(
                                     toAuths = toAuths,
                                     toPermissions = toPermissions,
-                                    toChat = {navController.navigate("${chatsTab.id}/0/${it}")},
+                                    toChat = {m -> navController.navigate("${chatsTab.id}/0/${m}")},
                                     colorBackground = colorBackground,
                                     colorForeground = colorForeground
                                 )
@@ -612,38 +619,106 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, updateNavBar: () -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit, onExport: () -> Unit, onLog: () -> Unit) {
+    val context = LocalContext.current
     DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
-        DropdownMenuItem(text = { Text(stringResource(R.string.settings)) }, onClick = {
-            updateTheme(null)
-            updateNavBar()
-            onSettings()
-            onExpanded(false)
-        })
-        DropdownMenuItem(text = { Text(stringResource(R.string.permissions)) }, onClick = {
-            updateTheme(null)
-            updateNavBar()
-            onPermissions()
-            onExpanded(false)
-        })
-        DropdownMenuItem(text = { Text(stringResource(R.string.export)) }, onClick = {
+        DropdownMenuItem(text = {
+            Row {
+                Column(Modifier.weight(1f)) {
+                    Icon(Icons.Default.ImportExport, stringResource(R.string.export))
+                }
+                Column(Modifier.weight(9f)) {
+                    Text(stringResource(R.string.export))
+                }
+            }
+        }, onClick = {
             updateTheme(null)
             updateNavBar()
             onExport()
             onExpanded(false)
         })
-        DropdownMenuItem(text = {Text("Log")}, onClick = {onLog()})
-        val context = LocalContext.current
-        DropdownMenuItem(text = { Text(stringResource(R.string.documentations)) }, onClick = {
+        DropdownMenuItem(text = {
+            Row {
+                Column(Modifier.weight(1f)) {
+                    Icon(Icons.Default.Settings, stringResource(R.string.settings))
+                }
+                Column(Modifier.weight(9f)) {
+                    Text(stringResource(R.string.settings))
+                }
+            }
+        }, onClick = {
+            updateTheme(null)
+            updateNavBar()
+            onSettings()
+            onExpanded(false)
+        })
+        HorizontalDivider()
+        DropdownMenuItem(text = {
+            Row {
+                Column(Modifier.weight(1f)) {
+                    Icon(Icons.Default.PermDeviceInformation, stringResource(R.string.permissions))
+                }
+                Column(Modifier.weight(9f)) {
+                    Text(stringResource(R.string.permissions))
+                }
+            }
+        }, onClick = {
+            updateTheme(null)
+            updateNavBar()
+            onPermissions()
+            onExpanded(false)
+        })
+        DropdownMenuItem(text = {
+            Row {
+                Column(Modifier.weight(1f)) {
+                    Icon(Icons.Default.Sync, stringResource(de.domjos.cloudapp2.R.string.log))
+                }
+                Column(Modifier.weight(9f)) {
+                    Text(stringResource(de.domjos.cloudapp2.R.string.log))
+                }
+            }
+        }, onClick = {
+            onLog()
+        })
+        HorizontalDivider()
+        DropdownMenuItem(text = {
+            Row {
+                Column(Modifier.weight(1f)) {
+                    Icon(Icons.Default.Star, stringResource(de.domjos.cloudapp2.R.string.donate))
+                }
+                Column(Modifier.weight(9f)) {
+                    Text(stringResource(de.domjos.cloudapp2.R.string.donate))
+                }
+            }
+        }, onClick = {
             try {
-                val uri = "https://domjos.de/cloudapp/Introduction.html"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-                onExpanded(false)
+                openUrl("https://github.com/sponsors/domjos1994", context)
                 updateNavBar()
+                onExpanded(false)
+            } catch (_: Exception) {}
+        })
+        DropdownMenuItem(text = {
+            Row {
+                Column(Modifier.weight(1f)) {
+                    Icon(Icons.AutoMirrored.Outlined.Help, stringResource(R.string.documentations))
+                }
+                Column(Modifier.weight(9f)) {
+                    Text(stringResource(R.string.documentations))
+                }
+            }
+        }, onClick = {
+            try {
+                openUrl("https://domjos.de/cloudapp/Introduction.html", context)
+                updateNavBar()
+                onExpanded(false)
             } catch (_: Exception) {}
         })
     }
+}
+
+private fun openUrl(url: String, context: Context) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(intent)
 }
 
 @Composable

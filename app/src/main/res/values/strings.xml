@@ -13,4 +13,7 @@
     <string name="share_data_upload">Upload</string>
     <string name="share_save">Save</string>
     <string name="share_save_success">Data saved successfully!</string>
+
+    <string name="log">Sync-Log</string>
+    <string name="donate">Donate</string>
 </resources>
