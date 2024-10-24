@@ -26,6 +26,7 @@ import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.ByteArrayInputStream
 import java.io.StringWriter
 import java.time.Duration
 import java.util.UUID
@@ -199,6 +200,19 @@ class CalendarCalDav(private val authentication: Authentication?) {
         if(this.sardine != null) {
             this.sardine?.delete("${authentication?.url}/${calendarEvent.path}")
         }
+    }
+
+    fun fileToModels(data: ByteArray, cm: CalendarModel): List<CalendarEvent> {
+        val baStream = ByteArrayInputStream(data)
+        var calendar: Calendar?
+        baStream.use { stream ->
+            val builder = CalendarBuilder()
+            calendar = builder.build(stream)
+        }
+        if(calendar != null) {
+            return iCalToModel(calendar!!, cm.name, "")
+        }
+        return listOf()
     }
 
     private fun iCalToModel(calendar: Calendar, name: String, path: String) : List<CalendarEvent> {

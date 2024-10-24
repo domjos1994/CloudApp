@@ -27,6 +27,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.xml.sax.InputSource
+import java.io.ByteArrayInputStream
 import java.io.StringReader
 import java.io.StringWriter
 import java.time.Duration
@@ -77,7 +78,7 @@ class CarDav(private val authentication: Authentication?) {
         return addressBooks
     }
 
-    fun getLabels(path: String, lst: MutableList<AddressBook>): MutableList<AddressBook> {
+    private fun getLabels(path: String, lst: MutableList<AddressBook>): MutableList<AddressBook> {
         try {
             val factory = DocumentBuilderFactory.newInstance()
             val builder = factory.newDocumentBuilder()
@@ -187,6 +188,19 @@ class CarDav(private val authentication: Authentication?) {
         if(this.sardine != null) {
             this.sardine?.delete(contact.path)
         }
+    }
+
+    fun fileToModels(data: ByteArray, cm: AddressBook): List<Contact> {
+        val contacts = mutableListOf<Contact>()
+        val baStream = ByteArrayInputStream(data)
+        var vCards: List<VCard>
+        baStream.use { stream ->
+            vCards = Ezvcard.parse(stream).all()
+        }
+        vCards.forEach { vCard ->
+            contacts.add(vcardToContact(vCard, "", cm))
+        }
+        return contacts
     }
 
     @Throws(Exception::class)

@@ -5,4 +5,12 @@
     <string name="widget_contacts">Contacts</string>
     <string name="widget_calendar">Events in next 2 Weeks</string>
     <string name="files">Files</string>
+
+    <string name="share_activity">Share File</string>
+    <string name="share_calendars">Calendars</string>
+    <string name="share_contact_list">Contact-Lists</string>
+    <string name="share_data_items">Folders</string>
+    <string name="share_data_upload">Upload</string>
+    <string name="share_save">Save</string>
+    <string name="share_save_success">Data saved successfully!</string>
 </resources>
