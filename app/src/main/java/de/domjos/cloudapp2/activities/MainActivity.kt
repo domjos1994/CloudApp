@@ -128,6 +128,7 @@ import de.domjos.cloudapp2.widgets.ContactsWidget
 import de.domjos.cloudapp2.widgets.NewsWidget
 import de.domjos.cloudapp2.worker.CalendarWorker
 import de.domjos.cloudapp2.worker.ContactWorker
+import java.util.Locale
 
 
 data class TabBarItem(
@@ -707,7 +708,11 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
             }
         }, onClick = {
             try {
-                openUrl("https://domjos.de/cloudapp/Introduction.html", context)
+                if(Locale.getDefault() == Locale.GERMANY) {
+                    openUrl("https://dojodev.de/de/apps/cloudapp/dokumentation", context)
+                } else run {
+                    openUrl("https://dojodev.de/apps/cloudapp/documentation", context)
+                }
                 updateNavBar()
                 onExpanded(false)
             } catch (_: Exception) {}
