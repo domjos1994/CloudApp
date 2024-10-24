@@ -68,7 +68,7 @@ fun ProgressDialog(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
-                    Text(currentText, fontWeight = FontWeight.Bold)
+                    Text(currentText, fontWeight = FontWeight.Bold, color = foregroundColor)
                 }
                 Row(
                     Modifier
