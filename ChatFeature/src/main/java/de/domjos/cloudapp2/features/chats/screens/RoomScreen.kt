@@ -156,7 +156,8 @@ fun RoomScreen(
                         colorBackground = colorBackground,
                         colorForeground = colorForeground,
                         modifier = Modifier
-                            .fillMaxSize(),
+                            .fillMaxSize()
+                            .padding(5.dp),
                         needsInternet = true,
                         onSwipeToStart = ActionItem(
                             name = stringResource(R.string.sys_list_delete),
