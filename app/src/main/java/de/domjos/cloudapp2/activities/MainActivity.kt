@@ -91,6 +91,7 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.appbasics.R
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import coil.compose.AsyncImage
 import coil.decode.SvgDecoder
@@ -247,6 +248,9 @@ class MainActivity : ComponentActivity() {
                     var contactFlexPeriod = 0.0F
                     var calendarPeriod = 0.0F
                     var calendarFlexPeriod = 0.0F
+//                    var chatPeriod = 0.0F
+//                    var chatFlexPeriod = 0.0F
+
 
                     viewModel.getContactWorkerPeriod {
                         contactPeriod = it * 60F * 1000F
@@ -256,17 +260,30 @@ class MainActivity : ComponentActivity() {
                         calendarPeriod = it * 60F * 1000F
                         calendarFlexPeriod = it * 120F * 1000F
                     }
+                    /*viewModel.getChatWorkerPeriod {
+                        chatPeriod = it * 60F * 1000F
+                        chatFlexPeriod = it * 120F * 1000F
+                    }*/
 
                     val manager = WorkManager.getInstance(context)
                     val conWorker = viewModel.createWorkRequest(contactPeriod, contactFlexPeriod, ContactWorker::class.java)
+                    val fConWorker = OneTimeWorkRequestBuilder<ContactWorker>().build()
                     if(conWorker != null) {
                         manager.enqueue(conWorker)
                     }
 
                     val calWorker = viewModel.createWorkRequest(calendarPeriod, calendarFlexPeriod, CalendarWorker::class.java)
+                    val fCalWorker = OneTimeWorkRequestBuilder<CalendarWorker>().build()
                     if(calWorker != null) {
                         manager.enqueue(calWorker)
                     }
+
+//                    val chatWorker = viewModel.createWorkRequest(chatPeriod, chatFlexPeriod, ChatWorker::class.java)
+//                    val fChatWorker = OneTimeWorkRequestBuilder<ChatWorker>().build()
+//                    if(chatWorker != null) {
+//                        manager.enqueue(chatWorker)
+//                    }
+                    manager.beginWith(fCalWorker).then(fConWorker).enqueue()
                 } catch (ex: Exception) {
                     viewModel.message.postValue(ex.message)
                 }

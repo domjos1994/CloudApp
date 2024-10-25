@@ -4,11 +4,13 @@ import com.thegrizzlylabs.sardineandroid.DavResource
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.webdav.model.Item
+import okhttp3.Headers
 import okhttp3.OkHttpClient
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
 import java.time.Duration
+import java.util.Base64
 import java.util.LinkedList
 import java.util.Stack
 
@@ -86,7 +88,7 @@ class WebDav(private val authentication: Authentication) {
 
     fun openResource(item: Item, path: String) {
         if(!item.directory) {
-            this.sardine.get(item.path).use { input ->
+            this.sardine.get(item.path, getHeader()).use { input ->
                 val file = File("$path/${item.name.replace(" ", "_")}")
                 file.outputStream().use { output ->
                     input.copyTo(output)
@@ -97,7 +99,7 @@ class WebDav(private val authentication: Authentication) {
 
     fun openResource(item: Item): ByteArray {
         if(!item.directory) {
-            val stream = this.sardine.get(item.path)
+            val stream = this.sardine.get(item.path, getHeader())
             val baos = ByteArrayOutputStream()
             baos.use { output ->
                 stream.copyTo(output)
@@ -141,5 +143,15 @@ class WebDav(private val authentication: Authentication) {
             this.currentUrl = "${authentication.url}$basePath/"
         }
         this.list = this.sardine.list(currentUrl)
+    }
+
+    private fun getHeader(): Headers {
+        val builder = Headers.Builder()
+        builder.add("Authorization",
+            "Basic " + Base64.getEncoder().encodeToString(
+                "${authentication.userName}:${authentication.password}".toByteArray()
+            )
+        )
+        return builder.build()
     }
 }

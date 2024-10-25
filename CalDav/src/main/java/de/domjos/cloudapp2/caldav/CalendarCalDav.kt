@@ -292,10 +292,11 @@ class CalendarCalDav(private val authentication: Authentication?) {
         try {
             val vEvent =
                 VEvent(
-                    net.fortuna.ical4j.model.DateTime(event.string_from),
-                    net.fortuna.ical4j.model.DateTime(event.string_to),
+                    dt(event.string_from),
+                    dt(event.string_to),
                     event.title
                 )
+
 
             vEvent.properties.add(Description(event.description))
             vEvent.properties.add(Location(event.location))
@@ -308,6 +309,14 @@ class CalendarCalDav(private val authentication: Authentication?) {
             Log.e("Error", ex.message, ex)
         }
         return null
+    }
+
+    private fun dt(str: String): net.fortuna.ical4j.model.Date {
+        try {
+            return net.fortuna.ical4j.model.DateTime(str)
+        } catch (_: Exception) {
+            return net.fortuna.ical4j.model.Date(str)
+        }
     }
 }
 

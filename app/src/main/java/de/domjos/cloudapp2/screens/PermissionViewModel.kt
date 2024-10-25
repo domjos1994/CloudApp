@@ -1,11 +1,8 @@
 package de.domjos.cloudapp2.screens
 
 import android.accounts.Account
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.ContentResolver
-import android.content.Context
-import android.content.Context.NOTIFICATION_SERVICE
+
 import android.os.Bundle
 import android.provider.CalendarContract
 import android.provider.ContactsContract
@@ -63,18 +60,6 @@ class PermissionViewModel @Inject constructor(
             ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
             ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY, (calendarRegularity * 60 * 1000).toLong())
             ContentResolver.requestSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
-        } catch (ex: Exception) {
-            this.message.postValue(ex.message)
-            Log.e(this.javaClass.name, ex.message, ex)
-        }
-    }
-
-    fun createNotificationChannel(context: Context) {
-        try {
-            val channel = NotificationChannel("cloud_app_notifications", "CloudApp", NotificationManager.IMPORTANCE_NONE)
-            channel.setSound(null, null)
-            val manager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(channel)
         } catch (ex: Exception) {
             this.message.postValue(ex.message)
             Log.e(this.javaClass.name, ex.message, ex)

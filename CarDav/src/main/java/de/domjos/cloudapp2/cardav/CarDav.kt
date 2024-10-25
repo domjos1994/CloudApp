@@ -23,6 +23,7 @@ import ezvcard.property.StructuredName
 import ezvcard.property.Telephone
 import ezvcard.property.Uid
 import okhttp3.Credentials
+import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -33,6 +34,7 @@ import java.io.StringWriter
 import java.time.Duration
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.Base64
 import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
@@ -154,9 +156,8 @@ class CarDav(private val authentication: Authentication?) {
                 this.sardine?.list(addressBook.path)?.drop(1)?.forEach {  davResource ->
                     try {
                         val cardPath = "${authentication?.url}${davResource.path}"
-                        val headers = this.buildHeaders()
 
-                        val inputStream = this.sardine?.get(cardPath, headers)
+                        val inputStream = this.sardine?.get(cardPath, getHeader())
                         val tmp = Ezvcard.parse(inputStream).all()
                         tmp.forEach { vCard ->
                             lst.add(this.vcardToContact(vCard, cardPath, addressBook))
@@ -209,13 +210,6 @@ class CarDav(private val authentication: Authentication?) {
             val data = Ezvcard.write(this.contactToVCard(contact)).go().toByteArray()
             this.sardine?.put(path, data)
         }
-    }
-
-    private fun buildHeaders(): Map<String, String> {
-        val headers = LinkedHashMap<String, String>()
-        val auth = Credentials.basic(this.authentication?.userName!!, this.authentication.password)
-        headers["Authorization"] = auth
-        return headers
     }
 
     private fun vcardToContact(vCard: VCard, path: String, addressBook: AddressBook): Contact {
@@ -455,5 +449,15 @@ class CarDav(private val authentication: Authentication?) {
         }
 
         return Telephone(phone.value)
+    }
+
+    private fun getHeader(): Headers {
+        val builder = Headers.Builder()
+        builder.add("Authorization",
+            "Basic " + Base64.getEncoder().encodeToString(
+                "${authentication?.userName}:${authentication?.password}".toByteArray()
+            )
+        )
+        return builder.build()
     }
 }

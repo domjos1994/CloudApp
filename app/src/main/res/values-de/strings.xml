@@ -15,4 +15,7 @@
 
     <string name="log">Sync-Log</string>
     <string name="donate">Spenden</string>
+
+    <string name="channel_general">Generell</string>
+    <string name="channel_chat">Chat</string>
 </resources>

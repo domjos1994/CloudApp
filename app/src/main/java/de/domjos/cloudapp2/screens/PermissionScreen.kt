@@ -40,6 +40,7 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
+import de.domjos.cloudapp2.appbasics.helper.Notifications
 import de.domjos.cloudapp2.appbasics.helper.hasPermission
 import de.domjos.cloudapp2.services.AuthenticatorService
 
@@ -94,14 +95,15 @@ fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: (
                 stringResource(R.string.permissions_internet_summary),
                 arrayOf(android.Manifest.permission.INTERNET)
             )
+            val name = stringResource(de.domjos.cloudapp2.R.string.channel_general)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 PermissionItem(
                     stringResource(R.string.permissions_notifications_title),
                     stringResource(R.string.permissions_notifications_summary),
                     arrayOf(android.Manifest.permission.POST_NOTIFICATIONS)
-                ) { viewModel.createNotificationChannel(context) }
+                ) { Notifications.createIfNotExists(context, Notifications.channel_id, name) }
             } else {
-                viewModel.createNotificationChannel(context)
+                Notifications.createIfNotExists(context, Notifications.channel_id, name)
             }
             PermissionItem(
                 stringResource(R.string.permissions_contacts_title),

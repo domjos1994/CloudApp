@@ -6,9 +6,10 @@ import net.fortuna.ical4j.data.CalendarOutputter
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
-import okhttp3.Credentials
+import okhttp3.Headers
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
+import java.util.Base64
 import java.util.Date
 import java.util.Locale
 
@@ -65,11 +66,14 @@ class Helper {
             return ""
         }
 
-        fun buildHeaders(authentication: Authentication): Map<String, String> {
-            val headers = LinkedHashMap<String, String>()
-            val auth = Credentials.basic(authentication.userName, authentication.password)
-            headers["Authorization"] = auth
-            return headers
+        fun buildHeaders(authentication: Authentication): Headers {
+            val builder = Headers.Builder()
+            builder.add("Authorization",
+                "Basic " + Base64.getEncoder().encodeToString(
+                    "${authentication.userName}:${authentication.password}".toByteArray()
+                )
+            )
+            return builder.build()
         }
 
         fun getData(calendar: Calendar): ByteArray {

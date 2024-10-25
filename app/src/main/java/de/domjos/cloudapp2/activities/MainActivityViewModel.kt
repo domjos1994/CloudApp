@@ -35,14 +35,14 @@ class MainActivityViewModel @Inject constructor(
                 val hasNotes = tmp?.notes.equals("true") || tmp?.notes.equals("1")
                 onFinish(items.map { item ->
                     when(item.id) {
-                        "notifications" -> item.visible = settings.getSetting<Boolean>(Settings.featureNotifications, true)
-                        "data" -> item.visible = settings.getSetting<Boolean>(Settings.featureData, true)
-                        "notes" -> item.visible = hasNotes && settings.getSetting<Boolean>(Settings.featureNotes, true)
-                        "calendars" -> item.visible = settings.getSetting<Boolean>(Settings.featureCalendars, true)
-                        "contacts" -> item.visible = settings.getSetting<Boolean>(Settings.featureContacts, true)
-                        "todos" -> item.visible = settings.getSetting<Boolean>(Settings.featureToDos, true)
-                        "rooms" -> item.visible = hasSpreed && settings.getSetting<Boolean>(Settings.featureChats, true)
-                        "chats" -> item.visible = hasSpreed && settings.getSetting<Boolean>(Settings.featureChats, true)
+                        "notifications" -> item.visible = settings.getSetting(Settings.featureNotifications, true)
+                        "data" -> item.visible = settings.getSetting(Settings.featureData, true)
+                        "notes" -> item.visible = hasNotes && settings.getSetting(Settings.featureNotes, true)
+                        "calendars" -> item.visible = settings.getSetting(Settings.featureCalendars, true)
+                        "contacts" -> item.visible = settings.getSetting(Settings.featureContacts, true)
+                        "todos" -> item.visible = settings.getSetting(Settings.featureToDos, true)
+                        "rooms" -> item.visible = hasSpreed && settings.getSetting(Settings.featureChats, true)
+                        "chats" -> item.visible = hasSpreed && settings.getSetting(Settings.featureChats, true)
                     }
                     item
                 } as MutableList)
@@ -108,9 +108,9 @@ class MainActivityViewModel @Inject constructor(
                     period.toLong(), TimeUnit.MILLISECONDS,
                     flexPeriod.toLong(), TimeUnit.MILLISECONDS
                 )
-                workerBuilder.build()
+                return workerBuilder.build()
             }
-            null
+            return null
         } catch (ex: Exception) {
             message.postValue(ex.message)
             Log.e(this.javaClass.name, ex.message, ex)
@@ -124,6 +124,13 @@ class MainActivityViewModel @Inject constructor(
             state.value = settings.getSetting(Settings.firstStartKey, true)
         }
         return state.value
+    }
+
+    @Suppress("unused")
+    fun getChatWorkerPeriod(onGet: (Float) -> Unit) {
+        viewModelScope.launch {
+            onGet(settings.getSetting(Settings.timeSpanKey, 0.0f))
+        }
     }
 
     fun getContactWorkerPeriod(onGet: (Float) -> Unit) {
