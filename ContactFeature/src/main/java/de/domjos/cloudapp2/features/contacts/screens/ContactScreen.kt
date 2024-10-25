@@ -44,6 +44,7 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -246,9 +247,16 @@ fun ContactScreen(
             width = Dimension.fillToConstraints
         }) {
             Column {
-                Row(Modifier.padding(5.dp)) {
-                    DropDown(addressBooks.values.toList(), all, onSelectedAddressBook, stringResource(R.string.contacts_book))
+                Row(Modifier.background(colorBackground).padding(5.dp)) {
+                    DropDown(
+                        addressBooks.values.toList(),
+                        all,
+                        onSelectedAddressBook,
+                        stringResource(R.string.contacts_book),
+                        colorBackground, colorForeground
+                        )
                 }
+                HorizontalDivider(color = colorForeground)
 
                 if(showDialog) {
                     EditDialog(contact = contact, setShowDialog = {
