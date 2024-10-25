@@ -27,6 +27,11 @@ class LogViewModel @Inject constructor(
 
     fun loadLogs(itemType: String = "", msgType: String = "") {
         viewModelScope.launch(Dispatchers.IO) {
+            logDAO.getReallyAll().first()
+                .filter { a ->
+                    !logDAO.getAll().first().any { m -> m.id == a.id}
+                }.forEach { logDAO.delete(it) }
+
             if(itemType.isEmpty() && msgType.isEmpty()) {
                 _logs.value = logDAO.getAll().first()
             } else if(itemType.isNotEmpty()) {

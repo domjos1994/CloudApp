@@ -7,6 +7,7 @@
 package de.domjos.cloudapp2.database.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import de.domjos.cloudapp2.database.model.Log
@@ -15,8 +16,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface LogDAO {
 
-    @Query("SELECT * FROM logItems")
+    @Query("SELECT * FROM logItems LIMIT 100")
     fun getAll(): Flow<List<Log>>
+
+    @Query("SELECT * FROM logItems")
+    fun getReallyAll(): Flow<List<Log>>
 
     @Query("SELECT * FROM logItems WHERE itemType=:type")
     fun getItemsByItemType(type: String): Flow<List<Log>>
@@ -32,4 +36,7 @@ interface LogDAO {
 
     @Query("DELETE FROM logItems WHERE itemType=:type")
     fun deleteItemsByItemType(type: String)
+
+    @Delete
+    fun delete(log: Log)
 }
