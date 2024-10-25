@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -180,7 +181,8 @@ fun NotesScreen(
                     colorBackground = colorBackground,
                     colorForeground = colorForeground,
                     modifier = Modifier
-                        .fillMaxSize(),
+                        .fillMaxSize()
+                        .padding(5.dp),
                     needsInternet = true,
                     onSwipeToStart = ActionItem(
                         name = stringResource(R.string.sys_list_delete),
@@ -527,7 +529,9 @@ fun NotesScreenPreview() {
     CloudAppTheme {
         val items = listOf(fake(1), fake(2), fake(3))
 
-        NotesScreen(items, { mutableListOf() }, {}, {}, true, {}, true, colorBackground = Color.Blue, colorForeground = Color.White)
+        NotesScreen(items, {
+            items.map { ListItem<Int>(it.title, it.category, icon = Icons.Default.Place) }.toMutableList()
+        }, {}, {}, true, {}, true, colorBackground = Color.Blue, colorForeground = Color.White)
     }
 }
 
