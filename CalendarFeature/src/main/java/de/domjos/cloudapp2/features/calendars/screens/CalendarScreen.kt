@@ -235,12 +235,17 @@ fun CalendarScreen(
                         end.linkTo(parent.end)
                         width = Dimension.fillToConstraints
                     }
-                    .padding(5.dp)) {
-                DropDown(
-                    calendars.map { it.label }, initial,
-                    {onCalendarSelected(calendars.find { elem -> elem.label == it }!!.name)},
-                    stringResource(R.string.calendars)
-                )
+                    .background(colorBackground)) {
+                Row(Modifier.padding(5.dp)) {
+                    DropDown(
+                        calendars.map { it.label }, initial,
+                        {onCalendarSelected(calendars.find { elem -> elem.label == it }!!.name)},
+                        stringResource(R.string.calendars),
+                        colorForeground = colorForeground,
+                        colorBackground = colorBackground
+                    )
+                }
+                HorizontalDivider(color = colorForeground)
             }
 
             Column(Modifier.constrainAs(list) {
