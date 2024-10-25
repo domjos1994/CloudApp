@@ -375,6 +375,7 @@ fun ContactScreen(
                         ),
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(5.dp)
                     )
                 } else {
                     NoAuthenticationItem(
