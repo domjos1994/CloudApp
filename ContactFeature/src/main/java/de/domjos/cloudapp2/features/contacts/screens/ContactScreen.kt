@@ -44,7 +44,6 @@ import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -86,6 +85,7 @@ import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
@@ -387,24 +387,20 @@ fun ContactScreen(
         }
 
         if(hasAuths && canInsert) {
-            FloatingActionButton(
-                onClick = {
-                    contact = null
-                    showDialog = true
-                },
-                modifier = Modifier
+            FAB(
+                Icons.Filled.Add,
+                stringResource(R.string.contacts),
+                colorBackground,
+                colorForeground,
+                Modifier
                     .constrainAs(control) {
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
                         width = Dimension.fillToConstraints
                     }
-                    .padding(5.dp),
-                containerColor = colorForeground) {
-                Icon(
-                    Icons.Filled.Add,
-                    stringResource(R.string.chats_room),
-                    tint = colorBackground
-                )
+            ) {
+                contact = null
+                showDialog = true
             }
         }
     }

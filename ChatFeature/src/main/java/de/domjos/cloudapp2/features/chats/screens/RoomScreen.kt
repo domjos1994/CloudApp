@@ -16,7 +16,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -51,6 +50,7 @@ import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
@@ -206,23 +206,21 @@ fun RoomScreen(
         }
 
         if(isConnected && hasAuths) {
-            FloatingActionButton(
-                onClick = {
-                    showDialog.value = true
-                    selectedItem.value = null
-                },
-                modifier = Modifier
+            FAB(
+                Icons.Filled.Add,
+                stringResource(R.string.chats_room),
+                colorBackground,
+                colorForeground,
+                Modifier
                     .constrainAs(control) {
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
                         width = Dimension.fillToConstraints
                     }
-                    .padding(5.dp),
-                containerColor = colorForeground) {
-                Icon(
-                    Icons.Filled.Add,
-                    stringResource(R.string.chats_room),
-                    tint = colorBackground)
+
+            ) {
+                showDialog.value = true
+                selectedItem.value = null
             }
         }
     }

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
@@ -137,7 +139,9 @@ fun MultiFloatingActionButton(
                         stateChange()
                     },
                     modifier = Modifier
-                        .padding(5.dp)) {
+                        .padding(5.dp)
+                        .border(1.dp, color = backgroundColor, shape = RoundedCornerShape(15.dp))
+                    ) {
                     Icon(
                         painter = fabIcon,
                         contentDescription = contentDescription,

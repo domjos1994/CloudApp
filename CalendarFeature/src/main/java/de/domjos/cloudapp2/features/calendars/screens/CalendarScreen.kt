@@ -77,6 +77,7 @@ import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
@@ -345,25 +346,21 @@ fun CalendarScreen(
                 })
             }
 
-            FloatingActionButton(
-                onClick = {
-                    dt = Date()
-                    event = null
-                    showDialog = true
-                },
+            FAB(
+                Icons.Filled.Add,
+                stringResource(R.string.calendars),
+                colorBackground,
+                colorForeground,
                 modifier = Modifier
                     .constrainAs(control) {
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
                         width = Dimension.fillToConstraints
                     }
-                    .padding(5.dp),
-                containerColor = colorForeground) {
-                Icon(
-                    Icons.Filled.Add,
-                    stringResource(R.string.chats_room),
-                    tint = colorBackground
-                )
+            ) {
+                dt = Date()
+                event = null
+                showDialog = true
             }
         }
     } else {

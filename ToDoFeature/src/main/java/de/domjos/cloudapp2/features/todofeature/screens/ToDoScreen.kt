@@ -32,7 +32,6 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -68,6 +67,7 @@ import de.domjos.cloudapp2.database.model.todo.ToDoItem
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
 import de.domjos.cloudapp2.appbasics.custom.DropDown
+import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.database.converters.ToDoStatusConverter
@@ -176,14 +176,13 @@ fun ToDoScreen(
                 }.padding(5.dp),
                     horizontalArrangement = Arrangement.End) {
                     if(selected != null) {
-                        FloatingActionButton(
-                            {
-                                item = null
-                                dialog = true
-                            },
-                            containerColor = colorForeground,
-                        ) {
-                            Icon(Icons.Default.Add, stringResource(R.string.login_add), tint = colorBackground)
+                        FAB(
+                            Icons.Default.Add,
+                            stringResource(R.string.login_add),
+                            colorBackground,
+                            colorForeground) {
+                            item = null
+                            dialog = true
                         }
                     }
                 }
