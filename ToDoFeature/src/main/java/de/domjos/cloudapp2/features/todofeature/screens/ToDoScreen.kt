@@ -129,7 +129,7 @@ fun ToDoScreen(
         ToDoDialog({dialog=it}, item, selected, onInsertOrUpdateToDo, colorBackground, colorForeground)
     }
 
-    Column(Modifier.fillMaxSize().background(colorBackground)) {
+    Column(Modifier.fillMaxSize()) {
         Row {
             ConstraintLayout(Modifier.fillMaxSize()) {
                 val (listDropDown, toDoItems, controls) = createRefs()
@@ -148,10 +148,10 @@ fun ToDoScreen(
                     top.linkTo(listDropDown.bottom)
                     end.linkTo(parent.end)
                     start.linkTo(parent.start)
-                    bottom.linkTo(controls.top)
+                    bottom.linkTo(parent.bottom)
                     width = Dimension.fillToConstraints
                     height = Dimension.fillToConstraints
-                }) {
+                }.padding(5.dp)) {
                     if(hasNoAuthentications()) {
                         NoAuthenticationItem(colorForeground, colorBackground, toAuths)
                     } else {
@@ -173,7 +173,7 @@ fun ToDoScreen(
                     start.linkTo(parent.start)
                     width = Dimension.fillToConstraints
                     height = Dimension.wrapContent
-                }.padding(5.dp),
+                },
                     horizontalArrangement = Arrangement.End) {
                     if(selected != null) {
                         FAB(
@@ -198,7 +198,10 @@ fun ToDoList(
     colorForeground: Color,
     onDelete: (ToDoItem) -> Unit,
     onClick: (ToDoItem) -> Unit) {
-    Column(Modifier.fillMaxSize().background(colorBackground)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(colorBackground)) {
         Column(Modifier.padding(5.dp)) {
             items.forEach { item ->
                 Row(
