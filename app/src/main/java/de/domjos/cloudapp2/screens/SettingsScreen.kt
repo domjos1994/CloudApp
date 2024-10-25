@@ -1,11 +1,16 @@
 package de.domjos.cloudapp2.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.domjos.cloudapp2.appbasics.R
@@ -158,7 +163,9 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     PreferenceScreen(
         items = listOf(timeSpanPreference, featureGroup, cloudGroup, notificationGroup, contactGroup, calendarGroup, dataGroup),
         dataStore = viewModel.init(),
-        statusBarPadding = true
+        statusBarPadding = true,
+        modifier = Modifier
+            .padding(5.dp)
     )
 }
 
@@ -168,12 +175,11 @@ fun createSeekBarPreference(key: Preferences.Key<Float>, default: Float, titleId
         createPreferenceRequest(key, default),
         stringResource(titleId), stringResource(headerId),
         false,
-        {Image(painterResource(resId), key.name)},
+        {Image(painterResource(resId), key.name, colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))},
         true,
         steps = 1,
         valueRepresentation = representation,
         valueRange = range
-
     )
 }
 
@@ -183,9 +189,8 @@ fun createSwitchPreference(key: Preferences.Key<Boolean>, default: Boolean, titl
         createPreferenceRequest(key, default),
         stringResource(titleId), stringResource(headerId),
         false,
-        {Image(painterResource(resId), key.name)},
+        {Image(painterResource(resId), key.name, colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))},
         true
-
     )
 }
 
@@ -195,7 +200,7 @@ fun createSwitchPreference(key: Preferences.Key<Boolean>, default: Boolean, titl
         createPreferenceRequest(key, default),
         titleId, headerId,
         false,
-        {Image(painterResource(resId), key.name)},
+        {Image(painterResource(resId), key.name, colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))},
         true
 
     )
