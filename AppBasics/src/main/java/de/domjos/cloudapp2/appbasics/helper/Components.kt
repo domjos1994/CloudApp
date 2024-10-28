@@ -26,33 +26,40 @@ fun Separator(color: Color) {
 
 fun openUrl(context: Context, url: String) {
     val callIntent = Intent(Intent.ACTION_VIEW)
-    callIntent.setData(Uri.parse(url))
+    callIntent.data = Uri.parse(url)
     callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(callIntent)
 }
 
 @Throws(Exception::class)
 fun openPhone(context: Context, phone: String) {
-    val callIntent = Intent(Intent.ACTION_CALL)
-    callIntent.setData(Uri.parse("tel:$phone"))
-    callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(callIntent)
+    val intent = createPhoneIntent(phone)
+    context.startActivity(intent)
 }
 
 @Throws(Exception::class)
 fun openEmail(context: Context, email: String) {
-    val callIntent = Intent(Intent.ACTION_SEND)
-    callIntent.setData(Uri.parse("mailto:"))
-    callIntent.putExtra(Intent.EXTRA_EMAIL, email)
-    callIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    context.startActivity(callIntent)
+    val intent = createMailIntent(email)
+    context.startActivity(intent)
+}
+
+@Throws(Exception::class)
+fun hasEmail(context: Context, email: String): Boolean {
+    val intent = createMailIntent(email)
+    return hasIntent(intent, context)
+}
+
+@Throws(Exception::class)
+fun hasPhone(context: Context, phone: String): Boolean {
+    val intent = createPhoneIntent(phone)
+    return hasIntent(intent, context)
 }
 
 fun openEvent(context: Context, uid: String) {
     val intent = Intent(Intent.ACTION_VIEW)
     val uri = Events.CONTENT_URI.buildUpon()
     uri.appendPath(uid)
-    intent.setData(uri.build())
+    intent.data = uri.build()
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
 }
@@ -61,7 +68,25 @@ fun openContact(context: Context, uid: String) {
     val intent = Intent(Intent.ACTION_VIEW)
     val uri = ContactsContract.Contacts.CONTENT_URI.buildUpon()
     uri.appendPath(uid)
-    intent.setData(uri.build())
+    intent.data = uri.build()
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
+}
+
+private fun createPhoneIntent(phone: String): Intent {
+    val intent = Intent(Intent.ACTION_CALL)
+    intent.data = Uri.parse("tel:$phone")
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    return intent
+}
+
+private fun createMailIntent(email: String): Intent {
+    val intent = Intent(Intent.ACTION_SENDTO)
+    intent.data = Uri.parse("mailto:$email")
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    return intent
+}
+
+private fun hasIntent(intent: Intent, context: Context): Boolean {
+    return intent.resolveActivity(context.packageManager) != null
 }

@@ -97,6 +97,7 @@ import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
+import de.domjos.cloudapp2.appbasics.helper.hasEmail
 import de.domjos.cloudapp2.appbasics.helper.openContact
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.database.model.contacts.Address
@@ -247,6 +248,7 @@ fun ContactScreen(
             width = Dimension.fillToConstraints
         }) {
             Column {
+                val context = LocalContext.current
                 Row(Modifier.background(colorBackground).padding(5.dp)) {
                     DropDown(
                         addressBooks.values.toList(),
@@ -303,7 +305,7 @@ fun ContactScreen(
                                 },
                                 visible = {item ->
                                     val c = contacts.find { it.id == item.id }
-                                    c?.contactToChat ?: false
+                                    c?.contactToChat == true
                                 }
                             ),
                             ActionItem(
@@ -322,7 +324,9 @@ fun ContactScreen(
                                 visible = {item ->
                                     val c = contacts.find { it.id == item.id }
                                     if(c != null) {
-                                        c.phoneNumbers.isNotEmpty()
+                                        if(c.phoneNumbers.isNotEmpty()) {
+                                            de.domjos.cloudapp2.appbasics.helper.hasPhone(context, c.phoneNumbers[0].value)
+                                        } else { false }
                                     } else { false }
                                 }
                             ),
@@ -342,7 +346,9 @@ fun ContactScreen(
                                 visible = {item ->
                                     val c = contacts.find { it.id == item.id }
                                     if(c != null) {
-                                        c.emailAddresses.isNotEmpty()
+                                        if(c.emailAddresses.isNotEmpty()) {
+                                            hasEmail(context,c.emailAddresses[0].value)
+                                        } else { false }
                                     } else { false }
                                 }
                             ),
@@ -433,7 +439,7 @@ fun EditDialog(
     var suffix by remember { mutableStateOf(TextFieldValue("")) }
     var prefix by remember { mutableStateOf(TextFieldValue("")) }
     var firstName by remember { mutableStateOf(TextFieldValue("")) }
-    var isFirstNameValid by remember { mutableStateOf(contact?.givenName?.isNotEmpty() ?: false ) }
+    var isFirstNameValid by remember { mutableStateOf(contact?.givenName?.isNotEmpty() == true) }
     var lastName by remember { mutableStateOf(TextFieldValue("")) }
     var isLastNameValid by remember { mutableStateOf(true) }
     var additional by remember { mutableStateOf(TextFieldValue("")) }
