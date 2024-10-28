@@ -55,6 +55,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -132,9 +133,12 @@ fun ContactScreen(
     val canInsert by viewModel.canInsert.collectAsStateWithLifecycle()
     val connectivity by connectivityState()
     val available = connectivity === ConnectionState.Available
-    viewModel.getAddressBooks(available, LocalContext.current)
 
     LogViewModel.Init(viewModel)
+
+    LaunchedEffect(true) {
+        viewModel.getAddressBooks(available, context)
+    }
 
     ContactScreen(onReload = {
             viewModel.loadAddresses(available)
