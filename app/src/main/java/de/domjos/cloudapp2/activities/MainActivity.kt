@@ -361,6 +361,9 @@ class MainActivity : ComponentActivity() {
                 initSyncAdapter()
                 updateNavBar()
                 updateWidgets()
+                if(viewModel.getFirstStart()) {
+                    toPermissions()
+                }
             }
 
             CloudAppTheme {
@@ -494,26 +497,14 @@ class MainActivity : ComponentActivity() {
                                 breadcrumb = ""
                             }
                             composable(notificationsTab.title) {
-                                if(viewModel.getFirstStart()) {
-                                    PermissionScreen {
-                                        viewModel.saveFirstStart()
-                                        back()
-                                    }
-                                    title = permissions
-                                    header = permissions
-                                    refreshVisible = false
-                                    tabBarVisible.value = false
-                                    breadcrumb = ""
-                                } else {
-                                    NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground, onChatScreen = { x, y ->
-                                        navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
-                                    })
-                                    title = notificationsTab.title
-                                    header = notificationsTab.title
-                                    refreshVisible = false
-                                    tabBarVisible.value = true
-                                    breadcrumb = ""
-                                }
+                                NotificationScreen(toAuths = toAuths, colorBackground = colorBackground, colorForeground = colorForeground, onChatScreen = { x, y ->
+                                    navController.navigate("android-app://androidx.navigation/Chats/$x/$y".toUri())
+                                })
+                                title = notificationsTab.title
+                                header = notificationsTab.title
+                                refreshVisible = false
+                                tabBarVisible.value = true
+                                breadcrumb = ""
                             }
                             composable(dataTab.title) {
                                 DataScreen(
