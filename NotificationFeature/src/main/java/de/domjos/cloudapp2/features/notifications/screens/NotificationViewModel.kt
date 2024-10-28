@@ -23,7 +23,7 @@ import java.util.Locale
 import javax.inject.Inject
 import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
 import de.domjos.cloudapp2.data.repository.stringToDate
-import de.domjos.cloudapp2.data.repository.stringToOtherFormat
+import de.domjos.cloudapp2.data.repository.stringToTimeSpan
 import java.text.SimpleDateFormat
 
 @HiltViewModel
@@ -99,9 +99,8 @@ class NotificationViewModel @Inject constructor(
 
 
                     events.forEach { it ->
-                        val start = try {stringToOtherFormat(it.string_from, format)} catch (_: Exception) {""}
-                        val end = try {stringToOtherFormat(it.string_to, format)} catch (_: Exception) {""}
-                        val description = "${it.title}: $start - $end".trim()
+                        val ts = stringToTimeSpan(it.string_from, it.string_to)
+                        val description = "${it.title}: $ts".trim()
                         notificationItems.add(NotificationItem(
                             type = NotificationItem.Type.App,
                             date = try {stringToDate(it.string_from)} catch (_: Exception) {Date()},

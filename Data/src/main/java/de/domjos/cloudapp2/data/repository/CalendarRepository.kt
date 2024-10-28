@@ -338,13 +338,50 @@ class DefaultCalendarRepository @Inject constructor(
     }
 }
 
-fun stringToOtherFormat(string: String, format: String): String {
+fun stringToTimeSpan(start: String, end: String): String {
     try {
-        val sdfOutput = SimpleDateFormat(format, Locale.getDefault())
-        val dt = stringToDate(string)
-        return try {
-            sdfOutput.format(dt)
-        } catch (_: Exception) { "" }
+        val format = if(Locale.getDefault() == Locale.GERMANY) {
+            "dd.MM.yyyy"
+        } else {
+            "yyyy-MM-dd"
+        }
+        val time = " HH:mm:ss"
+
+        val dtStart = stringToDate(start)
+        val calStart = Calendar.getInstance()
+        calStart.time = dtStart
+        val dtEnd = stringToDate(end)
+        val calEnd = Calendar.getInstance()
+        calEnd.time = dtEnd
+        val tsWholeDay = 24L * 60L * 60L * 1000L
+        val isWholeDay = (calStart.time.time == calEnd.time.time) || (calEnd.time.time - calStart.time.time == tsWholeDay)
+
+        var startFormat = if(
+            calStart.get(Calendar.HOUR_OF_DAY) == 0 &&
+            calStart.get(Calendar.MINUTE) == 0 &&
+            calStart.get(Calendar.SECOND) == 0) {
+            val sdf = SimpleDateFormat(format, Locale.getDefault())
+            sdf.format(calStart.time)
+        } else {
+            val sdf = SimpleDateFormat(format + time, Locale.getDefault())
+            sdf.format(calStart.time)
+        }
+        var endFormat = if(
+            calEnd.get(Calendar.HOUR_OF_DAY) == 0 &&
+            calEnd.get(Calendar.MINUTE) == 0 &&
+            calEnd.get(Calendar.SECOND) == 0) {
+            val sdf = SimpleDateFormat(format, Locale.getDefault())
+            sdf.format(calEnd.time)
+        } else {
+            val sdf = SimpleDateFormat(format + time, Locale.getDefault())
+            sdf.format(calEnd.time)
+        }
+
+        return if(isWholeDay) {
+            startFormat
+        } else {
+            "$startFormat - $endFormat"
+        }
     } catch (_: Exception) {return ""}
 }
 

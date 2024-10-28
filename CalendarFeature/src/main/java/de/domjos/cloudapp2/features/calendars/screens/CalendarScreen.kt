@@ -91,7 +91,7 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.data.repository.dateToString
 import de.domjos.cloudapp2.data.repository.stringToDate
-import de.domjos.cloudapp2.data.repository.stringToOtherFormat
+import de.domjos.cloudapp2.data.repository.stringToTimeSpan
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -128,14 +128,15 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
 
     LogViewModel.Init(viewModel)
 
-    val format = stringResource(R.string.sys_format)
     CalendarScreen(events, {
         val items = mutableListOf<ListItem<Long>>()
         viewModel.load(selectedCalendar, start, end)
         events.forEach { event ->
+            val ts = stringToTimeSpan(event.string_from, event.string_to)
+
             val listItem = ListItem<Long>(
                 title = event.title,
-                description = "${stringToOtherFormat(event.string_from, format)} - ${stringToOtherFormat(event.string_to, format)}",
+                description = ts,
                 Icons.Default.DateRange,
                 selected = false,
                 deletable = true
@@ -1309,11 +1310,15 @@ fun BottomSheetPreview() {
     }
 }
 
-private fun fakeEvent(id: Long):CalendarEvent {
+private fun fakeEvent(id: Long, hours: Int = 25):CalendarEvent {
+    val start = Calendar.getInstance()
+    val end = start.clone() as Calendar
+    end.add(Calendar.HOUR, hours)
+
     return CalendarEvent(id,
         "$id",
-        dateToString(Calendar.getInstance().time),
-        dateToString(Calendar.getInstance().time),
+        dateToString(start.time),
+        dateToString(end.time),
         "Test $id",
         "New York! $id",
         "This is a Test! $id",
