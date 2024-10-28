@@ -2,6 +2,7 @@ package de.domjos.cloudapp2.screens
 
 import android.accounts.Account
 import android.content.ContentResolver
+import android.content.Context
 
 import android.os.Bundle
 import android.provider.CalendarContract
@@ -12,13 +13,18 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.domjos.cloudapp2.adapter.getOrCreateSyncAccount
 import de.domjos.cloudapp2.data.Settings
+import de.domjos.cloudapp2.database.dao.AuthenticationDAO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PermissionViewModel @Inject constructor(
-    private val settings: Settings
+    private val settings: Settings,
+    private val authenticationDAO: AuthenticationDAO
 ) : ViewModel() {
     val message = MutableLiveData<String?>()
 
@@ -38,7 +44,27 @@ class PermissionViewModel @Inject constructor(
         return state.floatValue
     }
 
-    fun addContactSync(account: Account, contactRegularity: Float) {
+    fun initContactSync(context: Context, contactRegularity: Float) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val authentications = authenticationDAO.getAll().first()
+            authentications.forEach { authentication ->
+                val account = getOrCreateSyncAccount(context, authentication)
+                addContactSync(account, contactRegularity)
+            }
+        }
+    }
+
+    fun initCalendarSync(context: Context, contactRegularity: Float) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val authentications = authenticationDAO.getAll().first()
+            authentications.forEach { authentication ->
+                val account = getOrCreateSyncAccount(context, authentication)
+                addCalendarSync(account, contactRegularity)
+            }
+        }
+    }
+
+    private fun addContactSync(account: Account, contactRegularity: Float) {
         try {
             // contact
             ContentResolver.removePeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
@@ -52,7 +78,7 @@ class PermissionViewModel @Inject constructor(
         }
     }
 
-    fun addCalendarSync(account: Account, calendarRegularity: Float) {
+    private fun addCalendarSync(account: Account, calendarRegularity: Float) {
         try {
             // calendar
             ContentResolver.removePeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY)

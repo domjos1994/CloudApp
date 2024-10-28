@@ -1,8 +1,5 @@
 package de.domjos.cloudapp2.screens
 
-import android.accounts.Account
-import android.accounts.AccountManager
-import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -17,6 +14,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,14 +40,12 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.domjos.cloudapp2.appbasics.helper.Notifications
 import de.domjos.cloudapp2.appbasics.helper.hasPermission
-import de.domjos.cloudapp2.services.AuthenticatorService
 
 @Composable
 fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: () -> Unit) {
-    val context = LocalContext.current
     ConstraintLayout(Modifier.fillMaxSize()) {
         val (header, permissions, footer) = createRefs()
-        val account = createSyncAccount()
+        val context = LocalContext.current
 
         viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
             msg?.let {
@@ -109,12 +105,16 @@ fun PermissionScreen(viewModel: PermissionViewModel = hiltViewModel(), onBack: (
                 stringResource(R.string.permissions_contacts_title),
                 stringResource(R.string.permissions_contacts_summary),
                 arrayOf(android.Manifest.permission.READ_CONTACTS, android.Manifest.permission.WRITE_CONTACTS)
-            ) { viewModel.addContactSync(account, viewModel.getContactRegularitySetting()) }
+            ) {
+                viewModel.initContactSync(context, viewModel.getContactRegularitySetting())
+            }
             PermissionItem(
                 stringResource(R.string.permissions_calendar_title),
                 stringResource(R.string.permissions_calendar_summary),
                 arrayOf(android.Manifest.permission.READ_CALENDAR, android.Manifest.permission.WRITE_CALENDAR)
-            ) { viewModel.addCalendarSync(account, viewModel.getCalendarRegularitySetting()) }
+            ) {
+                viewModel.initCalendarSync(context, viewModel.getCalendarRegularitySetting())
+            }
             PermissionItem(
                 stringResource(R.string.permissions_phone_title),
                 stringResource(R.string.permissions_phone_summary),
@@ -169,7 +169,7 @@ fun PermissionItem(title: String, description: String, permissions: Array<String
 }
 
 @Composable
-fun PermissionComponent(title: String, description: String, enabled: Boolean, onRequest: () -> Unit) {
+fun PermissionComponent(title: String, description: String, enabled: Boolean, onRequest: (Boolean) -> Unit) {
     Row {
         Column(
             Modifier
@@ -182,9 +182,12 @@ fun PermissionComponent(title: String, description: String, enabled: Boolean, on
                 Text(description, fontSize = 12.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
             }
             Row(Modifier.wrapContentHeight()) {
-                Button(onClick = { onRequest() }, enabled=enabled) {
+                Column {
                     val text = stringResource(id = R.string.permissions_grant)
                     Text(text, Modifier.semantics {contentDescription= "$text $title"})
+                }
+                Column {
+                    Switch(checked = enabled, onCheckedChange = {onRequest(it)})
                 }
             }
         }
@@ -198,13 +201,4 @@ fun PreviewPermissionComponent() {
     CloudAppTheme {
         PermissionComponent(title = "Test", description = "This is a Test", true) {}
     }
-}
-
-@Composable
-private fun createSyncAccount(): Account {
-    val account = AuthenticatorService.getAccount(LocalContext.current, "de.domjos.cloudapp2.account")
-    val accountManager = LocalContext.current.getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
-    accountManager.addAccountExplicitly(account, null, null)
-
-    return account
 }

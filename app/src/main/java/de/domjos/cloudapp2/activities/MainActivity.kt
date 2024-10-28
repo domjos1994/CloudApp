@@ -100,6 +100,9 @@ import coil.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
 import de.dojodev.cloudapp2.features.exportfeature.screens.ExportScreen
 import de.domjos.cloudapp2.adapter.FileSyncAdapter
+import de.domjos.cloudapp2.adapter.deleteSyncAccount
+import de.domjos.cloudapp2.adapter.getOrCreateSyncAccount
+import de.domjos.cloudapp2.adapter.updateSyncAccount
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ConnectionType
 import de.domjos.cloudapp2.appbasics.helper.Notifications
@@ -299,11 +302,13 @@ class MainActivity : ComponentActivity() {
                             it.toLong() * 60L
                         }
                     }
-                    val account = AuthenticatorService.getAccount(context, ACCOUNT)
-                    ContentResolver.removePeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
-                    ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
-                    ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
-                    ContentResolver.requestSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
+                    viewModel.getAuthentication {
+                        val account = getOrCreateSyncAccount(context, it)
+                        ContentResolver.removePeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
+                        ContentResolver.setSyncAutomatically(account, ContactsContract.AUTHORITY, true)
+                        ContentResolver.addPeriodicSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
+                        ContentResolver.requestSync(account, ContactsContract.AUTHORITY, Bundle.EMPTY)
+                    }
                 } catch (ex: Exception) {
                     viewModel.message.postValue(ex.message)
                 }
@@ -321,19 +326,23 @@ class MainActivity : ComponentActivity() {
                             it.toLong() * 60L
                         }
                     }
-                    val account = AuthenticatorService.getAccount(context, ACCOUNT)
-                    ContentResolver.removePeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY)
-                    ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
-                    ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
-                    ContentResolver.requestSync(account, CalendarContract.AUTHORITY, extras)
+                    viewModel.getAuthentication {
+                        val account = getOrCreateSyncAccount(context, it)
+                        ContentResolver.removePeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY)
+                        ContentResolver.setSyncAutomatically(account, CalendarContract.AUTHORITY, true)
+                        ContentResolver.addPeriodicSync(account, CalendarContract.AUTHORITY, Bundle.EMPTY, contactPollFrequency)
+                        ContentResolver.requestSync(account, CalendarContract.AUTHORITY, extras)
+                    }
                 } catch (ex: Exception) {
                     viewModel.message.postValue(ex.message)
                 }
                 try {
-                    val account = AuthenticatorService.getAccount(context, ACCOUNT)
-                    ContentResolver.removePeriodicSync(account, FileSyncAdapter.AUTHORITY, Bundle.EMPTY)
-                    ContentResolver.setSyncAutomatically(account, FileSyncAdapter.AUTHORITY, true)
-                    ContentResolver.requestSync(account, FileSyncAdapter.AUTHORITY, Bundle.EMPTY)
+                    viewModel.getAuthentication {
+                        val account = getOrCreateSyncAccount(context, it)
+                        ContentResolver.removePeriodicSync(account, FileSyncAdapter.AUTHORITY, Bundle.EMPTY)
+                        ContentResolver.setSyncAutomatically(account, FileSyncAdapter.AUTHORITY, true)
+                        ContentResolver.requestSync(account, FileSyncAdapter.AUTHORITY, Bundle.EMPTY)
+                    }
                 } catch (ex: Exception) {
                     viewModel.message.postValue(ex.message)
                 }
@@ -488,9 +497,19 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     ) {
+
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
-                                AuthenticationScreen(colorForeground = colorForeground, colorBackground = colorBackground, onSelectedChange = updateTheme)
+                                val onAdd: ((Authentication) -> Unit) = {getOrCreateSyncAccount(context, it)}
+                                val onUpdate: ((Authentication) -> Unit) = { updateSyncAccount(this@MainActivity, it) }
+                                val onRemove: ((Authentication) -> Unit) = { deleteSyncAccount(this@MainActivity, it) }
+                                AuthenticationScreen(
+                                    colorForeground = colorForeground,
+                                    colorBackground = colorBackground,
+                                    onSelectedChange = updateTheme,
+                                    onAdd = onAdd, onUpdate = onUpdate,
+                                    onRemove = onRemove
+                                )
                                 title = authentications
                                 header = authentications
                                 refreshVisible = false

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import de.domjos.cloudapp2.R
+import de.domjos.cloudapp2.database.model.Authentication
 
 class AuthenticatorService : Service() {
     private var mAuthenticator: Authenticator? = null
@@ -21,8 +22,8 @@ class AuthenticatorService : Service() {
     }
 
     companion object {
-        fun getAccount(context: Context, type: String?): Account {
-            return Account(context.getString(R.string.app_name), type)
+        fun getAccount(type: String?, authentication: Authentication): Account {
+            return Account(authentication.title, "$type.${authentication.id}")
         }
     }
 }

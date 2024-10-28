@@ -27,6 +27,15 @@ class MainActivityViewModel @Inject constructor(
 ) : ViewModel() {
     var message = MutableLiveData<String?>()
 
+    fun getAuthentication(result: (Authentication) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val auth = authenticationRepository.getLoggedInUser()
+            if(auth != null) {
+                result(auth)
+            }
+        }
+    }
+
     fun setVisibility(items: MutableList<TabBarItem>, onFinish: (MutableList<TabBarItem>) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {

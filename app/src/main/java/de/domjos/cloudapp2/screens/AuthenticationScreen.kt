@@ -74,7 +74,15 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @Composable
-fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, onSelectedChange: (Authentication) -> Unit) {
+fun AuthenticationScreen(
+    viewModel: AuthenticationViewModel = hiltViewModel(),
+    colorBackground: Color,
+    colorForeground: Color,
+    onSelectedChange: (Authentication) -> Unit,
+    onAdd: (Authentication) -> Unit,
+    onUpdate: (Authentication) -> Unit,
+    onRemove: (Authentication) -> Unit) {
+
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val authentications by produceState<AuthenticationUiState>(
         initialValue = AuthenticationUiState.Loading,
@@ -126,13 +134,16 @@ fun AuthenticationScreen(viewModel: AuthenticationViewModel = hiltViewModel(), c
                             auth.id = it
                             viewModel.checkAuthentications(auth)
                             onSelectedChange(auth)
+                            onAdd(auth)
                         }
                     }
                 } else {
                     viewModel.updateAuthentication(auth, msg)
+                    onUpdate(auth)
                 }
             },
             onDeleteClick = { auth ->
+                onRemove(auth)
                 viewModel.deleteAuthentication(auth)
             },
             onConnectionCheck = {auth, onSuccess ->
@@ -318,9 +329,9 @@ private fun EditDialog(
 
     var id by remember { mutableLongStateOf(0L) }
     var title by remember { mutableStateOf(TextFieldValue("")) }
-    var isValidTitle by remember { mutableStateOf(authentication?.title?.isNotEmpty() ?: false) }
+    var isValidTitle by remember { mutableStateOf(authentication?.title?.isNotEmpty() == true) }
     var url by remember { mutableStateOf(TextFieldValue("")) }
-    var isValidUrl by remember { mutableStateOf(authentication?.url?.isNotEmpty() ?: false) }
+    var isValidUrl by remember { mutableStateOf(authentication?.url?.isNotEmpty() == true) }
     var user by remember { mutableStateOf(TextFieldValue("")) }
     var pwd by remember { mutableStateOf(TextFieldValue("")) }
     var isConnectionValid by remember { mutableStateOf(false) }
