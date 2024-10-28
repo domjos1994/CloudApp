@@ -322,7 +322,7 @@ fun ContactScreen(
                                 visible = {item ->
                                     val c = contacts.find { it.id == item.id }
                                     if(c != null) {
-                                        c.phoneNumbers.size != 0
+                                        c.phoneNumbers.isNotEmpty()
                                     } else { false }
                                 }
                             ),
@@ -338,6 +338,12 @@ fun ContactScreen(
                                         }
                                     } catch (_: Exception) {}
                                     false
+                                },
+                                visible = {item ->
+                                    val c = contacts.find { it.id == item.id }
+                                    if(c != null) {
+                                        c.emailAddresses.isNotEmpty()
+                                    } else { false }
                                 }
                             ),
                             ActionItem(
