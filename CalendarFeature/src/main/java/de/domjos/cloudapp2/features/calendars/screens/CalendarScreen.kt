@@ -996,7 +996,8 @@ fun NewEditDialog(
                                 isTitleValid = Validator.check(false, 3, 255, it.text)
                             },
                             label = { Text(stringResource(id = R.string.calendar_title)) },
-                            isError = !isTitleValid
+                            isError = !isTitleValid,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -1081,6 +1082,7 @@ fun NewEditDialog(
                                 description = it
                             },
                             label = { Text(stringResource(id = R.string.calendar_description)) },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -1103,6 +1105,7 @@ fun NewEditDialog(
                                 location = it
                             },
                             label = { Text(stringResource(id = R.string.calendar_location)) },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -1125,6 +1128,7 @@ fun NewEditDialog(
                                 confirmation = it
                             },
                             label = { Text(stringResource(id = R.string.calendar_confirmation)) },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -1147,6 +1151,7 @@ fun NewEditDialog(
                                 categories = it
                             },
                             label = { Text(stringResource(id = R.string.calendar_categories)) },
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -1169,10 +1174,11 @@ fun NewEditDialog(
                                 calendar = it
                             },
                             label = {Text(stringResource(id = R.string.calendars))},
-                            isError = !isCalendarValid
+                            isError = !isCalendarValid,
+                            modifier = Modifier.fillMaxWidth()
                         )
                         DropdownMenu(showDropDown, {showDropDown = false}) {
-                            calendars.forEach {
+                            calendars.filter { it.label.isNotEmpty() }.forEach {
                                 DropdownMenuItem({Text(it.label)}, onClick = {
                                     calendar = TextFieldValue(it.label)
                                     isCalendarValid = calendar.text.isNotEmpty()

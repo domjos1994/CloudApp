@@ -317,7 +317,7 @@ fun ListDropDown(
                     readOnly = true
                 )
                 DropdownMenu(expanded, onDismissRequest = {expanded=false}) {
-                    lists.forEach { listItem ->
+                    lists.filter { it.toString().isNotEmpty() }.forEach { listItem ->
                         DropdownMenuItem({Text(listItem.toString())}, {
                             if(listItem.uid != null) {
                                 onSelectList(listItem)

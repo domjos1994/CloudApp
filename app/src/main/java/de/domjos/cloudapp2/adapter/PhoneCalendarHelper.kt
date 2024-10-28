@@ -31,13 +31,13 @@ import kotlin.Long
 @Suppress("JoinDeclarationAndAssignment")
 class PhoneCalendarHelper(private val account: Account?, private val contentResolver: ContentResolver, private val db: DB) {
     private var authId: Long
-    private var authentication: Authentication
+    private var authentication: Authentication?
     private var calendars: Map<Long, String>? = null
     private val operations = mutableListOf<ContentProviderOperation>()
 
     init {
-        this.authentication = this.db.authenticationDao().getSelectedItem()!!
-        this.authId = this.authentication.id
+        this.authentication = this.db.authenticationDao().getSelectedItem()
+        this.authId = this.authentication?.id ?: 0L
     }
 
     fun sync() {
@@ -262,7 +262,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                         lastUpdatedEventPhone = lastSynced,
                         recurrence = rrule
                     )
-                    event?.lastUpdatedEventApp = lastSynced
+                    event.lastUpdatedEventApp = lastSynced
                 }
             }
         } catch (ex: Exception) {
