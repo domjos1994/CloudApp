@@ -16,8 +16,8 @@ buildscript {
         set("sdk_compile", 34)
         set("sdk_min", 26)
         set("compose_version", "1.5.8")
-        set("version", 23)
-        set("version_name", "1.0.RC.1")
+        set("version", 24)
+        set("version_name", "1.0.RC.2")
         set("minify", false)
     }
 }
