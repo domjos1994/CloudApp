@@ -100,9 +100,7 @@ import coil.size.Scale
 import dagger.hilt.android.AndroidEntryPoint
 import de.dojodev.cloudapp2.features.exportfeature.screens.ExportScreen
 import de.domjos.cloudapp2.adapter.FileSyncAdapter
-import de.domjos.cloudapp2.adapter.deleteSyncAccount
 import de.domjos.cloudapp2.adapter.getOrCreateSyncAccount
-import de.domjos.cloudapp2.adapter.updateSyncAccount
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
 import de.domjos.cloudapp2.appbasics.helper.ConnectionType
 import de.domjos.cloudapp2.appbasics.helper.Notifications
@@ -126,7 +124,6 @@ import de.domjos.cloudapp2.screens.AuthenticationScreen
 import de.domjos.cloudapp2.screens.LogScreen
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import de.domjos.cloudapp2.screens.PermissionScreen
-import de.domjos.cloudapp2.services.AuthenticatorService
 import de.domjos.cloudapp2.widgets.CalendarWidget
 import de.domjos.cloudapp2.widgets.ContactsWidget
 import de.domjos.cloudapp2.widgets.NewsWidget
@@ -147,10 +144,6 @@ data class TabBarItem(
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    companion object {
-        const val ACCOUNT = "de.domjos.cloudapp2.account"
-    }
 
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class)
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -500,15 +493,10 @@ class MainActivity : ComponentActivity() {
 
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {
                             composable(authentications) {
-                                val onAdd: ((Authentication) -> Unit) = {getOrCreateSyncAccount(context, it)}
-                                val onUpdate: ((Authentication) -> Unit) = { updateSyncAccount(this@MainActivity, it) }
-                                val onRemove: ((Authentication) -> Unit) = { deleteSyncAccount(this@MainActivity, it) }
                                 AuthenticationScreen(
                                     colorForeground = colorForeground,
                                     colorBackground = colorBackground,
-                                    onSelectedChange = updateTheme,
-                                    onAdd = onAdd, onUpdate = onUpdate,
-                                    onRemove = onRemove
+                                    onSelectedChange = updateTheme
                                 )
                                 title = authentications
                                 header = authentications

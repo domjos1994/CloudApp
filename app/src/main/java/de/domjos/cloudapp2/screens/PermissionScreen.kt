@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -181,13 +182,17 @@ fun PermissionComponent(title: String, description: String, enabled: Boolean, on
             Row(Modifier.wrapContentHeight()) {
                 Text(description, fontSize = 12.sp, fontStyle = FontStyle.Normal, fontWeight = FontWeight.Normal)
             }
-            Row(Modifier.wrapContentHeight()) {
-                Column {
+            Row(Modifier.height(70.dp)) {
+                Column(
+                    modifier = Modifier.weight(9f),
+                    verticalArrangement = Arrangement.Center) {
                     val text = stringResource(id = R.string.permissions_grant)
                     Text(text, Modifier.semantics {contentDescription= "$text $title"})
                 }
-                Column {
-                    Switch(checked = enabled, onCheckedChange = {onRequest(it)})
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center) {
+                    Switch(checked = !enabled, onCheckedChange = {onRequest(it)})
                 }
             }
         }

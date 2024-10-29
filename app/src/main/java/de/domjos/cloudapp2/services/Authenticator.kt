@@ -7,9 +7,25 @@ import android.accounts.AccountManager
 import android.accounts.NetworkErrorException
 import android.content.Context
 import android.os.Bundle
+import de.domjos.cloudapp2.adapter.getOrCreateSyncAccount
+import de.domjos.cloudapp2.database.DB
 
 
-class Authenticator(context: Context?) : AbstractAccountAuthenticator(context) {
+class Authenticator(private val context: Context?) : AbstractAccountAuthenticator(context) {
+    private val accountManager: AccountManager?
+    private val db: DB?
+
+    init {
+        if(context == null) {
+            this.accountManager = null
+            this.db = null
+        } else {
+            this.accountManager = context.getSystemService(Context.ACCOUNT_SERVICE) as AccountManager
+            this.db = DB.newInstance(context)
+        }
+
+    }
+
     override fun editProperties(
         response: AccountAuthenticatorResponse,
         accountType: String
@@ -25,7 +41,17 @@ class Authenticator(context: Context?) : AbstractAccountAuthenticator(context) {
         requiredFeatures: Array<String>,
         options: Bundle
     ): Bundle? {
-        return null
+        if(context != null) {
+            val selected = this.db?.authenticationDao()?.getSelectedItem()
+            if(selected != null) {
+                getOrCreateSyncAccount(this.context, selected)
+                return options
+            } else {
+                return null
+            }
+        } else {
+            return null
+        }
     }
 
     @Throws(NetworkErrorException::class)

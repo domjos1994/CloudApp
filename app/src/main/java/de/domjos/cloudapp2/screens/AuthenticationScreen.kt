@@ -61,6 +61,8 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import de.domjos.cloudapp2.adapter.deleteSyncAccount
+import de.domjos.cloudapp2.adapter.getOrCreateSyncAccount
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.NoEntryItem
@@ -78,10 +80,7 @@ fun AuthenticationScreen(
     viewModel: AuthenticationViewModel = hiltViewModel(),
     colorBackground: Color,
     colorForeground: Color,
-    onSelectedChange: (Authentication) -> Unit,
-    onAdd: (Authentication) -> Unit,
-    onUpdate: (Authentication) -> Unit,
-    onRemove: (Authentication) -> Unit) {
+    onSelectedChange: (Authentication) -> Unit) {
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val authentications by produceState<AuthenticationUiState>(
@@ -134,16 +133,15 @@ fun AuthenticationScreen(
                             auth.id = it
                             viewModel.checkAuthentications(auth)
                             onSelectedChange(auth)
-                            onAdd(auth)
+                            getOrCreateSyncAccount(context, auth)
                         }
                     }
                 } else {
                     viewModel.updateAuthentication(auth, msg)
-                    onUpdate(auth)
                 }
             },
             onDeleteClick = { auth ->
-                onRemove(auth)
+                deleteSyncAccount(context, auth)
                 viewModel.deleteAuthentication(auth)
             },
             onConnectionCheck = {auth, onSuccess ->

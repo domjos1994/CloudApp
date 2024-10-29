@@ -7,15 +7,10 @@
 package de.domjos.cloudapp2.adapter
 
 import android.accounts.Account
-import android.content.ContentProviderOperation
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
-import android.database.Cursor
-import android.net.Uri
-import android.provider.CalendarContract
 import de.domjos.cloudapp2.database.DB
-import de.domjos.cloudapp2.database.model.Log
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import java.util.Date
 
@@ -33,7 +28,6 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
     private var authId: Long
     private var authentication: Authentication?
     private var calendars: Map<Long, String>? = null
-    private val operations = mutableListOf<ContentProviderOperation>()
 
     init {
         this.authentication = this.db.authenticationDao().getSelectedItem()
@@ -41,9 +35,8 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
     }
 
     fun sync() {
-        this.operations.clear()
-        this.insertLogMessage("Start syncing calendars!")
-        this.insertLogMessage("Create Calendars")
+        insertLogMessage(this.db, "Start syncing calendars!", "calendars")
+        insertLogMessage(this.db, "Create Calendars", "calendars")
         this.createCalendars()
 
         this.updateByStatus()
@@ -105,7 +98,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
             }
             this.contentResolver.notifyChange(Events.CONTENT_URI, null)
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem syncing data!")
+            insertLogException(this.db, ex, "calendars", "Problem syncing data!")
         } finally {
             this.db.close()
         }
@@ -114,22 +107,22 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
     private fun getData() : MutableList<Array<Long>> {
         val items: MutableList<Array<Long>> = mutableListOf()
         try {
-            val uri = this.asSyncAdapter(Events.CONTENT_URI)
+            val uri = asSyncAdapter(Events.CONTENT_URI, this.account)
             val projection = arrayOf(Events._ID, Events.DIRTY, Events.LAST_SYNCED, Events.SYNC_DATA1)
             val where = "${Events.ACCOUNT_NAME}=? AND ${Events.DELETED}=0"
             val args = arrayOf(account?.name)
             val cursor = this.contentResolver.query(uri, projection, where, args, null)
             cursor?.use { c ->
                 while(c.moveToNext()) {
-                    val eventId = this.getValue(c, Events._ID, 0L) ?: 0L
-                    val dirty = this.getValue(c, Events.DIRTY, 0L) ?: 0L
-                    val lastSynced = this.getValue(c, Events.LAST_SYNCED, 0L) ?: 0L
-                    val appId = (this.getValue(c, Events.SYNC_DATA1, "0") ?: "0").toLong()
+                    val eventId = getValue(c, Events._ID, 0L) ?: 0L
+                    val dirty = getValue(c, Events.DIRTY, 0L) ?: 0L
+                    val lastSynced = getValue(c, Events.LAST_SYNCED, 0L) ?: 0L
+                    val appId = (getValue(c, Events.SYNC_DATA1, "0") ?: "0").toLong()
                     items.add(arrayOf(eventId, dirty, lastSynced, appId))
                 }
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem loading Base-Data!")
+            insertLogException(this.db, ex, "calendars", "Problem loading Base-Data!")
         }
         return items
     }
@@ -140,9 +133,9 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
             val args = arrayOf("$id")
             val values = ContentValues()
             values.put(Events.DELETED, 1)
-            this.contentResolver.update(asSyncAdapter(Events.CONTENT_URI), values, where, args)
+            this.contentResolver.update(asSyncAdapter(Events.CONTENT_URI, this.account), values, where, args)
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem deleting item from phone!")
+            insertLogException(this.db, ex, "calendars", "Problem deleting item from phone!")
         }
     }
 
@@ -150,7 +143,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
         try {
             this.db.calendarEventDao().deleteCalendarEvent(id)
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem deleting item from app!")
+            insertLogException(this.db, ex, "calendars", "Problem deleting item from app!")
         }
     }
 
@@ -162,7 +155,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 this.connectOrUpdatePhoneItem(appItem)
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem insert phone item in app!")
+            insertLogException(this.db, ex, "calendars", "Problem insert phone item in app!")
         }
     }
 
@@ -173,9 +166,8 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 val phoneItem = this.insertOrUpdatePhoneEvent(appItem)
                 this.connectOrUpdateAppItem(phoneItem)
             }
-            android.util.Log.d("Sync Calendar", "Insert item $id")
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem insert app item in phone!")
+            insertLogException(this.db, ex, "calendars", "Problem insert app item in phone!")
         }
     }
 
@@ -187,7 +179,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 this.connectOrUpdatePhoneItem(appItem)
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem updating app item in phone!")
+            insertLogException(this.db, ex, "calendars", "Problem updating app item in phone!")
         }
     }
 
@@ -199,7 +191,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 this.connectOrUpdateAppItem(phoneItem)
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem updating phone item in app!")
+            insertLogException(this.db, ex, "calendars", "Problem updating phone item in app!")
         }
     }
 
@@ -209,7 +201,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
             val events = this.db.calendarEventDao().getAll(this.authId)
             event = events.find { it.id == id }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem fetching app-event")
+            insertLogException(this.db, ex, "calendars", "Problem fetching app-event")
         }
         return event
     }
@@ -225,25 +217,25 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
             val where = "${Events._ID}=?"
             val args = arrayOf("$id")
 
-            val cursor = this.contentResolver.query(asSyncAdapter(Events.CONTENT_URI), projection, where, args, null)
+            val cursor = this.contentResolver.query(asSyncAdapter(Events.CONTENT_URI, this.account), projection, where, args, null)
             cursor?.use { c ->
                 while(c.moveToNext()) {
-                    val title = this.getValue(c, Events.TITLE, "") ?: ""
-                    val calendar = calendars?.get(this.getValue(c, Events.CALENDAR_ID, 0L) ?: 0L) ?: ""
-                    val start = this.getValue(c, Events.DTSTART, 0L) ?: 0L
-                    val end = this.getValue(c, Events.DTEND, 0L) ?: 0L
-                    val rrule = this.rrulePhoneToRRuleApp(this.getValue(c, Events.RRULE, "") ?: "")
-                    val status = when(this.getValue(c, Events.STATUS, 0) ?: 0) {
+                    val title = getValue(c, Events.TITLE, "") ?: ""
+                    val calendar = calendars?.get(getValue(c, Events.CALENDAR_ID, 0L) ?: 0L) ?: ""
+                    val start = getValue(c, Events.DTSTART, 0L) ?: 0L
+                    val end = getValue(c, Events.DTEND, 0L) ?: 0L
+                    val rrule = this.rrulePhoneToRRuleApp(getValue(c, Events.RRULE, "") ?: "")
+                    val status = when(getValue(c, Events.STATUS, 0) ?: 0) {
                         Events.STATUS_CONFIRMED -> "confirmed"
                         Events.STATUS_CANCELED -> "cancelled"
                         Events.STATUS_TENTATIVE -> "tentative"
                         else -> "confirmed"
                     }
-                    val color = this.getValue(c, Events.EVENT_COLOR, "") ?: ""
-                    val location = this.getValue(c, Events.EVENT_LOCATION, "") ?: ""
-                    val description = this.getValue(c, Events.DESCRIPTION, "") ?: ""
-                    val appId = this.getValue(c, Events.SYNC_DATA1, "") ?: ""
-                    val lastSynced = this.getValue(c, Events.LAST_SYNCED, 0L) ?: 0L
+                    val color = getValue(c, Events.EVENT_COLOR, "") ?: ""
+                    val location = getValue(c, Events.EVENT_LOCATION, "") ?: ""
+                    val description = getValue(c, Events.DESCRIPTION, "") ?: ""
+                    val appId = getValue(c, Events.SYNC_DATA1, "") ?: ""
+                    val lastSynced = getValue(c, Events.LAST_SYNCED, 0L) ?: 0L
 
                     event = CalendarEvent(
                         id = id,
@@ -262,11 +254,11 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                         lastUpdatedEventPhone = lastSynced,
                         recurrence = rrule
                     )
-                    event.lastUpdatedEventApp = lastSynced
+                    event!!.lastUpdatedEventApp = lastSynced
                 }
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem fetching phone-event", event)
+            insertLogException(this.db, ex, "calendars", "Problem fetching phone-event", event)
         }
         return event
     }
@@ -285,7 +277,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 this.db.calendarEventDao().updateCalendarEvent(event)
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem insert or update app-event", event)
+            insertLogException(this.db, ex, "calendars", "Problem insert or update app-event", event)
         }
         return event
     }
@@ -339,17 +331,17 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 calendarEvent.lastUpdatedEventApp = ts
 
                 if(calendarEvent.eventId.isEmpty()) {
-                    val uri = this.contentResolver.insert(asSyncAdapter(Events.CONTENT_URI), contentValues)
+                    val uri = this.contentResolver.insert(asSyncAdapter(Events.CONTENT_URI, this.account), contentValues)
                     val eventId = ContentUris.parseId(uri!!)
                     calendarEvent.eventId = "$eventId"
                 } else {
                     val where = "${Events._ID}=?"
                     val args = arrayOf(calendarEvent.eventId)
-                    this.contentResolver.update(asSyncAdapter(Events.CONTENT_URI), contentValues, where, args)
+                    this.contentResolver.update(asSyncAdapter(Events.CONTENT_URI, this.account), contentValues, where, args)
                 }
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem updating or inserting phone-calendar!", appEvent = calendarEvent)
+            insertLogException(this.db, ex, "calendars", "Problem updating or inserting phone-calendar!", app = calendarEvent)
         }
         return calendarEvent
     }
@@ -364,7 +356,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 this.db.calendarEventDao().updateCalendarEvent(item)
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem connecting or updating app-calendar!", phoneEvent = phoneItem)
+            insertLogException(this.db, ex, "calendars", "Problem connecting or updating app-calendar!", phone = phoneItem)
         }
     }
 
@@ -377,9 +369,9 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
 
             val where = "${Events._ID}=?"
             val args = arrayOf(appItem.eventId)
-            this.contentResolver.update(asSyncAdapter(Events.CONTENT_URI), values, where, args)
+            this.contentResolver.update(asSyncAdapter(Events.CONTENT_URI, this.account), values, where, args)
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem connecting or updating phone-calendar!", appEvent = appItem)
+            insertLogException(this.db, ex, "calendars", "Problem connecting or updating phone-calendar!", app = appItem)
         }
     }
 
@@ -529,7 +521,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
         val calendars = mutableMapOf<Long, String>()
 
         try {
-            val calendarUri = this.asSyncAdapter(Calendars.CONTENT_URI)
+            val calendarUri = asSyncAdapter(Calendars.CONTENT_URI, this.account)
             val projection = arrayOf(Calendars._ID, Calendars.NAME)
             val whereClause = "${Calendars.DELETED}=?"
             val whereArgs = arrayOf("0")
@@ -538,8 +530,8 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
             val cursor = this.contentResolver.query(calendarUri, projection, whereClause, whereArgs, order)
             cursor?.use { c ->
                 while(c.moveToNext()) {
-                    val id = this.getValue(c, Calendars._ID, 0L) ?: 0L
-                    val name = this.getValue(c, Calendars.NAME, "") ?: ""
+                    val id = getValue(c, Calendars._ID, 0L) ?: 0L
+                    val name = getValue(c, Calendars.NAME, "") ?: ""
 
                     if(!calendars.containsKey(id)) {
                         calendars[id] = name
@@ -547,7 +539,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 }
             }
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem fetching Calendars!")
+            insertLogException(this.db, ex, "calendars", "Problem fetching Calendars!")
         }
         return calendars
     }
@@ -555,7 +547,7 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
     private fun getOrCreateCalendar(name: String, label: String): Long {
         var id = -1L
         try {
-            val calendarUri = this.asSyncAdapter(Calendars.CONTENT_URI)
+            val calendarUri = asSyncAdapter(Calendars.CONTENT_URI, this.account)
             if(this.calendars == null) {
                 this.calendars = this.getPhoneCalendars()
             }
@@ -584,74 +576,8 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
             }
             this.calendars = this.getPhoneCalendars()
         } catch (ex: Exception) {
-            this.insertLogException(ex, "Problem fetching Calendars!")
+            insertLogException(this.db, ex, "calendars", "Problem fetching Calendars!")
         }
         return id
-    }
-
-
-    private fun insertLogException(ex: Exception, msg: String = "", phoneEvent: CalendarEvent? = null, appEvent: CalendarEvent? = null) {
-        try {
-            var message = ""
-            if(msg.isNotEmpty()) {
-                message = "${msg}:\n"
-            }
-            message += "${ex.message}:\n${ex.stackTraceToString()}"
-
-            val log = Log(
-                date = Date(),
-                itemType = "calendars",
-                messageType = "error",
-                message = message,
-                object1 = phoneEvent?.toString() ?: "",
-                object2 = appEvent?.toString() ?: ""
-            )
-            this.db.logDao().insertItem(log)
-            android.util.Log.e("Exception", "An Error happens!", ex)
-        } catch (_: Exception) {}
-    }
-
-    private fun insertLogMessage(msg: String, phoneEvent: CalendarEvent? = null, appEvent: CalendarEvent? = null) {
-        try {
-            val log = Log(
-                date = Date(),
-                itemType = "calendars",
-                messageType = "info",
-                message = msg,
-                object1 = phoneEvent?.toString() ?: "",
-                object2 = appEvent?.toString() ?: ""
-            )
-            this.db.logDao().insertItem(log)
-        } catch (_: Exception) {}
-    }
-
-    @Throws(java.lang.Exception::class)
-    private fun asSyncAdapter(uri: Uri): Uri {
-        return if(this.account != null) {
-            uri.buildUpon()
-                .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
-                .appendQueryParameter(Calendars.ACCOUNT_NAME, this.account.name)
-                .appendQueryParameter(Calendars.ACCOUNT_TYPE, this.account.type).build()
-        } else {
-            uri
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun <T> getValue(cursor: Cursor, column: String, default: T): T? {
-        val index = cursor.getColumnIndex(column)
-        return if(index >= 0) {
-            when(default) {
-                is String -> cursor.getString(index) as T?
-                is Int -> cursor.getInt(index) as T?
-                is Long -> cursor.getLong(index) as T?
-                is Float -> cursor.getFloat(index) as T?
-                is Double -> cursor.getDouble(index) as T?
-                is ByteArray -> cursor.getBlob(index) as T?
-                else -> null
-            }
-        } else {
-            default
-        }
     }
 }
