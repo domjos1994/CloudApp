@@ -79,7 +79,7 @@ class DropDownTest {
                 val items = mutableListOf<String>()
                 items.add(test1)
                 items.add(test2)
-                DropDown(items = items, initial = initial, onSelected = {selectedItem=it}, label = test)
+                Dropdown(list = items, value = initial, onValueChange = {selectedItem=it}, label = test)
                 Text("$selected: $selectedItem")
             }
         }

@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.features.calendars.screens
 
+import de.domjos.cloudapp2.appbasics.custom.Dropdown
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -20,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DateRange
@@ -30,8 +30,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
@@ -76,7 +74,6 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
-import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
@@ -238,10 +235,11 @@ fun CalendarScreen(
                     }
                     .background(colorBackground)) {
                 Row(Modifier.padding(5.dp)) {
-                    DropDown(
-                        calendars.map { it.label }, initial,
-                        {onCalendarSelected(calendars.find { elem -> elem.label == it }!!.name)},
-                        stringResource(R.string.calendars),
+                    Dropdown(
+                        value = initial,
+                        onValueChange = {onCalendarSelected(calendars.find { elem -> elem.label == it }!!.name)},
+                        list = calendars.map { it.label },
+                        label = stringResource(R.string.calendars),
                         colorForeground = colorForeground,
                         colorBackground = colorBackground
                     )
@@ -384,7 +382,12 @@ fun CalendarScreen(
                     }
                     .verticalScroll(rememberScrollState())) {
                 Row {
-                    DropDown(calendars.map { it.name }, initial, onCalendarSelected, stringResource(R.string.calendars))
+                    Dropdown(
+                        value = initial,
+                        onValueChange = onCalendarSelected,
+                        list = calendars.map { it.name },
+                        label = stringResource(R.string.calendars)
+                    )
                     Separator(colorForeground)
                 }
                 Row {
@@ -961,11 +964,10 @@ fun NewEditDialog(
     var categories by remember { mutableStateOf(TextFieldValue(event?.categories ?: "")) }
     var calendar by remember {
         mutableStateOf(
-            TextFieldValue(calendars.find { it.name == (event?.calendar ?: "") }?.label ?: "")
+            calendars.find { it.name == (event?.calendar ?: "") }?.label ?: ""
         )
     }
-    var isCalendarValid by remember { mutableStateOf(calendar.text.isNotEmpty()) }
-    var showDropDown by remember { mutableStateOf(false) }
+    var isCalendarValid by remember { mutableStateOf(calendar.isNotEmpty()) }
 
     Dialog(
         onDismissRequest = {onShowDialog(false)},
@@ -1161,31 +1163,16 @@ fun NewEditDialog(
                             .fillMaxWidth()
                             .padding(5.dp)
                     ) {
-                        OutlinedTextField(
+                        Dropdown(
                             value = calendar,
-                            trailingIcon = {
-                                IconButton(onClick = { showDropDown = !showDropDown }) {
-                                    Icon(Icons.Default.ArrowDropDown,
-                                        contentDescription = stringResource(R.string.calendars)
-                                    )
-                                }
-                            },
                             onValueChange = {
+                                isCalendarValid = it.isNotEmpty()
                                 calendar = it
                             },
-                            label = {Text(stringResource(id = R.string.calendars))},
-                            isError = !isCalendarValid,
-                            modifier = Modifier.fillMaxWidth()
+                            list = calendars.map { it.label },
+                            label = stringResource(R.string.calendars),
+                            isError = !isCalendarValid
                         )
-                        DropdownMenu(showDropDown, {showDropDown = false}) {
-                            calendars.filter { it.label.isNotEmpty() }.forEach {
-                                DropdownMenuItem({Text(it.label)}, onClick = {
-                                    calendar = TextFieldValue(it.label)
-                                    isCalendarValid = calendar.text.isNotEmpty()
-                                    showDropDown = false
-                                })
-                            }
-                        }
                     }
                 }
                 HorizontalDivider()
@@ -1198,7 +1185,7 @@ fun NewEditDialog(
                                 val lastUpdatedApp = event?.lastUpdatedEventApp ?: -1L
                                 val lastUpdatedPhone = event?.lastUpdatedEventPhone ?: -1L
                                 val lastUpdatedServer = event?.lastUpdatedEventServer ?: -1
-                                val cName = calendars.find { it.label == calendar.text }?.name ?: ""
+                                val cName = calendars.find { it.label == calendar }?.name ?: ""
 
                                 val calendarEvent = CalendarEvent(
                                     id, uid, dateToString(from), dateToString(to), title.text,
@@ -1239,7 +1226,7 @@ fun NewEditDialog(
                             val lastUpdatedApp = event?.lastUpdatedEventApp ?: -1L
                             val lastUpdatedPhone = event?.lastUpdatedEventPhone ?: -1L
                             val lastUpdatedServer = event?.lastUpdatedEventServer ?: -1
-                            val cName = calendars.find { it.label == calendar.text }?.name ?: ""
+                            val cName = calendars.find { it.label == calendar }?.name ?: ""
 
                             val calendarEvent = CalendarEvent(
                                 id, uid, dateToString(from), dateToString(to), title.text,

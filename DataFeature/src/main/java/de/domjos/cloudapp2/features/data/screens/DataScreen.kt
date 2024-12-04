@@ -34,7 +34,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
@@ -44,8 +43,6 @@ import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -86,6 +83,7 @@ import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ConfirmationDialog
+import de.domjos.cloudapp2.appbasics.custom.Dropdown
 import de.domjos.cloudapp2.appbasics.custom.FabItem
 import de.domjos.cloudapp2.appbasics.custom.LoadingItem
 import de.domjos.cloudapp2.appbasics.custom.MultiFloatingActionButton
@@ -604,7 +602,7 @@ fun ShareDialog(
     onDelete: (Int) -> Unit) {
 
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    var shareType by remember { mutableStateOf(TextFieldValue(if(share != null) Types.fromInt(share.share_type).name else "")) }
+    var shareType by remember { mutableStateOf(if(share != null) Types.fromInt(share.share_type).name else "") }
     var shareName by remember { mutableStateOf(TextFieldValue(share?.share_with ?: "")) }
     var isShareNameValid by remember { mutableStateOf(share?.share_with?.isNotEmpty() ?: false) }
     var permission by remember { mutableStateOf(intToPermissions(share?.permissions ?: 1)) }
@@ -615,7 +613,6 @@ fun ShareDialog(
     var isNoteValid by remember { mutableStateOf(false) }
     val isUpdate by remember { mutableStateOf((share?.id ?: 0L) != 0L) }
     var isExpireDateValid by remember { mutableStateOf(true) }
-    var showDropDown by remember { mutableStateOf(false) }
     val permissions = Permissions.entries.map { it.name }
 
     Dialog(
@@ -632,25 +629,13 @@ fun ShareDialog(
                             .padding(5.dp)
                             .fillMaxWidth()
                     ) {
-                        OutlinedTextField(
+                        Dropdown(
                             value = shareType,
                             onValueChange = {shareType = it},
-                            label = {Text(stringResource(R.string.data_shared_type))},
-                            trailingIcon = {
-                                IconButton({showDropDown=!showDropDown}) {
-                                    Icon(Icons.Default.ArrowDropDown, stringResource(R.string.data_shared_type))
-                                }
-                            },
+                            list = Types.entries.map { it.name },
+                            label = stringResource(R.string.data_shared_type),
                             modifier = Modifier.fillMaxWidth()
                         )
-                        DropdownMenu(showDropDown, {showDropDown = false}) {
-                            Types.entries.forEach { entry ->
-                                DropdownMenuItem({Text(entry.name)}, onClick =  {
-                                    shareType = TextFieldValue(entry.name)
-                                    showDropDown = false
-                                })
-                            }
-                        }
                     }
                     Row(
                         Modifier
@@ -660,11 +645,11 @@ fun ShareDialog(
                             value = shareName,
                             onValueChange = {
                                 shareName = it
-                                isShareNameValid = Validator.check(shareType.text==Types.fromInt(3).name, 1, 255, it.text)
+                                isShareNameValid = Validator.check(shareType==Types.fromInt(3).name, 1, 255, it.text)
                             },
                             label = {Text(stringResource(R.string.data_shared_name))},
                             onAutoCompleteChange = {
-                                onAutoComplete(it.text, Types.fromString(shareType.text))
+                                onAutoComplete(it.text, Types.fromString(shareType))
                             },
                             multi = true,
                             isError = !isShareNameValid
@@ -789,7 +774,7 @@ fun ShareDialog(
                             } else {
                                 val path = item.path
                                 val insertShare = InsertShare(
-                                    path, Types.toInt(Types.fromString(shareType.text)), shareName.text, publicUpload, password.text,
+                                    path, Types.toInt(Types.fromString(shareType)), shareName.text, publicUpload, password.text,
                                     permVal, expireDate.text, note.text
                                 )
                                 onInsert(insertShare)

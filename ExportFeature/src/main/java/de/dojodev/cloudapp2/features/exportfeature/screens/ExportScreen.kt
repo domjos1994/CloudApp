@@ -13,14 +13,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -45,6 +39,7 @@ import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.custom.Dropdown
 
 @Composable
 fun ExportScreen(viewModel: ExportViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, id: Long? = null) {
@@ -84,8 +79,8 @@ fun ExportScreen(
         val (nameAndExt, type, open, label, export) = createRefs()
 
         var valName by remember { mutableStateOf(TextFieldValue("")) }
-        var valExtension by remember { mutableStateOf(TextFieldValue("")) }
-        var valType by remember { mutableStateOf(TextFieldValue("")) }
+        var valExtension by remember { mutableStateOf("") }
+        var valType by remember { mutableStateOf("") }
         var valOpen by remember { mutableStateOf(false) }
         var valLabel by remember { mutableStateOf("") }
 
@@ -101,7 +96,6 @@ fun ExportScreen(
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         }.padding(1.dp)) {
-            var showExtensionDropDown by remember { mutableStateOf(false) }
             OutlinedTextField(
                 value = valName,
                 onValueChange = {va -> valName = va},
@@ -116,76 +110,35 @@ fun ExportScreen(
                     unfocusedBorderColor = colorForeground
                 )
             )
-            OutlinedTextField(
+            Dropdown(
                 value = valExtension,
-                onValueChange = {va -> valExtension = va},
-                label = {Text(text = stringResource(R.string.export_extensions), color = colorForeground)},
-                modifier = Modifier.weight(5f),
-                trailingIcon = {
-                    IconButton({showExtensionDropDown=!showExtensionDropDown}) {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            stringResource(R.string.export_extensions),
-                            tint = colorForeground
-                        )
-                    }
+                onValueChange = {va ->
+                    valExtension = va
+                    getTypes(va)
                 },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = colorForeground,
-                    unfocusedTextColor = colorForeground,
-                    focusedSupportingTextColor = colorForeground,
-                    unfocusedSupportingTextColor = colorForeground,
-                    focusedBorderColor = colorForeground,
-                    unfocusedBorderColor = colorForeground
-                )
+                list = extensions,
+                modifier = Modifier.weight(5f),
+                label = stringResource(R.string.export_extensions),
+                colorForeground = colorForeground,
+                colorBackground = colorBackground
             )
-            DropdownMenu(showExtensionDropDown, {showExtensionDropDown=false}) {
-                extensions.forEach { extension ->
-                    DropdownMenuItem({Text(extension)}, onClick = {
-                        valExtension = TextFieldValue(extension)
-                        showExtensionDropDown = false
-                        getTypes(extension)
-                    })
-                }
-            }
         }
         Row(Modifier.constrainAs(type) {
             top.linkTo(nameAndExt.bottom)
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         }.padding(1.dp)) {
-            var showTypeDropDown by remember { mutableStateOf(false) }
-            OutlinedTextField(
+            Dropdown(
                 value = valType,
-                onValueChange = {va -> valType = va},
-                label = {Text(text = stringResource(R.string.export_types), color = colorForeground)},
-                modifier = Modifier.weight(10f),
-                trailingIcon = {
-                    IconButton({showTypeDropDown=!showTypeDropDown}) {
-                        Icon(
-                            Icons.Default.ArrowDropDown,
-                            stringResource(R.string.export_types),
-                            tint = colorForeground
-                        )
-                    }
+                onValueChange = {
+                    valType = it
                 },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = colorForeground,
-                    unfocusedTextColor = colorForeground,
-                    focusedSupportingTextColor = colorForeground,
-                    unfocusedSupportingTextColor = colorForeground,
-                    focusedBorderColor = colorForeground,
-                    unfocusedBorderColor = colorForeground
-                )
+                list = types,
+                modifier = Modifier.weight(10f),
+                colorForeground = colorForeground,
+                colorBackground = colorBackground,
+                label =  stringResource(R.string.export_types)
             )
-            DropdownMenu(showTypeDropDown, {showTypeDropDown=false}) {
-                types.forEach { type ->
-                    DropdownMenuItem({Text(type)}, onClick = {
-                        valType = TextFieldValue(type)
-                        showTypeDropDown = false
-                    })
-                }
-            }
         }
         Row(Modifier.constrainAs(open) {
             top.linkTo(type.bottom)
@@ -212,7 +165,7 @@ fun ExportScreen(
             start.linkTo(parent.start)
             end.linkTo(parent.end)
         }.padding(1.dp)) {
-            Button({doExport(valType.text, valName.text, valOpen)}, Modifier.fillMaxWidth()) {
+            Button({doExport(valType, valName.text, valOpen)}, Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.export_do), color = colorForeground)
             }
         }
@@ -223,8 +176,8 @@ fun ExportScreen(
 @Composable
 fun ExportScreenPreview() {
     CloudAppTheme {
-        val extensions = listOf<String>("txt", "pdf", "vcf", "ics")
-        val types = listOf<String>("Notifications", "Notes", "Chats")
+        val extensions = listOf("txt", "pdf", "vcf", "ics")
+        val types = listOf("Notifications", "Notes", "Chats")
 
         ExportScreen(extensions, types, {}, {_,_,_->}, colorBackground = Color.Blue, colorForeground = Color.White)
     }

@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.features.contacts.screens
 
+import de.domjos.cloudapp2.appbasics.custom.Dropdown
 import android.content.ContentResolver
 import android.content.Context
 import android.content.res.Configuration
@@ -86,7 +87,6 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
-import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
@@ -254,13 +254,14 @@ fun ContactScreen(
             Column {
                 val context = LocalContext.current
                 Row(Modifier.background(colorBackground).padding(5.dp)) {
-                    DropDown(
-                        addressBooks.values.toList(),
-                        all,
-                        onSelectedAddressBook,
-                        stringResource(R.string.contacts_book),
-                        colorBackground, colorForeground
-                        )
+                    Dropdown(
+                        list = addressBooks.values.toList(),
+                        value = all,
+                        onValueChange = onSelectedAddressBook,
+                        label = stringResource(R.string.contacts_book),
+                        colorBackground = colorBackground,
+                        colorForeground = colorForeground
+                    )
                 }
                 HorizontalDivider(color = colorForeground)
 

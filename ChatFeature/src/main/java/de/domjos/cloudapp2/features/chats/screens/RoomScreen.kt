@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.features.chats.screens
 
+import de.domjos.cloudapp2.appbasics.custom.Dropdown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,7 +50,6 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
-import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
@@ -256,10 +256,10 @@ fun EditDialog(
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    DropDown(
-                        items = Type.entries.toList().map { it.name },
-                        initial = Type.FormerOneToOne.name,
-                        onSelected = { type = it },
+                    Dropdown(
+                        value = Type.FormerOneToOne.name,
+                        onValueChange = { type = it},
+                        list = Type.entries.toList().map { it.name },
                         label = stringResource(R.string.chats_rooms_type)
                     )
                 }
@@ -291,17 +291,18 @@ fun EditDialog(
                     val items = mutableListOf<String>()
                     users.forEach {items.add(it?.displayname?:"")}
 
-                    DropDown(
-                        items = items,
-                        initial = invite,
+                    Dropdown(
+                        list = items,
+                        value = invite,
                         label = stringResource(R.string.chats_rooms_participant),
-                        onSelected = { selected ->
-                        users.forEach {
-                            if(it?.displayname == selected) {
-                                invite = it.id
+                        onValueChange = { selected ->
+                            users.forEach {
+                                if(it?.displayname == selected) {
+                                    invite = it.id
+                                }
                             }
                         }
-                    })
+                    )
                 }
                 Row(
                     modifier = Modifier

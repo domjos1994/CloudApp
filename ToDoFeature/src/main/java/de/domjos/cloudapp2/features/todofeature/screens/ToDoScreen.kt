@@ -6,6 +6,7 @@
 
 package de.domjos.cloudapp2.features.todofeature.screens
 
+import de.domjos.cloudapp2.appbasics.custom.Dropdown
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -24,14 +25,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -66,7 +64,6 @@ import de.domjos.cloudapp2.database.dao.ListTuple
 import de.domjos.cloudapp2.database.model.todo.ToDoItem
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
-import de.domjos.cloudapp2.appbasics.custom.DropDown
 import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
@@ -277,14 +274,13 @@ fun ListDropDown(
     colorForeground: Color) {
 
     var dialog by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
 
     Column(Modifier.height(70.dp)) {
         Row(Modifier.fillMaxWidth().height(69.dp).background(colorBackground)) {
             Column(Modifier.weight(9f).padding(5.dp)) {
-                OutlinedTextField(
-                    selected?.name ?: "",
-                    { text ->
+                Dropdown(
+                    value = selected?.name ?: "",
+                    onValueChange = { text ->
                         val find = lists.find { tmp -> tmp.name == text }
                         if(find?.uid != null) {
                             onSelectList(find)
@@ -292,42 +288,12 @@ fun ListDropDown(
                             onSelectList(null)
                         }
                     },
-                    label = {
-                        Text(
-                            stringResource(R.string.todos_list),
-                            color = colorForeground
-                        )
-                    },
+                    list = lists.map { it.toString() },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = colorForeground,
-                        unfocusedTextColor = colorForeground,
-                        focusedSupportingTextColor = colorForeground,
-                        unfocusedSupportingTextColor = colorForeground,
-                        focusedBorderColor = colorForeground,
-                        unfocusedBorderColor = colorForeground
-                    ),
-                    trailingIcon = {
-                        IconButton({
-                            expanded = !expanded
-                        }) {
-                            Icon(Icons.Default.ArrowDropDown, "Open Dropdown")
-                        }
-                    },
-                    readOnly = true
+                    label = stringResource(R.string.todos_list),
+                    colorForeground = colorForeground,
+                    colorBackground = colorBackground
                 )
-                DropdownMenu(expanded, onDismissRequest = {expanded=false}) {
-                    lists.filter { it.toString().isNotEmpty() }.forEach { listItem ->
-                        DropdownMenuItem({Text(listItem.toString())}, {
-                            if(listItem.uid != null) {
-                                onSelectList(listItem)
-                            } else {
-                                onSelectList(null)
-                            }
-                            expanded = !expanded
-                        })
-                    }
-                }
             }
             Column(
                 Modifier.weight(1f).height(69.dp).padding(5.dp),
@@ -587,10 +553,10 @@ fun ToDoDialog(
                     )
                 }
                 Row(Modifier.padding(5.dp)) {
-                    DropDown(
-                        items = statusLabelList.keys.toList(),
-                        initial = status,
-                        onSelected = { status = it },
+                    Dropdown(
+                        list = statusLabelList.keys.toList(),
+                        value = status,
+                        onValueChange = { status = it },
                         label = stringResource(R.string.todos_status),
                         colorBackground = colorBackground,
                         colorForeground = colorForeground

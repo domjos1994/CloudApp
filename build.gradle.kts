@@ -13,7 +13,7 @@ buildscript {
     extra.apply {
         set("java_version", "17")
         set("java_jvm", JavaVersion.VERSION_17)
-        set("sdk_compile", 34)
+        set("sdk_compile", 35)
         set("sdk_min", 26)
         set("compose_version", "1.5.8")
         set("version", 24)
