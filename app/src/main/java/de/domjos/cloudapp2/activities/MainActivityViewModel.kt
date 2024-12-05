@@ -13,6 +13,7 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.appbasics.navigation.FooterItem
+import de.domjos.cloudapp2.appbasics.navigation.View
 import de.domjos.cloudapp2.data.Settings
 import de.domjos.cloudapp2.data.repository.AuthenticationRepository
 import de.domjos.cloudapp2.database.model.Authentication
@@ -35,6 +36,24 @@ class MainActivityViewModel @Inject constructor(
                 result(auth)
             }
         }
+    }
+
+    fun setViewMode(onFinish: (View) -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val item = settings.getSetting(Settings.footerViewModeKey, "Icon")
+            val view = try {
+                View.valueOf(item)
+            } catch (_: Exception) {View.Icon}
+            onFinish(view)
+        }
+    }
+
+    fun viewMode(): String {
+        var result = "Icon"
+        viewModelScope.launch(Dispatchers.IO) {
+            result = settings.getSetting(Settings.footerViewModeKey, "Icon")
+        }
+        return result
     }
 
     fun setVisibility(items: MutableList<FooterItem>, onFinish: (MutableList<FooterItem>) -> Unit) {

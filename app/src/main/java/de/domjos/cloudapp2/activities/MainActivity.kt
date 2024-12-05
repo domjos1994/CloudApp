@@ -177,6 +177,8 @@ class MainActivity : ComponentActivity() {
             val toAuths = {navController.navigate(authentications)}
             val toPermissions = {navController.navigate(permissions)}
             var tabBarVisible by remember { mutableStateOf(true) }
+            var viewMode by remember { mutableStateOf(View.Icon) }
+            val viewModeUpdate: () -> Unit = {viewModel.setViewMode { l -> viewMode = l }}
             val back = {
                 navController.navigate(notificationsTab.title)
                 tabBarVisible = true
@@ -321,6 +323,7 @@ class MainActivity : ComponentActivity() {
 
             val updateNavBar: () -> Unit = {
                 viewModel.setVisibility(tabBarItems) { items -> tabBarItems = items }
+                viewModeUpdate()
             }
 
             val updateWidgets: () -> Unit = {
@@ -334,8 +337,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val view = viewModel.viewMode()
 
             LaunchedEffect(isConnected) {
+                viewModeUpdate()
                 updateTheme(null)
                 initWorker()
                 initSyncAdapter()
@@ -346,6 +351,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            LaunchedEffect(view) {
+                viewModeUpdate()
+            }
+
             CloudAppTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -354,7 +363,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     Scaffold(
-                        bottomBar = { FooterMenu(View.Icon, tabBarItems, navController, updateNavBar, tabBarVisible) },
+                        bottomBar = { FooterMenu(viewMode, tabBarItems, navController, updateNavBar, tabBarVisible) },
                         topBar = {
                             Column {
                                 Row {
@@ -452,7 +461,9 @@ class MainActivity : ComponentActivity() {
                                            if(menuExpanded) {
                                                Menu(
                                                    {menuExpanded = it},
-                                                   updateTheme, updateNavBar,
+                                                   updateTheme,
+                                                   viewModeUpdate,
+                                                   updateNavBar,
                                                    true,
                                                    {navController.navigate(settings)},
                                                    {navController.navigate(permissions)},
@@ -612,9 +623,21 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, updateNavBar: () -> Unit, expanded: Boolean, onSettings: () -> Unit, onPermissions: () -> Unit, onExport: () -> Unit, onLog: () -> Unit) {
+fun Menu(
+    onExpanded: (Boolean) -> Unit,
+    updateTheme: (Authentication?) -> Unit,
+    viewModeUpdate: () -> Unit,
+    updateNavBar: () -> Unit,
+    expanded: Boolean, onSettings: () -> Unit,
+    onPermissions: () -> Unit,
+    onExport: () -> Unit,
+    onLog: () -> Unit) {
+
     val context = LocalContext.current
-    DropdownMenu(expanded = expanded, onDismissRequest = { onExpanded(false) }) {
+    DropdownMenu(expanded = expanded, onDismissRequest = {
+        onExpanded(false)
+        viewModeUpdate()
+    }) {
         DropdownMenuItem(text = {
             Row {
                 Column(Modifier.weight(1f)) {
@@ -625,6 +648,7 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
                 }
             }
         }, onClick = {
+            viewModeUpdate()
             updateTheme(null)
             updateNavBar()
             onExport()
@@ -640,6 +664,7 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
                 }
             }
         }, onClick = {
+            viewModeUpdate()
             updateTheme(null)
             updateNavBar()
             onSettings()
@@ -656,6 +681,7 @@ fun Menu(onExpanded: (Boolean) -> Unit, updateTheme: (Authentication?) -> Unit, 
                 }
             }
         }, onClick = {
+            viewModeUpdate()
             updateTheme(null)
             updateNavBar()
             onPermissions()
