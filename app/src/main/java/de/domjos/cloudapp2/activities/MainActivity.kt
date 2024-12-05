@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.provider.CalendarContract
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -42,8 +40,6 @@ import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Refresh
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,8 +47,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -60,30 +54,23 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -107,6 +94,9 @@ import de.domjos.cloudapp2.appbasics.helper.Notifications
 import de.domjos.cloudapp2.appbasics.helper.ProgressDialog
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.appbasics.helper.connectivityType
+import de.domjos.cloudapp2.appbasics.navigation.FooterItem
+import de.domjos.cloudapp2.appbasics.navigation.FooterMenu
+import de.domjos.cloudapp2.appbasics.navigation.View
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.screens.SettingsScreen
 import de.domjos.cloudapp2.features.calendars.screens.CalendarScreen
@@ -131,17 +121,6 @@ import de.domjos.cloudapp2.worker.CalendarWorker
 import de.domjos.cloudapp2.worker.ContactWorker
 import java.util.Locale
 
-
-data class TabBarItem(
-    val id: String,
-    val title: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    val badgeAmount: Int? = null,
-    val header: String = "",
-    var visible: Boolean = true
-)
-
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -156,17 +135,16 @@ class MainActivity : ComponentActivity() {
         setContent {
 
             // create tabs
-            val notificationsTab = TabBarItem(id="notifications", title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
-            val dataTab = TabBarItem(id="data", title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
-            val notesTab = TabBarItem(id="notes", title = stringResource(id = R.string.notes), selectedIcon = Icons.Filled.Create, unselectedIcon = Icons.Outlined.Create)
-            val calendarsTab = TabBarItem(id="calendars", title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
-            val contactsTab = TabBarItem(id="contacts", title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
-            val todosTab = TabBarItem(id="todos", title = stringResource(R.string.todos), selectedIcon = Icons.Filled.Check, unselectedIcon = Icons.Outlined.Check, header = stringResource(R.string.todos))
-            val roomTab = TabBarItem(id="rooms", title = stringResource(id = R.string.chats_room), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message, header = stringResource(id = R.string.chats))
-            val chatsTab = TabBarItem(id="chats", title = stringResource(id = R.string.chats), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message)
-
-            // creating a list of all the tabs
+            val notificationsTab = FooterItem(id="notifications", title = stringResource(id = R.string.notifications), selectedIcon = Icons.Filled.Notifications, unselectedIcon = Icons.Outlined.Notifications)
+            val dataTab = FooterItem(id="data", title = stringResource(id = R.string.data), selectedIcon = Icons.AutoMirrored.Filled.List, unselectedIcon = Icons.AutoMirrored.Outlined.List)
+            val notesTab = FooterItem(id="notes", title = stringResource(id = R.string.notes), selectedIcon = Icons.Filled.Create, unselectedIcon = Icons.Outlined.Create)
+            val calendarsTab = FooterItem(id="calendars", title = stringResource(id = R.string.calendars), selectedIcon = Icons.Filled.DateRange, unselectedIcon = Icons.Outlined.DateRange)
+            val contactsTab = FooterItem(id="contacts", title = stringResource(id = R.string.contacts), selectedIcon = Icons.Filled.Person, unselectedIcon = Icons.Outlined.Person)
+            val todosTab = FooterItem(id="todos", title = stringResource(R.string.todos), selectedIcon = Icons.Filled.Check, unselectedIcon = Icons.Outlined.Check, header = stringResource(R.string.todos))
+            val roomTab = FooterItem(id="rooms", title = stringResource(id = R.string.chats_room), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message, header = stringResource(id = R.string.chats))
+            val chatsTab = FooterItem(id="chats", title = stringResource(id = R.string.chats), selectedIcon = Icons.AutoMirrored.Filled.Message, unselectedIcon = Icons.AutoMirrored.Outlined.Message)
             var tabBarItems = remember { mutableListOf(notificationsTab, dataTab, notesTab, calendarsTab, contactsTab, todosTab, roomTab) }
+
             val authentications = stringResource(id = R.string.login_authentications)
             val settings = stringResource(id = R.string.settings)
             val permissions = stringResource(R.string.permissions)
@@ -198,10 +176,10 @@ class MainActivity : ComponentActivity() {
             var hasAuthentications by remember { mutableStateOf(viewModel.hasAuthentications()) }
             val toAuths = {navController.navigate(authentications)}
             val toPermissions = {navController.navigate(permissions)}
-            val tabBarVisible = remember { mutableStateOf(true) }
+            var tabBarVisible by remember { mutableStateOf(true) }
             val back = {
                 navController.navigate(notificationsTab.title)
-                tabBarVisible.value = true
+                tabBarVisible = true
             }
 
             viewModel.message.observe(LocalLifecycleOwner.current) { msg ->
@@ -376,7 +354,7 @@ class MainActivity : ComponentActivity() {
                 ) {
 
                     Scaffold(
-                        bottomBar = { TabView(tabBarItems, navController, tabBarVisible, updateNavBar) },
+                        bottomBar = { FooterMenu(View.Icon, tabBarItems, navController, updateNavBar, tabBarVisible) },
                         topBar = {
                             Column {
                                 Row {
@@ -510,7 +488,7 @@ class MainActivity : ComponentActivity() {
                                 title = notificationsTab.title
                                 header = notificationsTab.title
                                 refreshVisible = false
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(dataTab.title) {
@@ -524,7 +502,7 @@ class MainActivity : ComponentActivity() {
                                 title = dataTab.title
                                 header = dataTab.title
                                 refreshVisible = false
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(notesTab.title) {
@@ -532,7 +510,7 @@ class MainActivity : ComponentActivity() {
                                 title = notesTab.title
                                 header = notesTab.title
                                 refreshVisible = false
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(calendarsTab.title) {
@@ -541,7 +519,7 @@ class MainActivity : ComponentActivity() {
                                 header = calendarsTab.title
                                 refreshVisible = true
                                 progress = importCalendarAction()
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(contactsTab.title) {
@@ -556,7 +534,7 @@ class MainActivity : ComponentActivity() {
                                 header = contactsTab.title
                                 refreshVisible = true
                                 progress = importContactAction(hasInternet = true)
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(todosTab.title) {
@@ -565,7 +543,7 @@ class MainActivity : ComponentActivity() {
                                 header = todosTab.title
                                 refreshVisible = true
                                 progress = importToDoAction()
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(roomTab.title) {
@@ -575,7 +553,7 @@ class MainActivity : ComponentActivity() {
                                 title = chatsTab.title
                                 header = roomTab.title
                                 refreshVisible = false
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(
@@ -590,20 +568,20 @@ class MainActivity : ComponentActivity() {
                                 ChatScreen(lookIntoFuture = x, token = y, colorBackground = colorBackground, colorForeground = colorForeground)
                                 title = chatsTab.title
                                 header = chatsTab.title
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(settings) {
                                 title = settings
                                 header = settings
                                 SettingsScreen()
-                                tabBarVisible.value = true
+                                tabBarVisible = true
                                 breadcrumb = ""
                             }
                             composable(permissions) {
                                 title = permissions
                                 header = permissions
-                                tabBarVisible.value = false
+                                tabBarVisible = false
                                 PermissionScreen { back() }
                                 breadcrumb = ""
                             }
@@ -739,96 +717,4 @@ private fun openUrl(url: String, context: Context) {
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
-}
-
-@Composable
-fun TabView(tabBarItems: List<TabBarItem>, navController: NavController, visible: MutableState<Boolean>, updateNavBar: () -> Unit) {
-    var selectedTabIndex by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-    var height by remember { mutableStateOf(80.dp) }
-    var showText by remember { mutableStateOf(true) }
-    if(LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        height = 45.dp
-        showText = false
-    }
-
-    if(visible.value) {
-        NavigationBar(modifier = Modifier.height(height)) {
-            // looping over each tab to generate the views and navigation for each item
-            tabBarItems.forEachIndexed { index, tabBarItem ->
-                if(tabBarItem.visible) {
-                    NavigationBarItem(
-                        selected = selectedTabIndex == index,
-                        onClick = {
-                            updateNavBar()
-                            selectedTabIndex = index
-                            navController.navigate(tabBarItem.title)
-                        },
-                        icon = {
-                            TabBarIconView(
-                                isSelected = selectedTabIndex == index,
-                                selectedIcon = tabBarItem.selectedIcon,
-                                unselectedIcon = tabBarItem.unselectedIcon,
-                                title = if(tabBarItem.header=="") tabBarItem.title else tabBarItem.header,
-                                badgeAmount = tabBarItem.badgeAmount
-                            )
-                        },
-                        label = {
-                            if(showText && tabBarItems.filter { it.visible }.size < 7) {
-                                Text(
-                                    if (tabBarItem.header == "") tabBarItem.title else tabBarItem.header,
-                                    fontSize = 10.sp
-                                )
-                            }
-                        })
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TabBarIconView(
-    isSelected: Boolean,
-    selectedIcon: ImageVector,
-    unselectedIcon: ImageVector,
-    title: String,
-    badgeAmount: Int? = null
-) {
-    BadgedBox(
-        badge = { TabBarBadgeView(badgeAmount) }) {
-        Icon(
-            imageVector = if (isSelected) {selectedIcon} else {unselectedIcon},
-            contentDescription = title
-        )
-    }
-}
-
-@Composable
-fun TabBarBadgeView(count: Int? = null) {
-    if (count != null) {
-        Badge {
-            Text(count.toString())
-        }
-    }
-}
-
-
-@SuppressLint("UnrememberedMutableState")
-@Preview(showBackground = true)
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@PreviewScreenSizes
-@Composable
-fun TabBarPreview() {
-    val items = mutableListOf<TabBarItem>()
-    items.add(TabBarItem("Test 1", "Test 1", Icons.Filled.Person, Icons.Filled.Person, null, "Test 1"))
-    items.add(TabBarItem("Test 2", "Test 2", Icons.Filled.Person, Icons.Filled.Person, null, "Test 2"))
-    items.add(TabBarItem("Test 3", "Test 3", Icons.Filled.Person, Icons.Filled.Person, null, "Test 3"))
-    items.add(TabBarItem("Test 4", "Test 4", Icons.Filled.Person, Icons.Filled.Person, null, "Test 4"))
-    items.add(TabBarItem("Test 5", "Test 5", Icons.Filled.Person, Icons.Filled.Person, null, "Test 5"))
-
-    CloudAppTheme {
-        TabView(tabBarItems = items, navController = rememberNavController(), visible = mutableStateOf(true)) {}
-    }
 }

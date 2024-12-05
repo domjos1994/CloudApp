@@ -12,6 +12,7 @@ import androidx.work.ListenableWorker
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
+import de.domjos.cloudapp2.appbasics.navigation.FooterItem
 import de.domjos.cloudapp2.data.Settings
 import de.domjos.cloudapp2.data.repository.AuthenticationRepository
 import de.domjos.cloudapp2.database.model.Authentication
@@ -36,7 +37,7 @@ class MainActivityViewModel @Inject constructor(
         }
     }
 
-    fun setVisibility(items: MutableList<TabBarItem>, onFinish: (MutableList<TabBarItem>) -> Unit) {
+    fun setVisibility(items: MutableList<FooterItem>, onFinish: (MutableList<FooterItem>) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val tmp = authenticationRepository.getLoggedInUser()
