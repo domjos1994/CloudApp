@@ -82,7 +82,7 @@ enum class Type(val value: Int) {
     NoteToSelf(6);
 
     companion object {
-        fun fromInt(value: Int) = entries.first { it.value == value }
+        fun fromInt(value: Int, default: Type) = entries.find { it.value == value } ?: default
     }
 }
 

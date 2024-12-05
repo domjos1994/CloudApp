@@ -22,8 +22,8 @@
     <string name="settings_caldav_regularity_header">Regularity of Server-Synchronization (in Minutes)!</string>
     <string name="settings_calendar_regularity_title">Regularity of Calendar-Synchronization</string>
     <string name="settings_calendar_regularity_header">Regularity of Calendar-Synchronization (in Minutes)!</string>
-    <string name="settings_cardav_regularity_title">Regularity of Server-Synchronization</string>
-    <string name="settings_cardav_regularity_header">Regularity of Server-Synchronization (in Minutes)!</string>
+    <string name="settings_carDav_regularity_title">Regularity of Server-Synchronization</string>
+    <string name="settings_carDav_regularity_header">Regularity of Server-Synchronization (in Minutes)!</string>
     <string name="settings_data_show_internal_title">Files in Internal Viewer</string>
     <string name="settings_data_show_internal_header">Show Files in Internal Viewer</string>
     <string name="settings_data_show_pdf_title">PDF in Internal Viewer</string>
@@ -137,6 +137,12 @@
     <string name="data_shared_toast">The item "%s" was shared by "%s"!</string>
     <string name="data_went_wrong">Something went wrong!</string>
     <string name="data_shared_type">Share-Type</string>
+    <string name="data_shared_type_user">User</string>
+    <string name="data_shared_type_group">Group</string>
+    <string name="data_shared_type_public">Public</string>
+    <string name="data_shared_type_federated">Federated</string>
+    <string name="data_shared_type_circle">Circle</string>
+    <string name="data_shared_type_talk">Talk</string>
     <string name="data_shared_name">Name</string>
     <string name="data_shared_permission">Permission</string>
     <string name="data_shared_public">Public-Upload</string>
@@ -159,6 +165,12 @@
     <string name="chats_send">Send</string>
     <string name="chats_room">Rooms</string>
     <string name="chats_rooms_type">Type</string>
+    <string name="chats_rooms_type_one_to_one">One to One</string>
+    <string name="chats_rooms_type_group">Group</string>
+    <string name="chats_rooms_type_public">Public</string>
+    <string name="chats_rooms_type_changelog">Changelog</string>
+    <string name="chats_rooms_type_former_one_to_one">Former One To One</string>
+    <string name="chats_rooms_type_note_to_self">Note to self</string>
     <string name="chats_rooms_name">Name</string>
     <string name="chats_rooms_description">Description</string>
     <string name="chats_rooms_created">Room was created successfully!</string>
@@ -218,7 +230,7 @@
     <string name="login.check.not.success">Connection not successfully!</string>
     <string name="login.check_descr">Press the right icon to check the connection!</string>
 
-    <string name="validation.notEmpty">Field shouldn\'t be empty!</string>
+    <string name="validation.notEmpty">Field should not be empty!</string>
     <string name="validation.notEmpty.min">Field should be longer than %d characters!</string>
     <string name="validation.notEmpty.max">Field should be less than %d characters!</string>
     <string name="validation.notEmpty.min_max">Field should be between %d and %d characters!</string>

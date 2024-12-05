@@ -19,8 +19,8 @@
     <string name="settings_caldav_regularity_header">Regelmäßge Server-Synchronisation (in Minuten)</string>
     <string name="settings_calendar_regularity_title">Regelmäßge Kalender-Synchronisation</string>
     <string name="settings_calendar_regularity_header">Regelmäßge Kalender-Synchronisation (in Minuten)</string>
-    <string name="settings_cardav_regularity_title">Regelmäßge Server-Synchronisation</string>
-    <string name="settings_cardav_regularity_header">Regelmäßge Server-Synchronisation (in Minuten)</string>
+    <string name="settings_carDav_regularity_title">Regelmäßge Server-Synchronisation</string>
+    <string name="settings_carDav_regularity_header">Regelmäßge Server-Synchronisation (in Minuten)</string>
     <string name="settings_data_show_internal_title">Dateien in interner Anzeige</string>
     <string name="settings_data_show_internal_header">Zeige Dateien in interner Anzeige an</string>
     <string name="settings_data_show_pdf_title">PDF-Dateien in interner Anzeige</string>
@@ -129,6 +129,12 @@
     <string name="data_shared_toast">Das Element "%s" wurde geteilt von "%s"!</string>
     <string name="data_went_wrong">Es lief etwas schief!</string>
     <string name="data_shared_type">Share-Typ</string>
+    <string name="data_shared_type_user">Benutzer</string>
+    <string name="data_shared_type_group">Gruppe</string>
+    <string name="data_shared_type_public">Öffentlich</string>
+    <string name="data_shared_type_federated">Verbündet</string>
+    <string name="data_shared_type_circle">Kreis</string>
+    <string name="data_shared_type_talk">Talk</string>
     <string name="data_shared_name">Name</string>
     <string name="data_shared_permission">Berechting</string>
     <string name="data_shared_public">Öffentlicher Upload</string>
@@ -149,6 +155,12 @@
     <string name="chats_send">Senden</string>
     <string name="chats_room">Räume</string>
     <string name="chats_rooms_type">Typ</string>
+    <string name="chats_rooms_type_one_to_one">Eins zu eins</string>
+    <string name="chats_rooms_type_group">Gruppe</string>
+    <string name="chats_rooms_type_public">Öffentlich</string>
+    <string name="chats_rooms_type_changelog">Changelog</string>
+    <string name="chats_rooms_type_former_one_to_one">Formelles eins zu eins</string>
+    <string name="chats_rooms_type_note_to_self">Notiz an mich</string>
     <string name="chats_rooms_name">Name</string>
     <string name="chats_rooms_description">Beschreibung</string>
     <string name="chats_rooms_created">Raum wurde erfolgreich erstellt!</string>

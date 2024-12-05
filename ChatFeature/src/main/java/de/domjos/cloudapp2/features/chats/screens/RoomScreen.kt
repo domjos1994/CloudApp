@@ -50,8 +50,10 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
+import de.domjos.cloudapp2.appbasics.custom.DropDownItem
 import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
+import de.domjos.cloudapp2.appbasics.custom.LocalizedDropdown
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
@@ -243,7 +245,7 @@ fun EditDialog(
 
     if(room != null) {
         token = room.token
-        type = Type.fromInt(room.type).name
+        type = Type.fromInt(room.type, Type.FormerOneToOne).name
         invite = room.invite
         name = TextFieldValue(room.displayName!!)
         description = TextFieldValue(room.description!!)
@@ -256,10 +258,18 @@ fun EditDialog(
         ) {
             Column(modifier = Modifier.padding(10.dp)) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    Dropdown(
-                        value = Type.FormerOneToOne.name,
+                    val items = mutableListOf<DropDownItem>()
+                    items.add(DropDownItem(Type.OneToOne.name, stringResource(R.string.chats_rooms_type_one_to_one)))
+                    items.add(DropDownItem(Type.Group.name, stringResource(R.string.chats_rooms_type_group)))
+                    items.add(DropDownItem(Type.Public.name, stringResource(R.string.chats_rooms_type_public)))
+                    items.add(DropDownItem(Type.Changelog.name, stringResource(R.string.chats_rooms_type_changelog)))
+                    items.add(DropDownItem(Type.FormerOneToOne.name, stringResource(R.string.chats_rooms_type_former_one_to_one)))
+                    items.add(DropDownItem(Type.NoteToSelf.name, stringResource(R.string.chats_rooms_type_note_to_self)))
+
+                    LocalizedDropdown(
+                        value = type,
                         onValueChange = { type = it},
-                        list = Type.entries.toList().map { it.name },
+                        list = items,
                         label = stringResource(R.string.chats_rooms_type)
                     )
                 }

@@ -119,8 +119,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         {"${it.toInt()} min"}, 15.0f.rangeTo(60.0f)
     )
     val carDavRegularityPreference = createSeekBarPreference(
-        Settings.carDavRegularityKey, 0.0f, R.string.settings_cardav_regularity_title,
-        R.string.settings_cardav_regularity_header, R.drawable.baseline_access_time_24,
+        Settings.carDavRegularityKey, 0.0f, R.string.settings_carDav_regularity_title,
+        R.string.settings_carDav_regularity_header, R.drawable.baseline_access_time_24,
         {"${it.toInt()} min"}, 0.0f.rangeTo(10.0f)
     )
 

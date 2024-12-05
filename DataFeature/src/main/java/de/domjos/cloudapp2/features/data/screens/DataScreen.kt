@@ -83,9 +83,10 @@ import com.mikepenz.markdown.m3.Markdown
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.AutocompleteTextField
 import de.domjos.cloudapp2.appbasics.custom.ConfirmationDialog
-import de.domjos.cloudapp2.appbasics.custom.Dropdown
+import de.domjos.cloudapp2.appbasics.custom.DropDownItem
 import de.domjos.cloudapp2.appbasics.custom.FabItem
 import de.domjos.cloudapp2.appbasics.custom.LoadingItem
+import de.domjos.cloudapp2.appbasics.custom.LocalizedDropdown
 import de.domjos.cloudapp2.appbasics.custom.MultiFloatingActionButton
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
@@ -629,10 +630,18 @@ fun ShareDialog(
                             .padding(5.dp)
                             .fillMaxWidth()
                     ) {
-                        Dropdown(
+                        val items = mutableListOf<DropDownItem>()
+                        items.add((DropDownItem(Types.User.name, stringResource(R.string.data_shared_type_user))))
+                        items.add((DropDownItem(Types.Group.name, stringResource(R.string.data_shared_type_group))))
+                        items.add((DropDownItem(Types.Public.name, stringResource(R.string.data_shared_type_public))))
+                        items.add((DropDownItem(Types.Federated.name, stringResource(R.string.data_shared_type_federated))))
+                        items.add((DropDownItem(Types.Circle.name, stringResource(R.string.data_shared_type_circle))))
+                        items.add((DropDownItem(Types.Talk.name, stringResource(R.string.data_shared_type_talk))))
+
+                        LocalizedDropdown(
                             value = shareType,
                             onValueChange = {shareType = it},
-                            list = Types.entries.map { it.name },
+                            list = items,
                             label = stringResource(R.string.data_shared_type),
                             modifier = Modifier.fillMaxWidth()
                         )

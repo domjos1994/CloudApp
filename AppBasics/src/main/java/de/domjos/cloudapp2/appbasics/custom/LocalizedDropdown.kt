@@ -24,10 +24,10 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Dropdown(
+fun LocalizedDropdown(
     value: String,
     onValueChange: (String) -> Unit,
-    list: List<String>,
+    list: List<DropDownItem>,
     modifier: Modifier = Modifier,
     label: String = "",
     colorBackground: Color = Color.Transparent,
@@ -36,7 +36,7 @@ fun Dropdown(
 
 ) {
     var showDropDown by remember { mutableStateOf(false) }
-    var selected by remember { mutableStateOf(value) }
+    var selected by remember { mutableStateOf(list.find { it.value == value }?.label ?: "") }
 
     ExposedDropdownMenuBox(
         expanded = showDropDown,
@@ -74,15 +74,15 @@ fun Dropdown(
             onDismissRequest = {showDropDown = false},
             modifier = Modifier.background(colorBackground)
         ) {
-            list.forEach { text ->
+            list.forEach { item ->
                 DropdownMenuItem(text = {
                     Text(
-                        text,
+                        item.label,
                         color = colorForeground
                     )
                 }, onClick = {
-                    onValueChange(text)
-                    selected = text
+                    onValueChange(item.value)
+                    selected = item.label
                     showDropDown = false
                 })
             }
@@ -90,14 +90,21 @@ fun Dropdown(
     }
 }
 
+data class DropDownItem(val value: String, val label: String)
+
 @Composable
 @Preview(showBackground = true)
 @Preview(uiMode = UI_MODE_NIGHT_YES)
-fun Preview() {
-    val items = listOf("Test-1", "Test-2", "Test-3", "Test-4")
+fun LocalizedDropDownPreview() {
+    val items = listOf(
+        DropDownItem("test-1", "Test-1"),
+        DropDownItem("test-2","Test-2"),
+        DropDownItem("test-3","Test-3"),
+        DropDownItem("test-4", "Test-4")
+    )
 
     CloudAppTheme {
-        Dropdown(
+        LocalizedDropdown(
             value = "Test-1",
             onValueChange = {},
             list = items,
