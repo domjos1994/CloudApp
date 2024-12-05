@@ -98,18 +98,6 @@ class MainActivityViewModel @Inject constructor(
         return authenticationRepository.hasAuthentications()
     }
 
-    fun saveFirstStart() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                settings.setSetting(Settings.firstStartKey, false)
-                settings.save()
-            } catch (ex: Exception) {
-                message.postValue(ex.message)
-                Log.e(this.javaClass.name, ex.message, ex)
-            }
-        }
-    }
-
     fun createWorkRequest(period: Float, flexPeriod: Float, worker: Class<out ListenableWorker>): WorkRequest? {
         return try {
             if(flexPeriod != 0.0f) {

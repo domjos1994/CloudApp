@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import androidx.annotation.OptIn
-import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.FileProvider
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
@@ -28,7 +27,7 @@ import javax.inject.Inject
 interface DataRepository {
     var path: String
 
-    fun init()
+    fun init(force: Boolean = false)
     suspend fun getList(): List<Item>
     fun openFolder(item: Item)
     fun reload()
@@ -76,8 +75,8 @@ class DefaultDataRepository @Inject constructor(
         this.loadShares()
     }
 
-    override fun init() {
-        if(webDav == null) {
+    override fun init(force: Boolean) {
+        if(webDav == null || force) {
             webDav = WebDav(authenticationDAO.getSelectedItem()!!)
             path = webDav!!.getSimplePath()
         }
@@ -226,7 +225,7 @@ class DefaultDataRepository @Inject constructor(
             else -> type = "*/*"
         }
         intent.setDataAndType(uri, type)
-        startActivity(context, intent, Bundle())
+        context.startActivity(intent, Bundle())
     }
 
     override fun hasAuthentications(): Boolean {

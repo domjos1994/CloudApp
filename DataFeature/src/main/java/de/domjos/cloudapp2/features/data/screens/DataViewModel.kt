@@ -40,7 +40,7 @@ class DataViewModel @Inject constructor(
     override fun init() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                dataRepository.init()
+                dataRepository.init(true)
                 _items.value = dataRepository.getList()
                 _path.value = dataRepository.path
             } catch (ex: Exception) {
