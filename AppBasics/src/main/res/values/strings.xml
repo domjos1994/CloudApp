@@ -41,6 +41,11 @@
     <string name="settings_notifications_type_server_header">Show Server-Notifications!</string>
     <string name="settings_notifications_time_title">Change the time of showing Notifications</string>
     <string name="settings_notifications_time_header">Chane the time (in days) of showing the App-Notifications (Calendar, Contact-Birthday)!</string>
+    <string name="settings_footer_view_title">View of Footer-Menu</string>
+    <string name="settings_footer_view_header">Change the View-Mode of the Footer-Menu here!</string>
+    <string name="settings_footer_view_icons">Icons</string>
+    <string name="settings_footer_view_text">Text</string>
+    <string name="settings_footer_view_text_and_icons">Text and Icons</string>
 
     <string name="notification_app" translatable="false">App</string>
     <string name="notification_server" translatable="false">Server</string>

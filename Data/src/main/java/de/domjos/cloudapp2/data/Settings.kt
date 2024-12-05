@@ -6,11 +6,13 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.first
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user")
 
+@Suppress("unused")
 class Settings(private val context: Context) {
 
     companion object {
@@ -21,6 +23,7 @@ class Settings(private val context: Context) {
         val timeSpanKey = floatPreferencesKey("user_time_span")
         val themeFromCloudKey = booleanPreferencesKey("user_theme_from_cloud")
         val themeFromCloudMobileKey = booleanPreferencesKey("user_theme_from_cloud_mobile")
+        val footerViewModeKey = stringPreferencesKey("user_footer_view_mode")
 
         // notification settings
         val notificationTypeAppKey = booleanPreferencesKey("notification_type_app_key")
@@ -32,8 +35,8 @@ class Settings(private val context: Context) {
         val calendarRegularityKey = floatPreferencesKey("user_calendar_regularity")
 
         // calendar settings
-        val cardavRegularityKey = floatPreferencesKey("user_cardav_regularity")
-        val caldavRegularityKey = floatPreferencesKey("user_caldav_regularity")
+        val carDavRegularityKey = floatPreferencesKey("user_carDav_regularity")
+        val calDavRegularityKey = floatPreferencesKey("user_calDav_regularity")
 
         // data settings
         val dataShowInInternalViewer = booleanPreferencesKey("user_data_show_internal")
@@ -56,6 +59,7 @@ class Settings(private val context: Context) {
     private var timeSpan: Float = 20.0f
     private var themeFromCloud: Boolean = true
     private var themeFromCloudMobile: Boolean = true
+    private var footerViewMode: String = "Icon"
 
     // notification settings
     private var notificationTypeApp: Boolean = true
@@ -64,11 +68,11 @@ class Settings(private val context: Context) {
 
     // contact settings
     private var contactRegularity: Float = 1.0f
-    private var cardavRegularity: Float = 0.0f
+    private var carDavRegularity: Float = 0.0f
 
     // calendar settings
     private var calendarRegularity: Float = 1.0f
-    private var caldavRegularity: Float = 0.0f
+    private var calDavRegularity: Float = 0.0f
 
     // data settings
     private var showDataInternal: Boolean = true
@@ -100,6 +104,7 @@ class Settings(private val context: Context) {
             preferences[timeSpanKey] = timeSpan
             preferences[themeFromCloudKey] = themeFromCloud
             preferences[themeFromCloudMobileKey] = themeFromCloudMobile
+            preferences[footerViewModeKey] = footerViewMode
 
             // notification settings
             preferences[notificationTypeAppKey] = notificationTypeApp
@@ -108,11 +113,11 @@ class Settings(private val context: Context) {
 
             // contact settings
             preferences[contactRegularityKey] = contactRegularity
-            preferences[cardavRegularityKey] = cardavRegularity
+            preferences[carDavRegularityKey] = carDavRegularity
 
             // calendar settings
             preferences[calendarRegularityKey] = calendarRegularity
-            preferences[caldavRegularityKey] = caldavRegularity
+            preferences[calDavRegularityKey] = calDavRegularity
 
             // data settings
             preferences[dataShowInInternalViewer] = showDataInternal

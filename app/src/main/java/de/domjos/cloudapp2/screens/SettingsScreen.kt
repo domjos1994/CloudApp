@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.hilt.navigation.compose.hiltViewModel
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.navigation.View
 import de.schnettler.datastore.compose.material3.PreferenceScreen
 import de.schnettler.datastore.compose.material3.model.Preference
 import de.schnettler.datastore.manager.PreferenceRequest
@@ -27,6 +28,17 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         Settings.timeSpanKey, 20.0f, R.string.settings_timeSpan_title, R.string.settings_timeSpan_header,
         R.drawable.baseline_access_time_24, {"${it.toInt()} min"}, 1.0f.rangeTo(200.0f)
     )
+    val items = mutableMapOf<String, String>()
+    items[View.Icon.name] = stringResource(R.string.settings_footer_view_icons)
+    items[View.Text.name] = stringResource(R.string.settings_footer_view_text)
+    items[View.IconAndText.name] = stringResource(R.string.settings_footer_view_text_and_icons)
+    val title = R.string.settings_footer_view_title
+    val header = R.string.settings_footer_view_header
+    val footerViewPreference = createDropDownPreference(
+        Settings.footerViewModeKey, "Icon", title, header,
+        R.drawable.ic_eye, items
+    )
+
 
     // features
     val featureNotificationsPreference = createSwitchPreference(
@@ -106,8 +118,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         R.string.settings_contact_regularity_header, R.drawable.baseline_access_time_24,
         {"${it.toInt()} min"}, 15.0f.rangeTo(60.0f)
     )
-    val cardavRegularityPreference = createSeekBarPreference(
-        Settings.cardavRegularityKey, 0.0f, R.string.settings_cardav_regularity_title,
+    val carDavRegularityPreference = createSeekBarPreference(
+        Settings.carDavRegularityKey, 0.0f, R.string.settings_cardav_regularity_title,
         R.string.settings_cardav_regularity_header, R.drawable.baseline_access_time_24,
         {"${it.toInt()} min"}, 0.0f.rangeTo(10.0f)
     )
@@ -118,8 +130,8 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
         R.string.settings_calendar_regularity_header, R.drawable.baseline_access_time_24,
         {"${it.toInt()} min"}, 15.0f.rangeTo(60.0f)
     )
-    val caldavRegularityPreference = createSeekBarPreference(
-        Settings.caldavRegularityKey, 0.0f, R.string.settings_caldav_regularity_title,
+    val calDavRegularityPreference = createSeekBarPreference(
+        Settings.calDavRegularityKey, 0.0f, R.string.settings_caldav_regularity_title,
         R.string.settings_caldav_regularity_header, R.drawable.baseline_access_time_24,
         {"${it.toInt()} min"}, 0.0f.rangeTo(10.0f)
     )
@@ -156,12 +168,12 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     )
     val cloudGroup = Preference.PreferenceGroup(stringResource(id = R.string.settings_cloud_title), true, listOf(cloudThemePreference, cloudThemeMobilePreference))
     val notificationGroup = Preference.PreferenceGroup(stringResource(R.string.settings_notifications), true, listOf(notificationTypeAppPreference, notificationTypeServerPreference, notificationTimePreference))
-    val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference, cardavRegularityPreference))
-    val calendarGroup = Preference.PreferenceGroup(stringResource(R.string.calendars), true, listOf(calendarRegularityPreference, caldavRegularityPreference))
+    val contactGroup = Preference.PreferenceGroup(stringResource(R.string.contacts), true, listOf(contactRegularityPreference, carDavRegularityPreference))
+    val calendarGroup = Preference.PreferenceGroup(stringResource(R.string.calendars), true, listOf(calendarRegularityPreference, calDavRegularityPreference))
     val dataGroup = Preference.PreferenceGroup(stringResource(R.string.data), true, listOf(filesInInternal, pdfInInternal, imgInInternal, textInInternal, mdInInternal))
 
     PreferenceScreen(
-        items = listOf(timeSpanPreference, featureGroup, cloudGroup, notificationGroup, contactGroup, calendarGroup, dataGroup),
+        items = listOf(timeSpanPreference, footerViewPreference, featureGroup, cloudGroup, notificationGroup, contactGroup, calendarGroup, dataGroup),
         dataStore = viewModel.init(),
         statusBarPadding = true,
         modifier = Modifier
@@ -180,6 +192,19 @@ fun createSeekBarPreference(key: Preferences.Key<Float>, default: Float, titleId
         steps = 1,
         valueRepresentation = representation,
         valueRange = range
+    )
+}
+
+@Composable
+fun createDropDownPreference(key: Preferences.Key<String>, default: String, titleId: Int, headerId: Int, resId: Int, entries: Map<String, String>): Preference.PreferenceItem.DropDownMenuPreference {
+    return Preference.PreferenceItem.DropDownMenuPreference(
+        createPreferenceRequest(key, default),
+        stringResource(titleId),
+        stringResource(headerId),
+        false,
+        {Image(painterResource(resId), key.name, colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary))},
+        true,
+        entries
     )
 }
 

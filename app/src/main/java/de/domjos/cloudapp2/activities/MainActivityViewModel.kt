@@ -133,7 +133,7 @@ class MainActivityViewModel @Inject constructor(
 
     fun getContactWorkerPeriod(onGet: (Float) -> Unit) {
         viewModelScope.launch {
-            onGet(settings.getSetting(Settings.cardavRegularityKey, 0.0f))
+            onGet(settings.getSetting(Settings.carDavRegularityKey, 0.0f))
         }
     }
 
@@ -151,7 +151,7 @@ class MainActivityViewModel @Inject constructor(
 
     fun getCalendarWorkerPeriod(onGet: (Float) -> Unit) {
         viewModelScope.launch {
-            onGet(settings.getSetting(Settings.caldavRegularityKey, 0.0f))
+            onGet(settings.getSetting(Settings.calDavRegularityKey, 0.0f))
         }
     }
 
