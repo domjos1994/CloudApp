@@ -27,6 +27,7 @@ import javax.inject.Inject
 interface DataRepository {
     var path: String
 
+
     fun init(force: Boolean = false)
     suspend fun getList(): List<Item>
     fun openFolder(item: Item)
