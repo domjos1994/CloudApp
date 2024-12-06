@@ -85,7 +85,7 @@
     <string name="contact_phone_voice">Voice</string>
     <string name="contact_phone_fax">Fax</string>
     <string name="contact_phone_msg">MSG</string>
-    <string name="contact_phone_cell">Cell</string>
+    <string name="contact_phone_cell">Mobile</string>
     <string name="contact_types">Types</string>
     <string name="contact_addresses">Addresses</string>
     <string name="contact_addresses_type_work">Work</string>
