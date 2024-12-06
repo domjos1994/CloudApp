@@ -54,6 +54,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -1446,6 +1447,7 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
     var locality by remember { mutableStateOf(address.locality ?: "") }
     var region by remember { mutableStateOf(address.region ?: "") }
     var ext by remember { mutableStateOf(address.extendedAddress ?: "") }
+    var further by remember { mutableStateOf(false) }
 
     Row(
         Modifier
@@ -1485,18 +1487,20 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     }
                 }
             }
-            Row {
-                OutlinedTextField(
-                    value = poAddress,
-                    onValueChange = {
-                        poAddress = it
-                        address.postOfficeAddress = poAddress
-                    },
-                    label = {
-                        Text(stringResource(R.string.contact_addresses_postOfficeAddress), fontSize=13.sp)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+            if(further) {
+                Row {
+                    OutlinedTextField(
+                        value = poAddress,
+                        onValueChange = {
+                            poAddress = it
+                            address.postOfficeAddress = poAddress
+                        },
+                        label = {
+                            Text(stringResource(R.string.contact_addresses_postOfficeAddress), fontSize=13.sp)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
             Row {
                 Column(Modifier.weight(12f)) {
@@ -1525,43 +1529,46 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     )
                 }
             }
-            Row {
-                OutlinedTextField(
-                    value = region,
-                    onValueChange = {
-                        region = it
-                        address.region = region
-                    },
-                    label = {
-                        Text(stringResource(R.string.contact_addresses_region), fontSize=13.sp)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Row {
-                OutlinedTextField(
-                    value = address.country ?: "",
-                    onValueChange = {
-                        address.country = it
-                    },
-                    label = {
-                        Text(stringResource(R.string.contact_addresses_country), fontSize=13.sp)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Row {
-                OutlinedTextField(
-                    value = ext,
-                    onValueChange = {
-                        ext = it
-                        address.extendedAddress = ext
-                    },
-                    label = {
-                        Text(stringResource(R.string.contact_addresses_extended), fontSize=13.sp)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+            if(further) {
+
+                Row {
+                    OutlinedTextField(
+                        value = region,
+                        onValueChange = {
+                            region = it
+                            address.region = region
+                        },
+                        label = {
+                            Text(stringResource(R.string.contact_addresses_region), fontSize=13.sp)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Row {
+                    OutlinedTextField(
+                        value = address.country ?: "",
+                        onValueChange = {
+                            address.country = it
+                        },
+                        label = {
+                            Text(stringResource(R.string.contact_addresses_country), fontSize=13.sp)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Row {
+                    OutlinedTextField(
+                        value = ext,
+                        onValueChange = {
+                            ext = it
+                            address.extendedAddress = ext
+                        },
+                        label = {
+                            Text(stringResource(R.string.contact_addresses_extended), fontSize=13.sp)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
             Row {
                 OutlinedTextField(
@@ -1575,6 +1582,28 @@ fun AddressItem(address: Address, onDelete: (Address) -> Unit) {
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+            Row {
+                Column(
+                    Modifier
+                        .weight(8f)
+                        .padding(5.dp)
+                        .height(30.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(stringResource(R.string.contact_addresses_further))
+                }
+                Column(
+                    Modifier
+                        .weight(2f)
+                        .padding(5.dp)
+                        .height(30.dp)
+                ) {
+                    Switch(
+                        checked = further,
+                        onCheckedChange = {further = it}
+                    )
+                }
             }
             HorizontalDivider(Modifier.padding(top = 10.dp))
         }

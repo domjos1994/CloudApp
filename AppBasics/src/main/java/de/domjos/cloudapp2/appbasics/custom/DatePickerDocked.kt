@@ -59,7 +59,7 @@ fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifi
     val selectedDate = datePickerState.selectedDateMillis?.let {
         val dateTime = it + (1000L * 60L * 60L * timePickerState.hour) + (1000L * 60L * timePickerState.minute)
         onValueChange(Date(dateTime))
-        convertMillisToDate(context, dateTime)
+        convertMillisToDate(context, dateTime, showTime)
     } ?: ""
 
     Box(
@@ -141,8 +141,13 @@ fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifi
     }
 }
 
-private fun convertMillisToDate(context: Context, millis: Long): String {
-    val formatter = SimpleDateFormat(context.getString(R.string.sys_format), Locale.getDefault())
+private fun convertMillisToDate(context: Context, millis: Long, showTime: Boolean): String {
+    val format = if(showTime) {
+        context.getString(R.string.sys_format)
+    } else {
+        context.getString(R.string.sys_format_date)
+    }
+    val formatter = SimpleDateFormat(format, Locale.getDefault())
     return formatter.format(Date(millis))
 }
 

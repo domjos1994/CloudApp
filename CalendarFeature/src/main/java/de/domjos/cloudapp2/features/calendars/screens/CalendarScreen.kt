@@ -74,8 +74,10 @@ import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.custom.ActionItem
 import de.domjos.cloudapp2.appbasics.custom.ComposeList
 import de.domjos.cloudapp2.appbasics.custom.DatePickerDocked
+import de.domjos.cloudapp2.appbasics.custom.DropDownItem
 import de.domjos.cloudapp2.appbasics.custom.FAB
 import de.domjos.cloudapp2.appbasics.custom.ListItem
+import de.domjos.cloudapp2.appbasics.custom.LocalizedDropdown
 import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
@@ -952,6 +954,7 @@ fun NewEditDialog(
     val dtTo= stringToDate(event?.string_to ?: "")
 
     var wholeDay by remember { mutableStateOf(false) }
+    var further by remember { mutableStateOf(false) }
     var from by remember { mutableStateOf(dtFrom) }
     var isFromValid by remember { mutableStateOf(true) }
 
@@ -960,7 +963,11 @@ fun NewEditDialog(
 
     var description by remember { mutableStateOf(TextFieldValue(event?.description ?: "")) }
     var location by remember { mutableStateOf(TextFieldValue(event?.location ?: "")) }
-    var confirmation by remember { mutableStateOf(TextFieldValue(event?.confirmation ?: "")) }
+    var confirmation by remember { mutableStateOf(event?.confirmation ?: "") }
+    val confirmationItems = mutableListOf<DropDownItem>()
+    confirmationItems.add(DropDownItem("TENTATIVE", stringResource(R.string.calendar_confirmation_tentative)))
+    confirmationItems.add(DropDownItem("CONFIRMED", stringResource(R.string.calendar_confirmation_confirmed)))
+    confirmationItems.add(DropDownItem("CANCELLED", stringResource(R.string.calendar_confirmation_cancelled)))
     var categories by remember { mutableStateOf(TextFieldValue(event?.categories ?: "")) }
     var calendar by remember {
         mutableStateOf(
@@ -1051,13 +1058,17 @@ fun NewEditDialog(
                     Column(
                         Modifier
                             .weight(8f)
-                            .padding(5.dp)) {
+                            .padding(5.dp)
+                            .height(30.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(stringResource(R.string.calendar_whole_day))
                     }
                     Column(
                         Modifier
                             .weight(2f)
                             .padding(5.dp)
+                            .height(30.dp)
                     ) {
                         Switch(
                             checked = wholeDay,
@@ -1068,93 +1079,109 @@ fun NewEditDialog(
                 Row {
                     Column(
                         Modifier
-                            .fillMaxWidth()
+                            .weight(8f)
                             .padding(5.dp)
+                            .height(30.dp),
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        OutlinedTextField(
-                            value = description,
-                            trailingIcon = {
-                                IconButton(onClick = { description = TextFieldValue("") }) {
-                                    Icon(Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.sys_clear_text)
-                                    )
-                                }
-                            },
-                            onValueChange = {
-                                description = it
-                            },
-                            label = { Text(stringResource(id = R.string.calendar_description)) },
-                            modifier = Modifier.fillMaxWidth()
+                        Text(stringResource(R.string.calendar_further))
+                    }
+                    Column(
+                        Modifier
+                            .weight(2f)
+                            .padding(5.dp)
+                            .height(30.dp)
+                    ) {
+                        Switch(
+                            checked = further,
+                            onCheckedChange = {further = it}
                         )
                     }
                 }
-                Row {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = location,
-                            trailingIcon = {
-                                IconButton(onClick = { location = TextFieldValue("") }) {
-                                    Icon(Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.sys_clear_text)
-                                    )
-                                }
-                            },
-                            onValueChange = {
-                                location = it
-                            },
-                            label = { Text(stringResource(id = R.string.calendar_location)) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                if(further) {
+                    Row {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(5.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = description,
+                                trailingIcon = {
+                                    IconButton(onClick = { description = TextFieldValue("") }) {
+                                        Icon(Icons.Default.Clear,
+                                            contentDescription = stringResource(R.string.sys_clear_text)
+                                        )
+                                    }
+                                },
+                                onValueChange = {
+                                    description = it
+                                },
+                                label = { Text(stringResource(id = R.string.calendar_description)) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
-                }
-                Row {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = confirmation,
-                            trailingIcon = {
-                                IconButton(onClick = { confirmation = TextFieldValue("") }) {
-                                    Icon(Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.sys_clear_text)
-                                    )
-                                }
-                            },
-                            onValueChange = {
-                                confirmation = it
-                            },
-                            label = { Text(stringResource(id = R.string.calendar_confirmation)) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    Row {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(5.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = location,
+                                trailingIcon = {
+                                    IconButton(onClick = { location = TextFieldValue("") }) {
+                                        Icon(Icons.Default.Clear,
+                                            contentDescription = stringResource(R.string.sys_clear_text)
+                                        )
+                                    }
+                                },
+                                onValueChange = {
+                                    location = it
+                                },
+                                label = { Text(stringResource(id = R.string.calendar_location)) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
-                }
-                Row {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = categories,
-                            trailingIcon = {
-                                IconButton(onClick = { categories = TextFieldValue("") }) {
-                                    Icon(Icons.Default.Clear,
-                                        contentDescription = stringResource(R.string.sys_clear_text)
-                                    )
-                                }
-                            },
-                            onValueChange = {
-                                categories = it
-                            },
-                            label = { Text(stringResource(id = R.string.calendar_categories)) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    Row {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(5.dp)
+                        ) {
+                            LocalizedDropdown(
+                                value = confirmation,
+                                onValueChange = {confirmation=it},
+                                list = confirmationItems,
+                                modifier = Modifier.fillMaxWidth(),
+                                label = stringResource(id = R.string.calendar_confirmation)
+                            )
+                        }
+                    }
+                    Row {
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(5.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = categories,
+                                trailingIcon = {
+                                    IconButton(onClick = { categories = TextFieldValue("") }) {
+                                        Icon(Icons.Default.Clear,
+                                            contentDescription = stringResource(R.string.sys_clear_text)
+                                        )
+                                    }
+                                },
+                                onValueChange = {
+                                    categories = it
+                                },
+                                label = { Text(stringResource(id = R.string.calendar_categories)) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
                 Row {
@@ -1189,7 +1216,7 @@ fun NewEditDialog(
 
                                 val calendarEvent = CalendarEvent(
                                     id, uid, dateToString(from), dateToString(to), title.text,
-                                    location.text, description.text, confirmation.text,
+                                    location.text, description.text, confirmation,
                                     categories.text, "", cName, eventId,
                                     lastUpdatedPhone, lastUpdatedServer,
                                     authId, path
@@ -1230,7 +1257,7 @@ fun NewEditDialog(
 
                             val calendarEvent = CalendarEvent(
                                 id, uid, dateToString(from), dateToString(to), title.text,
-                                location.text, description.text, confirmation.text,
+                                location.text, description.text, confirmation,
                                 categories.text, "", cName, eventId,
                                 lastUpdatedPhone, lastUpdatedServer,
                                 authId, path

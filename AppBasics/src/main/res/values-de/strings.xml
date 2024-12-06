@@ -54,6 +54,9 @@
     <string name="calendar_description">Beschreibung</string>
     <string name="calendar_location">Ort</string>
     <string name="calendar_confirmation">Bestätigung</string>
+    <string name="calendar_confirmation_tentative">Vorläufig</string>
+    <string name="calendar_confirmation_confirmed">Bestätigt</string>
+    <string name="calendar_confirmation_cancelled">Abgesagt</string>
     <string name="calendar_categories">Kategorie (separiert durch ,)</string>
     <string name="calendar_save">Element speichern</string>
     <string name="calendar_delete">Element löschen</string>
@@ -61,6 +64,7 @@
     <string name="date_picker_date">Datum auswählen!</string>
     <string name="date_picker_time">Zeit auswählen!</string>
     <string name="calendar_whole_day">ganzer Tag</string>
+    <string name="calendar_further">Weitere Einzelheiten</string>
 
     <string name="contacts">Kontakte</string>
     <string name="contacts_book">Addressbuch</string>
@@ -95,6 +99,7 @@
     <string name="contact_addresses_locality">Ort</string>
     <string name="contact_addresses_country">Land</string>
     <string name="contact_addresses_extended">erweiterte Adresse</string>
+    <string name="contact_addresses_further">Weitere Einzelheiten</string>
     <string name="contact_mails">Email-Adressen</string>
     <string name="contact_mail">Email-Adresse</string>
     <string name="contact_open">Öffne Element in Kontakte</string>
