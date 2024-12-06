@@ -57,7 +57,8 @@ class ContactViewModel @Inject constructor(
                     context.getString(R.string.import_loading),
                     context.getString(R.string.import_delete),
                     context.getString(R.string.import_insert),
-                    context.getString(R.string.import_update)
+                    context.getString(R.string.import_update),
+                    context
                 )
                 loadAddresses(hasInternet)
             } catch (ex: Exception) {

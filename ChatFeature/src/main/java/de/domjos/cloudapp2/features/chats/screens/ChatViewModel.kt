@@ -1,6 +1,5 @@
 package de.domjos.cloudapp2.features.chats.screens
 
-import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.data.repository.ChatRepository
@@ -10,13 +9,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
 import javax.inject.Inject
-import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.data.Settings
-import java.util.Locale
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
@@ -51,12 +46,6 @@ class ChatViewModel @Inject constructor(
                 printException(ex, this)
             }
         }
-    }
-
-    fun getDate(ts: Long, context: Context): String {
-        val dt = Date(ts * 1000)
-        val sdf = SimpleDateFormat(context.getString(R.string.sys_format), Locale.ENGLISH)
-        return sdf.format(dt)
     }
 
     fun getUserName(): String {

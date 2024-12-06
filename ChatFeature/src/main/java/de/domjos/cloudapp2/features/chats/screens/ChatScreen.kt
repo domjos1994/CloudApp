@@ -44,6 +44,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.rest.model.msg.Message
 
@@ -64,7 +65,7 @@ fun ChatScreen(
     val context = LocalContext.current
     val userName = viewModel.getUserName()
 
-    ChatScreen(messages, userName, colorBackground, colorForeground, {viewModel.getDate(it, context)}) {
+    ChatScreen(messages, userName, colorBackground, colorForeground, { Converter.toFormattedString(context, it*1000, true)}) {
         viewModel.sendMessage(it)
     }
 }

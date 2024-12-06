@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -192,7 +193,8 @@ class ShareActivity : ComponentActivity() {
                 }
             }
             Row(Modifier.padding(5.dp)) {
-                Button(onClick = {viewModel.saveContact(contactList.text, files, success)}) {
+                val context = LocalContext.current
+                Button(onClick = {viewModel.saveContact(contactList.text, files, success, context)}) {
                     Row(horizontalArrangement = Arrangement.Center) {
                         Column(Modifier.weight(1f)) {
                             Icon(Icons.Default.Save, stringResource(R.string.share_save))

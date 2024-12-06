@@ -7,6 +7,7 @@
 package de.domjos.cloudapp2.data.syncer
 
 
+import android.content.Context
 import de.domjos.cloudapp2.cardav.CarDav
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.ContactDAO
@@ -31,7 +32,8 @@ class ContactSync(
         loadingLabel: String = "",
         deleteLabel: String = "",
         insertLabel: String = "",
-        updateLabel: String = "") {
+        updateLabel: String = "",
+        context: Context) {
 
         try {
             // loading data
@@ -47,7 +49,7 @@ class ContactSync(
             }
             val serverContacts = mutableListOf<Contact>()
             this.loader.getAddressBooks().forEach { addressBook ->
-                serverContacts.addAll(this.loader.getContacts(addressBook))
+                serverContacts.addAll(this.loader.getContacts(addressBook, context))
             }
             val sizeApp = appContacts.size
             val sizeServer = serverContacts.size

@@ -53,7 +53,7 @@ fun LocalizedDropdown(
                 .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true),
             value = selected,
             onValueChange = {},
-            label = { Text(label) },
+            label = { Text(label, color = colorForeground) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
                     expanded = showDropDown
@@ -65,7 +65,9 @@ fun LocalizedDropdown(
                 focusedSupportingTextColor = colorForeground,
                 unfocusedSupportingTextColor = colorForeground,
                 focusedBorderColor = colorForeground,
-                unfocusedBorderColor = colorForeground
+                unfocusedBorderColor = colorForeground,
+                focusedTrailingIconColor = colorForeground,
+                unfocusedTrailingIconColor = colorForeground
             ),
             isError = isError
         )

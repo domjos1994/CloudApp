@@ -55,6 +55,7 @@ import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @Composable
 fun NotificationScreen(viewModel: NotificationViewModel = hiltViewModel(), colorBackground: Color, colorForeground: Color, toAuths: () -> Unit, onChatScreen: (Int, String) -> Unit) {
+    viewModel.setContext(LocalContext.current)
     val notifications by viewModel.notifications.collectAsStateWithLifecycle()
     val allTypes by viewModel.allTypes.collectAsStateWithLifecycle()
 

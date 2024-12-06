@@ -6,6 +6,7 @@
 
 package de.domjos.cloudapp2.activities
 
+import android.content.Context
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import de.domjos.cloudapp2.appbasics.helper.LogViewModel
@@ -93,7 +94,7 @@ class ShareActivityViewModel @Inject constructor(
         }
     }
 
-    fun saveContact(contactList: String, files: List<FileObject>, success: String) {
+    fun saveContact(contactList: String, files: List<FileObject>, success: String, context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val item = contactRepository.loadAddressBooks(true).find { it.label == contactList }
@@ -101,7 +102,7 @@ class ShareActivityViewModel @Inject constructor(
                     val cardav = CarDav(authenticationRepository.getLoggedInUser())
                     val contacts = mutableListOf<Contact>()
                     files.forEach { file ->
-                        contacts.addAll(cardav.fileToModels(file.data, item))
+                        contacts.addAll(cardav.fileToModels(file.data, item, context))
                     }
                     contacts.forEach { contact -> contactRepository.insertOrUpdateContact(true, contact) }
                     printMessage(success, files)

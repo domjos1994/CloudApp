@@ -6,8 +6,8 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import dagger.hilt.android.AndroidEntryPoint
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.data.repository.CalendarRepository
-import de.domjos.cloudapp2.data.repository.stringToDate
 import de.domjos.cloudapp2.widgets.CalendarWidget
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -42,8 +42,8 @@ class CalendarWidgetReceiver : AbstractWidgetReceiver(CalendarWidget()) {
                             event.description,
                             event.location,
                             event.calendar,
-                            stringToDate(event.string_from).time,
-                            stringToDate(event.string_to).time,
+                            Converter.toDate(context, event.string_from).time,
+                            Converter.toDate(context, event.string_to).time,
                             event.eventId
                         )
                     )

@@ -9,6 +9,7 @@ package de.dojodev.cloudapp2.features.exportfeature.export
 import android.content.Context
 import de.dojodev.cloudapp2.features.exportfeature.base.BaseExportBuilder
 import de.domjos.cloudapp2.appbasics.R
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.DateTime
 import net.fortuna.ical4j.model.FluentCalendar
@@ -23,9 +24,7 @@ import net.fortuna.ical4j.model.property.PercentComplete
 import net.fortuna.ical4j.model.property.Priority
 import net.fortuna.ical4j.model.property.Status
 import net.fortuna.ical4j.model.property.Summary
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import net.fortuna.ical4j.model.Date as dt
 
 class ICSExportBuilder(private val context: Context): BaseExportBuilder(context) {
@@ -126,12 +125,7 @@ class ICSExportBuilder(private val context: Context): BaseExportBuilder(context)
 
     private fun stringToDate(string: String): Date {
         try {
-            val sdfDt = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-            val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-            return try {
-                sdfDt.parse(string)!!
-            } catch (_: Exception) {sdf.parse(string) ?: Date() }
-        } catch (_:Exception) {return Date()
-        }
+            return Converter.getDate(string) ?: Date()
+        } catch (_:Exception) {return Date()}
     }
 }

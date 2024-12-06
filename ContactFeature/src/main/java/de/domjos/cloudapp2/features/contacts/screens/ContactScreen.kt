@@ -96,6 +96,7 @@ import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectionState
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.appbasics.helper.ImageHelper
 import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.appbasics.helper.Separator
@@ -113,11 +114,9 @@ import de.domjos.cloudapp2.database.model.contacts.PhoneType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.io.ByteArrayOutputStream
 import java.io.FileNotFoundException
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
-import java.util.Locale
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -873,8 +872,7 @@ fun BottomSheet(
     val context = LocalContext.current
     val iconColor = OutlinedTextFieldDefaults.colors().focusedTextColor
     val backColor = BottomSheetDefaults.ContainerColor
-    val sdf = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    val dt = sdf.format(contact.birthDay ?: Date())
+    val dt = Converter.toFormattedString(context, contact.birthDay ?: Date(), false)
 
     ModalBottomSheet(onDismissRequest = { setShowBottomSheet(false) }) {
         Row(

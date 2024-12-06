@@ -20,7 +20,7 @@ class ContactWorker(private val context: Context, workerParams: WorkerParameters
                    .build()
 
            val sync = ContactSync(db.contactDao(), db.authenticationDao())
-           sync.sync()
+           sync.sync(context = this.context)
            Result.success()
        } catch (_: Exception) {
            Result.failure()

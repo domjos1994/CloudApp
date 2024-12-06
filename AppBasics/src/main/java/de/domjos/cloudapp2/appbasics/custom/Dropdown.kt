@@ -3,6 +3,7 @@ package de.domjos.cloudapp2.appbasics.custom
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,7 +54,7 @@ fun Dropdown(
                 .menuAnchor(type = MenuAnchorType.PrimaryNotEditable, enabled = true),
             value = selected,
             onValueChange = {},
-            label = { Text(label) },
+            label = { Text(label, color = colorForeground) },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
                     expanded = showDropDown
@@ -65,7 +66,9 @@ fun Dropdown(
                 focusedSupportingTextColor = colorForeground,
                 unfocusedSupportingTextColor = colorForeground,
                 focusedBorderColor = colorForeground,
-                unfocusedBorderColor = colorForeground
+                unfocusedBorderColor = colorForeground,
+                focusedTrailingIconColor = colorForeground,
+                unfocusedTrailingIconColor = colorForeground
             ),
             isError = isError
         )
@@ -97,11 +100,15 @@ fun Preview() {
     val items = listOf("Test-1", "Test-2", "Test-3", "Test-4")
 
     CloudAppTheme {
-        Dropdown(
-            value = "Test-1",
-            onValueChange = {},
-            list = items,
-            label = "Test"
-        )
+        Row(Modifier.background(Color.Blue)) {
+            Dropdown(
+                value = "Test-1",
+                onValueChange = {},
+                list = items,
+                label = "Test",
+                colorForeground = Color.White,
+                colorBackground = Color.Blue
+            )
+        }
     }
 }

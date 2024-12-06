@@ -1,8 +1,9 @@
 package de.domjos.cloudapp2.cardav
 
+import android.content.Context
 import android.os.Build
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
-import de.domjos.cloudapp2.cardav.utils.Converter
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.cardav.model.AddressBook
 import de.domjos.cloudapp2.database.model.Authentication
 import de.domjos.cloudapp2.database.model.contacts.Address
@@ -148,7 +149,7 @@ class CarDav(private val authentication: Authentication?) {
     }
 
     @Throws(Exception::class)
-    fun getContacts(addressBook: AddressBook): LinkedList<Contact> {
+    fun getContacts(addressBook: AddressBook, context: Context): LinkedList<Contact> {
         val lst = LinkedList<Contact>()
 
         if(this.sardine != null) {
@@ -160,7 +161,7 @@ class CarDav(private val authentication: Authentication?) {
                         val inputStream = this.sardine?.get(cardPath, getHeader())
                         val tmp = Ezvcard.parse(inputStream).all()
                         tmp.forEach { vCard ->
-                            lst.add(this.vcardToContact(vCard, cardPath, addressBook))
+                            lst.add(this.vcardToContact(vCard, cardPath, addressBook, context))
                         }
                     } catch (ex: Exception) {
                         println(ex.message)
@@ -191,7 +192,7 @@ class CarDav(private val authentication: Authentication?) {
         }
     }
 
-    fun fileToModels(data: ByteArray, cm: AddressBook): List<Contact> {
+    fun fileToModels(data: ByteArray, cm: AddressBook, context: Context): List<Contact> {
         val contacts = mutableListOf<Contact>()
         val baStream = ByteArrayInputStream(data)
         var vCards: List<VCard>
@@ -199,7 +200,7 @@ class CarDav(private val authentication: Authentication?) {
             vCards = Ezvcard.parse(stream).all()
         }
         vCards.forEach { vCard ->
-            contacts.add(vcardToContact(vCard, "", cm))
+            contacts.add(vcardToContact(vCard, "", cm, context))
         }
         return contacts
     }
@@ -212,7 +213,7 @@ class CarDav(private val authentication: Authentication?) {
         }
     }
 
-    private fun vcardToContact(vCard: VCard, path: String, addressBook: AddressBook): Contact {
+    private fun vcardToContact(vCard: VCard, path: String, addressBook: AddressBook, context: Context): Contact {
         val addresses = LinkedList<Address>()
         if(vCard.addresses != null) {
             vCard.addresses.forEach { address ->
@@ -234,7 +235,7 @@ class CarDav(private val authentication: Authentication?) {
             }
         }
 
-        val birthday = if(vCard.birthday != null ) Converter.temporalToDate(vCard.birthday.date) else null
+        val birthday = if(vCard.birthday != null ) Converter.temporalToDate(vCard.birthday.date, context) else null
 
         val lst = LinkedList<String>()
         vCard.categoriesList.forEach { item ->
@@ -291,7 +292,7 @@ class CarDav(private val authentication: Authentication?) {
         contact.emailAddresses = mails
         var lastUpdated = -1L
         if(vCard.revision != null) {
-            val rev = Converter.temporalToDate(vCard.revision.value)
+            val rev = Converter.temporalToDate(vCard.revision.value, context)
             if(rev != null) {
                 lastUpdated = rev.time
             }

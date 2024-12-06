@@ -10,6 +10,7 @@ import android.accounts.Account
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
+import android.content.Context
 import android.net.Uri
 import android.provider.CalendarContract.Events
 import android.provider.ContactsContract
@@ -22,6 +23,7 @@ import android.provider.ContactsContract.CommonDataKinds.StructuredPostal
 import android.provider.ContactsContract.CommonDataKinds.GroupMembership
 import android.provider.ContactsContract.CommonDataKinds.Organization
 import android.provider.ContactsContract.RawContacts
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.cardav.CarDav
 import de.domjos.cloudapp2.cardav.model.AddressBook
 import de.domjos.cloudapp2.database.DB
@@ -29,9 +31,7 @@ import de.domjos.cloudapp2.database.model.contacts.Address
 import de.domjos.cloudapp2.database.model.contacts.AddressType
 import de.domjos.cloudapp2.database.model.contacts.Contact
 import de.domjos.cloudapp2.database.model.contacts.PhoneType
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 import java.util.Objects
 import java.util.UUID
 
@@ -51,13 +51,13 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
         }
     }
 
-    fun sync() {
+    fun sync(context: Context) {
         insertLogMessage(this.db, "Start syncing contacts!", "calendars")
 
-        this.updateByStatus()
+        this.updateByStatus(context)
     }
 
-    private fun updateByStatus() {
+    private fun updateByStatus(context: Context) {
         try {
             val phones = this.getData()
             val apps = this.db.contactDao().getAll(this.authId)
@@ -98,15 +98,15 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
                 }
             }
 
-            this.phoneContacts = this.getPhoneContacts()
+            this.phoneContacts = this.getPhoneContacts(context)
             this.appContacts = this.getAppContacts()
 
             states.forEach {
                 when(it[1]) {
-                    0L -> this.insertPhoneItem(it[0])
+                    0L -> this.insertPhoneItem(it[0], context)
                     1L -> this.insertAppItem(it[0])
                     2L -> this.updateAppItem(it[0])
-                    3L -> this.updatePhoneItem(it[0])
+                    3L -> this.updatePhoneItem(it[0], context)
                     4L -> this.deletePhoneItem(it[0])
                     5L -> this.deleteAppItem(it[0])
                 }
@@ -159,20 +159,20 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
         }
     }
 
-    private fun insertPhoneItem(id: Long) {
+    private fun insertPhoneItem(id: Long, context: Context) {
         val contact = this.appContacts?.find { it.id == id }
         if(contact != null) {
             contact.contactId = ""
             contact.lastUpdatedContactPhone = -1
-            val phoneId = this.insertOrUpdatePhoneContact(contact)
+            val phoneId = this.insertOrUpdatePhoneContact(contact, context)
             this.connectAppAndPhoneContacts(phoneId, id)
         }
     }
 
-    private fun updatePhoneItem(id: Long) {
+    private fun updatePhoneItem(id: Long, context: Context) {
         val contact = this.appContacts?.find { it.id == id }
         if(contact != null) {
-            val phoneId = this.insertOrUpdatePhoneContact(contact)
+            val phoneId = this.insertOrUpdatePhoneContact(contact, context)
             this.connectAppAndPhoneContacts(phoneId, id)
         }
     }
@@ -233,7 +233,7 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
         }
     }
 
-    private fun getPhoneContacts(): List<Contact> {
+    private fun getPhoneContacts(context: Context): List<Contact> {
 
         // load names and photo
         val contacts = mutableListOf<Contact>()
@@ -266,7 +266,7 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
         contacts.map { contact ->
             contact.organization = this.getOrganization(contact.contactId?.toLong() ?: 0L)
             contact.photo = this.getPhoto(contact.contactId?.toLong() ?: 0L)
-            contact.birthDay = this.getBirthDay(contact.contactId?.toLong() ?: 0L)
+            contact.birthDay = this.getBirthDay(contact.contactId?.toLong() ?: 0L, context)
             contact.addresses = this.getAddresses(contact.contactId?.toLong() ?: 0L)
             contact.phoneNumbers = this.getPhones(contact.contactId?.toLong() ?: 0L)
             contact.emailAddresses = this.getEmails(contact.contactId?.toLong() ?: 0L)
@@ -312,7 +312,7 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
         return id
     }
 
-    private fun insertOrUpdatePhoneContact(contact: Contact): Long {
+    private fun insertOrUpdatePhoneContact(contact: Contact, context: Context): Long {
 
         // if contact-id is empty create a new contact
         val dataUri = asSyncAdapter(this.contactUri, this.account)
@@ -365,8 +365,8 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
             val bdWhere = "${Event.RAW_CONTACT_ID}=? AND ${Event.MIMETYPE}=? AND ${Event.TYPE}=?"
             val bdClause = arrayOf("$rawContactId", Event.CONTENT_ITEM_TYPE, "${Event.TYPE_BIRTHDAY}")
             if(contact.birthDay != null) {
-                val bd = this.getBirthDay(rawContactId)
-                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val bd = this.getBirthDay(rawContactId, context)
+                val sdf = Converter.getFormat(context, false)
                 val bdValues = ContentValues()
                 bdValues.put(Event.START_DATE, sdf.format(contact.birthDay!!))
                 bdValues.put(Event.TYPE, Event.TYPE_BIRTHDAY)
@@ -758,7 +758,7 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
         return result
     }
 
-    private fun getBirthDay(contactId: Long): Date? {
+    private fun getBirthDay(contactId: Long, context: Context): Date? {
         var date: Date? = null
 
         try {
@@ -767,7 +767,7 @@ class PhoneContactHelper(private val account: Account?, private val contentResol
             val selectionArgs = arrayOf("$contactId", "${Event.TYPE_BIRTHDAY}", Event.CONTENT_ITEM_TYPE)
             val projection = arrayOf(Event.START_DATE)
 
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val sdf = Converter.getFormat(context, false)
             val cursor = contentResolver.query(uri, projection, selectionClause, selectionArgs, null)
             cursor?.use { c ->
                 if(c.moveToFirst()) {

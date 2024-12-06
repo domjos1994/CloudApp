@@ -242,6 +242,7 @@
 
     <string name="sys_format">yyyy-MM-dd HH:mm</string>
     <string name="sys_format_date">yyyy-MM-dd</string>
+    <string name="sys_format_month">yyyy-MM</string>
 
     <string name="sys_no_entry">No Entry available!</string>
     <string name="sys_no_internet">No Internet-Connection available!</string>

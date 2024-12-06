@@ -312,10 +312,10 @@ class CalendarCalDav(private val authentication: Authentication?) {
     }
 
     private fun dt(str: String): net.fortuna.ical4j.model.Date {
-        try {
-            return net.fortuna.ical4j.model.DateTime(str)
+        return try {
+            net.fortuna.ical4j.model.DateTime(str)
         } catch (_: Exception) {
-            return net.fortuna.ical4j.model.Date(str)
+            net.fortuna.ical4j.model.Date(str)
         }
     }
 }

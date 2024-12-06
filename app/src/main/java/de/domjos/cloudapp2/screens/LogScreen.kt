@@ -35,13 +35,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.database.model.Log
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @Composable
 fun LogScreen(
@@ -144,8 +144,7 @@ fun LogScreen(
                 }
                 Column(Modifier.weight(8f)) {
                     Row {
-                        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                        Text(sdf.format(log.date), color = colorForeground)
+                        Text(Converter.toFormattedString(LocalContext.current, log.date, true), color = colorForeground)
                     }
                     Row {
                         Text(log.message, maxLines = 100, modifier = Modifier.basicMarquee(), color = colorForeground)

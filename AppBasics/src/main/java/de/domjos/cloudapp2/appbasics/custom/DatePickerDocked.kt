@@ -6,7 +6,6 @@
 
 package de.domjos.cloudapp2.appbasics.custom
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,7 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import de.domjos.cloudapp2.appbasics.R
-import java.text.SimpleDateFormat
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -59,7 +58,7 @@ fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifi
     val selectedDate = datePickerState.selectedDateMillis?.let {
         val dateTime = it + (1000L * 60L * 60L * timePickerState.hour) + (1000L * 60L * timePickerState.minute)
         onValueChange(Date(dateTime))
-        convertMillisToDate(context, dateTime, showTime)
+        Converter.toFormattedString(context, dateTime, showTime)
     } ?: ""
 
     Box(
@@ -68,7 +67,7 @@ fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifi
         OutlinedTextField(
             value = selectedDate,
             onValueChange = {
-                onValueChange(convertStringToDate(context, it))
+                onValueChange(Converter.toDate(context, it))
             },
             label = label,
             readOnly = true,
@@ -139,19 +138,4 @@ fun DatePickerDocked(date: Date, onValueChange: (Date) -> Unit, modifier: Modifi
             }
         }
     }
-}
-
-private fun convertMillisToDate(context: Context, millis: Long, showTime: Boolean): String {
-    val format = if(showTime) {
-        context.getString(R.string.sys_format)
-    } else {
-        context.getString(R.string.sys_format_date)
-    }
-    val formatter = SimpleDateFormat(format, Locale.getDefault())
-    return formatter.format(Date(millis))
-}
-
-private fun convertStringToDate(context: Context, date: String): Date {
-    val formatter = SimpleDateFormat(context.getString(R.string.sys_format), Locale.getDefault())
-    return formatter.parse(date) ?: Date()
 }

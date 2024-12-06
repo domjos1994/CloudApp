@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.data.repository
 
+import android.content.Context
 import de.domjos.cloudapp2.cardav.CarDav
 import de.domjos.cloudapp2.cardav.model.AddressBook
 import de.domjos.cloudapp2.data.syncer.ContactSync
@@ -23,7 +24,7 @@ interface ContactRepository {
     suspend fun loadAddressBooks(hasInternet: Boolean): List<AddressBook>
     suspend fun loadContacts(addressBook: String = ""): List<Contact>
     suspend fun getOrCreateChat(contact: Contact): String
-    fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, loadingLabel: String, deleteLabel: String, insertLabel: String, importLabel: String)
+    fun importContacts(updateProgress: (Float, String) -> Unit, onFinish: ()->Unit, loadingLabel: String, deleteLabel: String, insertLabel: String, importLabel: String, context: Context)
     fun insertOrUpdateContact(hasInternet: Boolean, contact: Contact)
     fun deleteContact(hasInternet: Boolean, contact: Contact)
     fun hasAuthentications(): Boolean
@@ -63,10 +64,11 @@ class DefaultContactRepository @Inject constructor(
         loadingLabel: String,
         deleteLabel: String,
         insertLabel: String,
-        importLabel: String) {
+        importLabel: String,
+        context: Context) {
 
         val sync = ContactSync(contactDAO, authenticationDAO)
-        sync.sync(updateProgress, onFinish, loadingLabel, deleteLabel, insertLabel, importLabel)
+        sync.sync(updateProgress, onFinish, loadingLabel, deleteLabel, insertLabel, importLabel, context)
     }
 
     override suspend fun loadContacts(addressBook: String): List<Contact> {

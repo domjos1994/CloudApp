@@ -33,6 +33,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":AppBasics"))
     implementation(project(":Database"))
 
     // dav

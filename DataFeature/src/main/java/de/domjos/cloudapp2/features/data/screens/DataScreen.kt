@@ -93,6 +93,7 @@ import de.domjos.cloudapp2.appbasics.custom.NoInternetItem
 import de.domjos.cloudapp2.appbasics.custom.OutlinedPasswordField
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.appbasics.helper.LoadingDialog
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
@@ -106,9 +107,7 @@ import de.domjos.cloudapp2.webdav.model.Item
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
-import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.Locale
 
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -602,14 +601,14 @@ fun ShareDialog(
     onInsert: (InsertShare) -> Unit,
     onDelete: (Int) -> Unit) {
 
-    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val context = LocalContext.current
     var shareType by remember { mutableStateOf(if(share != null) Types.fromInt(share.share_type).name else "") }
     var shareName by remember { mutableStateOf(TextFieldValue(share?.share_with ?: "")) }
     var isShareNameValid by remember { mutableStateOf(share?.share_with?.isNotEmpty() ?: false) }
     var permission by remember { mutableStateOf(intToPermissions(share?.permissions ?: 1)) }
     var publicUpload by remember { mutableStateOf("false") }
     var password by remember { mutableStateOf(TextFieldValue("")) }
-    var expireDate by remember { mutableStateOf(TextFieldValue(sdf.format(Date()))) }
+    var expireDate by remember { mutableStateOf(TextFieldValue(Converter.toFormattedString(context, Date(), false))) }
     var note by remember { mutableStateOf(TextFieldValue(share?.note ?: "")) }
     var isNoteValid by remember { mutableStateOf(false) }
     val isUpdate by remember { mutableStateOf((share?.id ?: 0L) != 0L) }
@@ -728,7 +727,7 @@ fun ShareDialog(
                         value = expireDate,
                         onValueChange = {
                             expireDate=it
-                            isExpireDateValid = Validator.checkDate(it.text, "yyyy-MM-dd")
+                            isExpireDateValid = Validator.checkDate(it.text, Converter.dateFormat(context))
                         },
                         modifier = Modifier.fillMaxWidth(),
                         label = {Text(stringResource(id = R.string.data_shared_expiredDate))},

@@ -28,14 +28,12 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.domjos.cloudapp2.R
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.appbasics.helper.openEvent
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import de.domjos.cloudapp2.receiver.AbstractWidgetReceiver
 import de.domjos.cloudapp2.receiver.Event
 import kotlinx.serialization.json.Json
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class CalendarWidget : AbstractWidget<CalendarEvent>() {
     @Composable
@@ -136,7 +134,7 @@ class CalendarWidget : AbstractWidget<CalendarEvent>() {
                                     horizontalAlignment = Alignment.End) {
                                     Row(GlanceModifier.padding(1.dp)) {
                                         Text(
-                                            longToDate(event.start),
+                                            Converter.toFormattedString(context, event.start, true),
                                             style = TextStyle(
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Normal,
@@ -146,7 +144,7 @@ class CalendarWidget : AbstractWidget<CalendarEvent>() {
                                     }
                                     Row(GlanceModifier.padding(1.dp)) {
                                         Text(
-                                            longToDate(event.end),
+                                            Converter.toFormattedString(context, event.end, true),
                                             style = TextStyle(
                                                 fontSize = 9.sp,
                                                 fontWeight = FontWeight.Normal,
@@ -160,18 +158,6 @@ class CalendarWidget : AbstractWidget<CalendarEvent>() {
                     }
                 }
             }
-        }
-    }
-
-    @Suppress("DEPRECATION")
-    private fun longToDate(ts: Long): String {
-        val dt = Date(ts)
-        return if(dt.hours == 0 && dt.minutes == 0) {
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            sdf.format(dt)
-        } else {
-            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-            sdf.format(dt)
         }
     }
 

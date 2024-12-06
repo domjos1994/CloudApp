@@ -1,16 +1,16 @@
 package de.domjos.cloudapp2.data.repository
 
+import android.content.Context
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.caldav.CalendarCalDav
 import de.domjos.cloudapp2.caldav.model.CalendarModel
 import de.domjos.cloudapp2.data.syncer.CalendarSync
 import de.domjos.cloudapp2.database.dao.AuthenticationDAO
 import de.domjos.cloudapp2.database.dao.CalendarEventDAO
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
-import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.LinkedList
-import java.util.Locale
 import javax.inject.Inject
 
 interface CalendarRepository {
@@ -118,8 +118,8 @@ class DefaultCalendarRepository @Inject constructor(
             allEvents.addAll(addRecurrences(event, startTime, endTime))
         }
         val tmp =  allEvents.filter {
-            val start = stringToDate(it.string_from)
-            val end = stringToDate(it.string_to)
+            val start = Converter.getDate(it.string_from) ?: Date()
+            val end =  Converter.getDate(it.string_to) ?: Date()
             val fStart = Date(startTime)
             val fEnd = Date(endTime)
 
@@ -127,8 +127,8 @@ class DefaultCalendarRepository @Inject constructor(
         }
         days.clear()
         tmp.forEach { event ->
-            val start = stringToDate(event.string_from)
-            val end = stringToDate(event.string_to)
+            val start = Converter.getDate(event.string_from) ?: Date()
+            val end = Converter.getDate(event.string_to) ?: Date()
             val cStart = Calendar.getInstance()
             cStart.time = start
             val cEnd = Calendar.getInstance()
@@ -177,9 +177,9 @@ class DefaultCalendarRepository @Inject constructor(
                 calStart.timeInMillis = startTime
 
                 val calFrom = Calendar.getInstance()
-                calFrom.time = stringToDate(event.string_from)
+                calFrom.time = Converter.getDate(event.string_from) ?: Date()
                 val calTo = Calendar.getInstance()
-                calTo.time = stringToDate(event.string_to)
+                calTo.time = Converter.getDate(event.string_to) ?: Date()
                 var currentFrom: Calendar = calFrom.clone() as Calendar
 
                 var count = 0
@@ -192,8 +192,8 @@ class DefaultCalendarRepository @Inject constructor(
                             currentFrom.add(Calendar.YEAR, interval * count)
                             if (lst.isEmpty()) {
                                 val tmpEvent = event.copy()
-                                tmpEvent.string_from = dateToString(currentFrom.time)
-                                tmpEvent.string_to = dateToString(currentTo.time)
+                                tmpEvent.string_from = Converter.getString(currentFrom.time)
+                                tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                 if(currentFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                     recurrences.add(tmpEvent)
@@ -206,8 +206,8 @@ class DefaultCalendarRepository @Inject constructor(
                                     tmpTo.set(Calendar.MONTH, month)
                                     tmpFrom.set(Calendar.MONTH, month)
                                     val tmpEvent = event.copy()
-                                    tmpEvent.string_from = dateToString(currentFrom.time)
-                                    tmpEvent.string_to = dateToString(currentTo.time)
+                                    tmpEvent.string_from = Converter.getString(currentFrom.time)
+                                    tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                     if(tmpFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                         recurrences.add(tmpEvent)
@@ -229,8 +229,8 @@ class DefaultCalendarRepository @Inject constructor(
                             currentFrom.add(Calendar.MONTH, interval * count)
                             if (lst.isEmpty()) {
                                 val tmpEvent = event.copy()
-                                tmpEvent.string_from = dateToString(currentFrom.time)
-                                tmpEvent.string_to = dateToString(currentTo.time)
+                                tmpEvent.string_from = Converter.getString(currentFrom.time)
+                                tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                 if(currentFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                     recurrences.add(tmpEvent)
@@ -243,8 +243,8 @@ class DefaultCalendarRepository @Inject constructor(
                                     tmpTo.set(Calendar.DAY_OF_MONTH, day)
                                     tmpFrom.set(Calendar.DAY_OF_MONTH, day)
                                     val tmpEvent = event.copy()
-                                    tmpEvent.string_from = dateToString(currentFrom.time)
-                                    tmpEvent.string_to = dateToString(currentTo.time)
+                                    tmpEvent.string_from = Converter.getString(currentFrom.time)
+                                    tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                     if(tmpFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                         recurrences.add(tmpEvent)
@@ -265,8 +265,8 @@ class DefaultCalendarRepository @Inject constructor(
                             currentFrom.add(Calendar.WEEK_OF_YEAR, interval * count)
                             if (lst.isEmpty()) {
                                 val tmpEvent = event.copy()
-                                tmpEvent.string_from = dateToString(currentFrom.time)
-                                tmpEvent.string_to = dateToString(currentTo.time)
+                                tmpEvent.string_from = Converter.getString(currentFrom.time)
+                                tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                 if(currentFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                     recurrences.add(tmpEvent)
@@ -279,8 +279,8 @@ class DefaultCalendarRepository @Inject constructor(
                                     tmpTo.set(Calendar.DAY_OF_WEEK, day)
                                     tmpFrom.set(Calendar.DAY_OF_WEEK, day)
                                     val tmpEvent = event.copy()
-                                    tmpEvent.string_from = dateToString(currentFrom.time)
-                                    tmpEvent.string_to = dateToString(currentTo.time)
+                                    tmpEvent.string_from = Converter.getString(currentFrom.time)
+                                    tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                     if(tmpFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                         recurrences.add(tmpEvent)
@@ -301,8 +301,8 @@ class DefaultCalendarRepository @Inject constructor(
                             currentFrom.add(Calendar.DAY_OF_MONTH, interval * count)
                             if (lst.isEmpty()) {
                                 val tmpEvent = event.copy()
-                                tmpEvent.string_from = dateToString(currentFrom.time)
-                                tmpEvent.string_to = dateToString(currentTo.time)
+                                tmpEvent.string_from =Converter.getString(currentFrom.time)
+                                tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                 if(currentFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                     recurrences.add(tmpEvent)
@@ -315,8 +315,8 @@ class DefaultCalendarRepository @Inject constructor(
                                     tmpTo.set(Calendar.DAY_OF_WEEK, day)
                                     tmpFrom.set(Calendar.DAY_OF_WEEK, day)
                                     val tmpEvent = event.copy()
-                                    tmpEvent.string_from = dateToString(currentFrom.time)
-                                    tmpEvent.string_to = dateToString(currentTo.time)
+                                    tmpEvent.string_from = Converter.getString(currentFrom.time)
+                                    tmpEvent.string_to = Converter.getString(currentTo.time)
 
                                     if(tmpFrom.get(Calendar.YEAR) == calStart.get(Calendar.YEAR)) {
                                         recurrences.add(tmpEvent)
@@ -338,43 +338,32 @@ class DefaultCalendarRepository @Inject constructor(
     }
 }
 
-fun stringToTimeSpan(start: String, end: String): String {
+fun stringToTimeSpan(start: String, end: String, context: Context): String {
     try {
-        val format = if(Locale.getDefault() == Locale.GERMANY) {
-            "dd.MM.yyyy"
-        } else {
-            "yyyy-MM-dd"
-        }
-        val time = " HH:mm:ss"
-
-        val dtStart = stringToDate(start)
+        val dtStart = Converter.getDate(start) ?: Date()
         val calStart = Calendar.getInstance()
         calStart.time = dtStart
-        val dtEnd = stringToDate(end)
+        val dtEnd = Converter.getDate(end) ?: Date()
         val calEnd = Calendar.getInstance()
         calEnd.time = dtEnd
         val tsWholeDay = 24L * 60L * 60L * 1000L
         val isWholeDay = (calStart.time.time == calEnd.time.time) || (calEnd.time.time - calStart.time.time == tsWholeDay)
 
-        var startFormat = if(
+        val startFormat = if(
             calStart.get(Calendar.HOUR_OF_DAY) == 0 &&
             calStart.get(Calendar.MINUTE) == 0 &&
             calStart.get(Calendar.SECOND) == 0) {
-            val sdf = SimpleDateFormat(format, Locale.getDefault())
-            sdf.format(calStart.time)
+            Converter.toFormattedString(context, calStart.time, false)
         } else {
-            val sdf = SimpleDateFormat(format + time, Locale.getDefault())
-            sdf.format(calStart.time)
+            Converter.toFormattedString(context, calStart.time, true)
         }
-        var endFormat = if(
+        val endFormat = if(
             calEnd.get(Calendar.HOUR_OF_DAY) == 0 &&
             calEnd.get(Calendar.MINUTE) == 0 &&
             calEnd.get(Calendar.SECOND) == 0) {
-            val sdf = SimpleDateFormat(format, Locale.getDefault())
-            sdf.format(calEnd.time)
+            Converter.toFormattedString(context, calEnd.time, false)
         } else {
-            val sdf = SimpleDateFormat(format + time, Locale.getDefault())
-            sdf.format(calEnd.time)
+            Converter.toFormattedString(context, calEnd.time, true)
         }
 
         return if(isWholeDay) {
@@ -382,25 +371,5 @@ fun stringToTimeSpan(start: String, end: String): String {
         } else {
             "$startFormat - $endFormat"
         }
-    } catch (_: Exception) {return ""}
-}
-
-fun stringToDate(string: String): Date {
-    try {
-        val sdfDt = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-        return try {
-            sdfDt.parse(string)!!
-        } catch (_: Exception) {sdf.parse(string) ?: Date() }
-    } catch (_:Exception) {return Date()}
-}
-
-fun dateToString(date: Date): String {
-    try {
-        val sdfDt = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-        val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-        return try {
-            sdfDt.format(date)
-        } catch (_: Exception) {sdf.format(date) ?: ""}
     } catch (_: Exception) {return ""}
 }

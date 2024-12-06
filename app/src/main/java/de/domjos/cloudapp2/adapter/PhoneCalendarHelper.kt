@@ -16,10 +16,9 @@ import java.util.Date
 
 import android.provider.CalendarContract.Calendars
 import android.provider.CalendarContract.Events
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.caldav.CalendarCalDav
 import de.domjos.cloudapp2.database.model.Authentication
-import java.text.SimpleDateFormat
-import java.util.Locale
 import java.util.TimeZone
 import kotlin.Long
 
@@ -240,8 +239,8 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                     event = CalendarEvent(
                         id = id,
                         uid = "",
-                        string_from = dateToString(Date(start)),
-                        string_to = dateToString(Date(end)),
+                        string_from = Converter.getString(Date(start)),
+                        string_to = Converter.getString(Date(end)),
                         title = title,
                         location = location,
                         description = description,
@@ -297,9 +296,9 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
                 val contentValues = ContentValues()
                 contentValues.put(Events.CALENDAR_ID, id)
                 contentValues.put(Events.TITLE, calendarEvent.title)
-                val start = stringToDate(calendarEvent.string_from)
+                val start = Converter.getDate(calendarEvent.string_from) ?: Date()
                 contentValues.put(Events.DTSTART, start.time)
-                val end = stringToDate(calendarEvent.string_to)
+                val end = Converter.getDate(calendarEvent.string_to) ?: Date()
                 contentValues.put(Events.DTEND, end.time)
 
                 if(calendarEvent.description.isNotEmpty()) {
@@ -373,34 +372,6 @@ class PhoneCalendarHelper(private val account: Account?, private val contentReso
         } catch (ex: Exception) {
             insertLogException(this.db, ex, "calendars", "Problem connecting or updating phone-calendar!", app = appItem)
         }
-    }
-
-    private fun stringToDate(string: String): Date {
-        var date = Date()
-        try {
-            val sdf = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-            date = sdf.parse(string) ?: Date()
-        } catch (_: Exception) {
-            try {
-                val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-                date = sdf.parse(string) ?: Date()
-            } catch (_: Exception) {}
-        }
-        return date
-    }
-
-    private fun dateToString(date: Date): String {
-        var string = ""
-        try {
-            val sdf = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-            string = sdf.format(date) ?: ""
-        } catch (_: Exception) {
-            try {
-                val sdf = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-                string = sdf.format(date) ?: ""
-            } catch (_: Exception) {}
-        }
-        return string
     }
 
     private fun rrulePhoneToRRuleApp(rrule: String): String {

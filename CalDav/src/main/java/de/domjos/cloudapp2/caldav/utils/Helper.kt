@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2024 Dominic Joas
+ * This file is part of the CloudApp-Project and licensed under the
+ * General Public License V3.
+ */
+
 package de.domjos.cloudapp2.caldav.utils
 
 import com.thegrizzlylabs.sardineandroid.DavResource
@@ -8,16 +14,12 @@ import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
 import okhttp3.Headers
 import java.io.ByteArrayOutputStream
-import java.text.SimpleDateFormat
 import java.util.Base64
-import java.util.Date
-import java.util.Locale
 
 @Suppress("MemberVisibilityCanBePrivate")
 class Helper {
 
     companion object {
-        private val formats = listOf("yyyyMMdd'T'HHmmss'Z'", "yyyyMMdd'T'HHmmss", "yyyyMMdd'T'", "yyyyMMdd")
 
         fun isDeleted(resource: DavResource): Boolean {
             try {
@@ -28,33 +30,6 @@ class Helper {
                 return (items["deleted-at"] ?: "").isNotEmpty()
             } catch (_: Exception) {
                 return false
-            }
-        }
-
-        fun getString(date: Date?): String {
-            try {
-                if(date == null) {
-                    return ""
-                }
-
-                return format(formats, date)
-            } catch (_: Exception) {
-                return ""
-            }
-        }
-
-        fun getDate(dtString: String?): Date? {
-            try {
-                if(dtString == null) {
-                    return null
-                }
-                if(dtString.isEmpty()) {
-                    return null
-                }
-
-                return format(formats, dtString)
-            } catch (_: Exception) {
-                return null
             }
         }
 
@@ -83,40 +58,6 @@ class Helper {
             output.output(calendar, fOut)
             val result = fOut.toByteArray()
             fOut.close()
-            return result
-        }
-
-        fun format(formats: List<String>, value: String): Date? {
-            var result: Date? = null
-            var i = 0
-            while (result == null) {
-                try {
-                    if(i < formats.size) {
-                        val format = SimpleDateFormat(formats[i], Locale.getDefault())
-                        result = format.parse(value)
-                    } else {
-                        return null
-                    }
-                } catch (_: Exception) {}
-                i++
-            }
-            return result
-        }
-
-        fun format(formats: List<String>, value: Date): String {
-            var result = ""
-            var i = 0
-            while (result.isEmpty()) {
-                try {
-                    if(i < formats.size) {
-                        val format = SimpleDateFormat(formats[i], Locale.getDefault())
-                        result = format.format(value)
-                    } else {
-                        return ""
-                    }
-                } catch (_: Exception) {}
-                i++
-            }
             return result
         }
     }

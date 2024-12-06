@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.features.notifications.screens
 
+import android.content.Context
 import java.util.Date
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -22,9 +23,9 @@ import java.util.Calendar
 import java.util.Locale
 import javax.inject.Inject
 import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
-import de.domjos.cloudapp2.data.repository.stringToDate
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.data.repository.stringToTimeSpan
-import java.text.SimpleDateFormat
+import java.lang.ref.WeakReference
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
@@ -38,7 +39,11 @@ class NotificationViewModel @Inject constructor(
     val notifications: StateFlow<List<NotificationItem>> get() = _notifications
     private val _allTypes = MutableStateFlow(true)
     val allTypes: StateFlow<Boolean> get() = _allTypes
+    private lateinit var context: WeakReference<Context>
 
+    fun setContext(context: Context) {
+        this.context = WeakReference(context)
+    }
 
     override fun init() {
         if(isConnected()) {
@@ -75,16 +80,12 @@ class NotificationViewModel @Inject constructor(
                     var events = calendarEventDAO.getAll(authenticationDAO.getSelectedItem()?.id ?: 0)
                     try {
                         events = events.filter {
-                            stringToDate(it.string_from).after(Date(startTime)) &&
-                            stringToDate(it.string_from).before(Date(endTime))
+                            (Converter.getDate(it.string_from) ?: Date()).after(Date(startTime)) &&
+                            (Converter.getDate(it.string_from) ?: Date()).before(Date(endTime))
                         }
                     } catch(_: Exception) {}
 
-                    var format = "yyyy-MM-dd"
-                    if(Locale.getDefault() == Locale.GERMANY) {
-                        format = "dd.MM.yyyy"
-                    }
-                    val sdf = SimpleDateFormat(format, Locale.getDefault())
+                    val sdf = Converter.getFormat(context.get()!!, false)
 
                     contacts.forEach {
                         val description = sdf.format(it.birthDay!!)
@@ -98,12 +99,12 @@ class NotificationViewModel @Inject constructor(
                     }
 
 
-                    events.forEach { it ->
-                        val ts = stringToTimeSpan(it.string_from, it.string_to)
+                    events.forEach {
+                        val ts = stringToTimeSpan(it.string_from, it.string_to, context.get()!!)
                         val description = "${it.title}: $ts".trim()
                         notificationItems.add(NotificationItem(
                             type = NotificationItem.Type.App,
-                            date = try {stringToDate(it.string_from)} catch (_: Exception) {Date()},
+                            date = try {Converter.toDate(context.get()!!, it.string_from)} catch (_: Exception) {Date()},
                             title = it.title,
                             description = description,
                             icon = {color -> Icon(imageVector = Icons.Filled.DateRange, contentDescription = description, tint = color)}

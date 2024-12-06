@@ -1,5 +1,6 @@
 package de.domjos.cloudapp2.features.calendars.screens
 
+import android.content.Context
 import de.domjos.cloudapp2.appbasics.custom.Dropdown
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -82,14 +83,13 @@ import de.domjos.cloudapp2.appbasics.custom.MultiActionItem
 import de.domjos.cloudapp2.appbasics.custom.NoAuthenticationItem
 import de.domjos.cloudapp2.appbasics.custom.ShowDeleteDialog
 import de.domjos.cloudapp2.appbasics.custom.SplitView
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.appbasics.helper.LogViewModel
 import de.domjos.cloudapp2.appbasics.helper.Separator
 import de.domjos.cloudapp2.appbasics.helper.Validator
 import de.domjos.cloudapp2.appbasics.helper.openEvent
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 import de.domjos.cloudapp2.caldav.model.CalendarModel
-import de.domjos.cloudapp2.data.repository.dateToString
-import de.domjos.cloudapp2.data.repository.stringToDate
 import de.domjos.cloudapp2.data.repository.stringToTimeSpan
 import de.domjos.cloudapp2.database.model.calendar.CalendarEvent
 import java.text.SimpleDateFormat
@@ -109,6 +109,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
     val days by viewModel.days.collectAsStateWithLifecycle()
     val date by viewModel.date.collectAsStateWithLifecycle()
 
+    val context = LocalContext.current
     val dt = Calendar.getInstance()
     dt.time = date
     val baseStart = Calendar.getInstance()
@@ -131,7 +132,7 @@ fun CalendarScreen(viewModel: CalendarViewModel = hiltViewModel(), colorBackgrou
         val items = mutableListOf<ListItem<Long>>()
         viewModel.load(selectedCalendar, start, end)
         events.forEach { event ->
-            val ts = stringToTimeSpan(event.string_from, event.string_to)
+            val ts = stringToTimeSpan(event.string_from, event.string_to, context)
 
             val listItem = ListItem<Long>(
                 title = event.title,
@@ -526,9 +527,11 @@ fun Calendar(
     colorForeground: Color,
     currentDate: Date,
     calendar: Calendar = Calendar.getInstance(Locale.getDefault()), onChange: (Int, Calendar) -> Unit, countDays: List<Int>, onClick: (Date) -> Unit) {
+
+    val context = LocalContext.current
     var dt by remember { mutableStateOf(calendar) }
-    var format by remember { mutableStateOf("MM.yyyy") }
-    val sdfMonth = SimpleDateFormat("MM.yyyy", Locale.getDefault())
+    var format by remember { mutableStateOf(Converter.monthFormat(context)) }
+    val sdfMonth = SimpleDateFormat(Converter.monthFormat(context), Locale.getDefault())
     val next = dt.clone() as Calendar
     val previous = dt.clone() as Calendar
     next.add(Calendar.MONTH, 1)
@@ -545,7 +548,7 @@ fun Calendar(
                     cal.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), dt.get(Calendar.DAY_OF_MONTH))
                     cal.add(Calendar.MONTH, -1)
                     dt = cal
-                    format = "MM.yyyy"
+                    format = Converter.monthFormat(context)
                     onChange(Calendar.MONTH, dt)
                 }, colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground, contentColor = colorForeground) ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, sdfMonth.format(next.time))
@@ -555,7 +558,7 @@ fun Calendar(
                 Button(onClick = {
                     val cal = Calendar.getInstance()
                     dt = cal
-                    format = "MM.yyyy"
+                    format = Converter.monthFormat(context)
                     onChange(Calendar.MONTH, dt)
                 }, colors = ButtonDefaults.buttonColors(containerColor = colorBackground, contentColor = colorForeground) ) {
                     Text(sdfMonth.format(dt.time))
@@ -567,7 +570,7 @@ fun Calendar(
                     cal.set(dt.get(Calendar.YEAR), dt.get(Calendar.MONTH), dt.get(Calendar.DAY_OF_MONTH))
                     cal.add(Calendar.MONTH, 1)
                     dt = cal
-                    format = "MM.yyyy"
+                    format = Converter.monthFormat(context)
                     onChange(Calendar.MONTH, dt)
                 }, colors = IconButtonDefaults.iconButtonColors(containerColor = colorBackground, contentColor = colorForeground) ) {
                     Icon(Icons.AutoMirrored.Filled.ArrowForward, sdfMonth.format(previous.time))
@@ -610,7 +613,7 @@ fun Calendar(
                             .height(50.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Day(row, col, currentDate, dt, colorBackground, colorForeground, {selected ->
                             selectedDate = selected.get(Calendar.DAY_OF_MONTH)
-                            format = "dd.MM.yyyy"
+                            format = Converter.dateFormat(context)
                             onChange(Calendar.DAY_OF_MONTH, selected)
                         }, countDays, onClick)
                     }
@@ -630,7 +633,8 @@ fun DateHeader(
     colorForeground: Color,
     date: Date
 ) {
-    val format by remember { mutableStateOf("MM.yyyy") }
+    val context = LocalContext.current
+    val format by remember { mutableStateOf(Converter.monthFormat(context)) }
     val dtMonth = SimpleDateFormat(format, Locale.getDefault())
     Column(
         Modifier
@@ -730,32 +734,17 @@ fun Day(row: Int, col: Int, currentDate: Date, cal: Calendar, colorBackground: C
     }
 }
 
-fun readableDate(data: String): String {
-    val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
-    val dateTimeFormat = SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.getDefault())
-    var date: Date? = null
-    try {
-        date = dateTimeFormat.parse(data)
-    } catch (_: Exception) {
-        try {
-            date = dateFormat.parse(data)
-        } catch (_: Exception) {}
-    }
+fun readableDate(data: String, context: Context): String {
+    val date = Converter.caldavToDate(data)
     if(date != null) {
-        var time = " HH:mm:ss"
+        var time = true
         val cal = Calendar.getInstance(Locale.getDefault())
         cal.time = date
         if(cal.get(Calendar.HOUR_OF_DAY) == 0 && cal.get(Calendar.MINUTE) == 0 && cal.get(Calendar.SECOND) == 0) {
-            time = ""
+            time = false
         }
 
-        if(Locale.getDefault() == Locale.GERMANY) {
-            val readableFormat = SimpleDateFormat("dd.MM.yyyy$time", Locale.getDefault())
-            return readableFormat.format(date)
-        } else {
-            val readableFormat = SimpleDateFormat("yyyy-MM-dd$time", Locale.getDefault())
-            return readableFormat.format(date)
-        }
+        return Converter.toFormattedString(context, date, time)
     }
     return data
 }
@@ -766,6 +755,7 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
     ModalBottomSheet(
         onDismissRequest = { showBottomSheet(false) }) {
 
+        val context = LocalContext.current
         Row(
             Modifier
                 .fillMaxWidth()
@@ -783,8 +773,8 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .padding(5.dp)) {
-            val start = readableDate(event.string_from)
-            val end = readableDate(event.string_to)
+            val start = readableDate(event.string_from, context)
+            val end = readableDate(event.string_to, context)
             if(start == end) {
                 Column(
                     modifier = Modifier.weight(9f),
@@ -910,7 +900,6 @@ fun EventView(event: CalendarEvent,showBottomSheet: (Boolean) -> Unit) {
         }
         HorizontalDivider()
         if(event.eventId != "") {
-            val context = LocalContext.current
             Row(
                 Modifier
                     .fillMaxWidth()
@@ -950,8 +939,9 @@ fun NewEditDialog(
     var title by remember { mutableStateOf(TextFieldValue(event?.title ?: "")) }
     var isTitleValid by remember { mutableStateOf(event?.title?.isNotEmpty() ?: false ) }
 
-    val dtFrom = stringToDate(event?.string_from ?: "")
-    val dtTo= stringToDate(event?.string_to ?: "")
+    val context = LocalContext.current
+    val dtFrom = Converter.getDate(event?.string_from ?: "") ?: Date()
+    val dtTo= Converter.getDate(event?.string_to ?: "") ?: Date()
 
     var wholeDay by remember { mutableStateOf(false) }
     var further by remember { mutableStateOf(false) }
@@ -1215,7 +1205,10 @@ fun NewEditDialog(
                                 val cName = calendars.find { it.label == calendar }?.name ?: ""
 
                                 val calendarEvent = CalendarEvent(
-                                    id, uid, dateToString(from), dateToString(to), title.text,
+                                    id, uid,
+                                    Converter.toFormattedString(context, from, true),
+                                    Converter.toFormattedString(context, to, true),
+                                    title.text,
                                     location.text, description.text, confirmation,
                                     categories.text, "", cName, eventId,
                                     lastUpdatedPhone, lastUpdatedServer,
@@ -1256,7 +1249,10 @@ fun NewEditDialog(
                             val cName = calendars.find { it.label == calendar }?.name ?: ""
 
                             val calendarEvent = CalendarEvent(
-                                id, uid, dateToString(from), dateToString(to), title.text,
+                                id, uid,
+                                Converter.toFormattedString(context, from, true),
+                                Converter.toFormattedString(context, to, true),
+                                title.text,
                                 location.text, description.text, confirmation,
                                 categories.text, "", cName, eventId,
                                 lastUpdatedPhone, lastUpdatedServer,
@@ -1289,7 +1285,7 @@ fun CalendarPreview() {
 @Composable
 fun EventViewPreview() {
     CloudAppTheme {
-        EventView(event = fakeEvent(1L)) {
+        EventView(event = fakeEvent(1L, LocalContext.current)) {
 
         }
     }
@@ -1299,7 +1295,7 @@ fun EventViewPreview() {
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ScreenPreview() {
-    val lst = mutableListOf(fakeEvent(1), fakeEvent(2), fakeEvent(3))
+    val lst = mutableListOf(fakeEvent(1, LocalContext.current), fakeEvent(2, LocalContext.current), fakeEvent(3, LocalContext.current))
     CalendarScreen(lst, { mutableListOf() }, colorBackground = Color.Blue, colorForeground = Color.White, Date(), listOf(), listOf(), true, {}, { _, _->}, {}, {}, {})
 }
 
@@ -1310,7 +1306,7 @@ fun EditDialogPreview() {
     CloudAppTheme {
         NewEditDialog(
             onShowDialog = {},
-            event = fakeEvent(0L), onSave = {}, calendars =
+            event = fakeEvent(0L, LocalContext.current), onSave = {}, calendars =
             listOf(
                 CalendarModel("Test1", "", ""),
                 CalendarModel("Test2", "", "")
@@ -1326,19 +1322,19 @@ fun EditDialogPreview() {
 @Composable
 fun BottomSheetPreview() {
     CloudAppTheme {
-        EventView(fakeEvent(0L)) { }
+        EventView(fakeEvent(0L, LocalContext.current)) { }
     }
 }
 
-private fun fakeEvent(id: Long, hours: Int = 25):CalendarEvent {
+private fun fakeEvent(id: Long, context: Context, hours: Int = 25):CalendarEvent {
     val start = Calendar.getInstance()
     val end = start.clone() as Calendar
     end.add(Calendar.HOUR, hours)
 
     return CalendarEvent(id,
         "$id",
-        dateToString(start.time),
-        dateToString(end.time),
+        Converter.toFormattedString(context, start.time, true),
+        Converter.toFormattedString(context, end.time, true),
         "Test $id",
         "New York! $id",
         "This is a Test! $id",

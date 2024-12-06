@@ -8,10 +8,10 @@ package de.domjos.cloudapp2.caldav
 
 import android.util.Log
 import com.thegrizzlylabs.sardineandroid.impl.OkHttpSardine
+import de.domjos.cloudapp2.appbasics.helper.Converter
 import de.domjos.cloudapp2.caldav.model.ToDoList
 import de.domjos.cloudapp2.caldav.model.Todo
 import de.domjos.cloudapp2.caldav.utils.Helper
-import de.domjos.cloudapp2.caldav.utils.Helper.Companion.getDate
 import de.domjos.cloudapp2.caldav.utils.Helper.Companion.readPropertyToString
 import de.domjos.cloudapp2.database.converters.ToDoStatusConverter
 import de.domjos.cloudapp2.database.model.Authentication
@@ -263,12 +263,12 @@ class ToDoCalDav(private val authentication: Authentication?) {
                 try {
                     if(component is VToDo) {
                         val uid = readPropertyToString<Uid>(component)
-                        val created = getDate(readPropertyToString<Created>(component))
-                        val lastModified = getDate(readPropertyToString<LastModified>(component))
-                        val timestamp = getDate(readPropertyToString<DtStamp>(component))
+                        val created = Converter.getDate(readPropertyToString<Created>(component))
+                        val lastModified = Converter.getDate(readPropertyToString<LastModified>(component))
+                        val timestamp = Converter.getDate(readPropertyToString<DtStamp>(component))
                         val summary = readPropertyToString<Summary>(component)
-                        val start = getDate(readPropertyToString<DtStart>(component))
-                        val end = getDate(readPropertyToString<Due>(component))
+                        val start = Converter.getDate(readPropertyToString<DtStart>(component))
+                        val end = Converter.getDate(readPropertyToString<Due>(component))
                         val status = readPropertyToString<Status>(component)
                         val completed = try {
                             val item: PercentComplete = component.properties.find { it is PercentComplete } as PercentComplete

@@ -35,6 +35,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":AppBasics"))
     implementation(project(":Database"))
     implementation(project(":REST"))
     implementation(project(":WebDav"))

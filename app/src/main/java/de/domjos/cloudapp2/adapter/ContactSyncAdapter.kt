@@ -27,7 +27,7 @@ class ContactSyncAdapter @JvmOverloads constructor(
         val db = DB.newInstance(this.context)
 
         val helper = PhoneContactHelper(account, this.contentResolver, db)
-        helper.sync()
+        helper.sync(context = this.context)
     }
 
 }
