@@ -14,7 +14,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
@@ -94,6 +96,7 @@ import de.domjos.cloudapp2.appbasics.helper.Notifications
 import de.domjos.cloudapp2.appbasics.helper.ProgressDialog
 import de.domjos.cloudapp2.appbasics.helper.connectivityState
 import de.domjos.cloudapp2.appbasics.helper.connectivityType
+import de.domjos.cloudapp2.appbasics.helper.rememberWindowSize
 import de.domjos.cloudapp2.appbasics.navigation.FooterItem
 import de.domjos.cloudapp2.appbasics.navigation.FooterMenu
 import de.domjos.cloudapp2.appbasics.navigation.View
@@ -477,7 +480,9 @@ class MainActivity : ComponentActivity() {
                                     HorizontalDivider(color = colorForeground)
                                 }
                             }
-                        }
+                        },
+                        contentWindowInsets = WindowInsets(0.dp),
+                        modifier = if(rememberWindowSize().landscape) Modifier.height(50.dp) else Modifier
                     ) {
 
                         NavHost(modifier = Modifier.padding(top = it.calculateTopPadding(), bottom = it.calculateBottomPadding()), navController = navController, startDestination = notificationsTab.title) {

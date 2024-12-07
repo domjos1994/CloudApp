@@ -2,6 +2,7 @@ package de.domjos.cloudapp2.features.notifications.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,7 +37,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -51,6 +54,7 @@ import de.domjos.cloudapp2.rest.model.notifications.Action
 import de.domjos.cloudapp2.rest.model.notifications.Notification
 import de.domjos.cloudapp2.appbasics.R
 import de.domjos.cloudapp2.appbasics.helper.ConnectivityViewModel
+import de.domjos.cloudapp2.appbasics.helper.rememberWindowSize
 import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @Composable
@@ -71,13 +75,19 @@ fun NotificationScreen(rooms: List<NotificationItem>, allTypes: Boolean, onIconL
     Column(modifier = Modifier
         .fillMaxSize()) {
 
+        val config = rememberWindowSize()
+
         var app by remember { mutableStateOf(true) }
         var server by remember { mutableStateOf(true) }
 
-        Header(rooms, allTypes, colorBackground, colorForeground, {app = it}) {server = it}
+        if(config.landscape) {
+            LandscapeHeader(rooms, allTypes, colorBackground, colorForeground, {app = it}) {server = it}
+        } else {
+            PortraitHeader(rooms, allTypes, colorBackground, colorForeground, {app = it}) {server = it}
+        }
 
         Row(Modifier
-            .padding(5.dp)) {
+            .padding(1.dp)) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 if(hasAuthentications) {
                     if(isConnected) {
@@ -87,7 +97,11 @@ fun NotificationScreen(rooms: List<NotificationItem>, allTypes: Boolean, onIconL
                             rooms.forEach { notification ->
                                 if(notification.notification != null) {
                                     if(server) {
-                                        NotificationItem(notification.notification, colorBackground, colorForeground, onIconLoad, onChatScreen)
+                                        if(config.landscape) {
+                                            LandscapeNotificationItem(notification.notification, colorBackground, colorForeground, onIconLoad, onChatScreen)
+                                        } else {
+                                            PortraitNotificationItem(notification.notification, colorBackground, colorForeground, onIconLoad, onChatScreen)
+                                        }
                                     }
                                 } else {
                                     if(app) NotificationItem(notification, colorBackground, colorForeground)
@@ -107,7 +121,7 @@ fun NotificationScreen(rooms: List<NotificationItem>, allTypes: Boolean, onIconL
 }
 
 @Composable
-fun Header(
+fun PortraitHeader(
     rooms: List<NotificationItem>,
     allTypes: Boolean,
     colorBackground: Color,
@@ -202,7 +216,104 @@ fun Header(
 }
 
 @Composable
-fun NotificationItem(notification: Notification, colorBackground: Color, colorForeground: Color, onIconLoad: (Notification) -> String, onChatScreen: (Int, String) -> Unit) {
+fun LandscapeHeader(
+    rooms: List<NotificationItem>,
+    allTypes: Boolean,
+    colorBackground: Color,
+    colorForeground: Color,
+    onAppChange: (Boolean)->Unit,
+    onServerChange: (Boolean)->Unit) {
+    var app by remember { mutableStateOf(true) }
+    var server by remember { mutableStateOf(true) }
+    val count = rooms.size
+    val appCount = rooms.filter { it.type == NotificationItem.Type.App }.toList().count()
+    val serverCount = rooms.filter { it.type == NotificationItem.Type.Server }.toList().count()
+    val strApp = stringResource(R.string.notification_app)
+    val strServer = stringResource(R.string.notification_server)
+    val strWhole = stringResource(R.string.notification_whole)
+
+    if(allTypes) {
+        Row(
+            Modifier
+                .background(colorBackground)
+                .height(50.dp)
+                .fillMaxWidth()) {
+            Column(
+                Modifier
+                    .padding(5.dp)
+                    .height(40.dp)
+                    .weight(6f)) {
+                Row(Modifier.height(40.dp), verticalAlignment =  Alignment.CenterVertically) {
+                    Text(strApp, Modifier.weight(3.0f), color = colorForeground, textAlign = TextAlign.Center)
+                    Switch(app, onCheckedChange = {
+                        app = it
+                        onAppChange(app)
+                    },
+                        Modifier
+                            .weight(2.0f)
+                            .height(40.dp),
+                        colors = SwitchDefaults.colors(
+                            checkedBorderColor = colorForeground,
+                            checkedIconColor = colorBackground,
+                            checkedThumbColor = colorBackground,
+                            checkedTrackColor = colorForeground,
+                            uncheckedBorderColor = colorForeground,
+                            uncheckedIconColor = colorBackground,
+                            uncheckedThumbColor = colorBackground,
+                            uncheckedTrackColor = colorForeground
+                        ))
+                    Text(strServer, Modifier.weight(3.0f), color = colorForeground, textAlign = TextAlign.Center)
+                    Switch(server, onCheckedChange = {
+                        server = it
+                        onServerChange(server)
+                    },
+                        Modifier
+                            .weight(2.0f)
+                            .height(40.dp),
+                        colors = SwitchDefaults.colors(
+                            checkedBorderColor = colorForeground,
+                            checkedIconColor = colorBackground,
+                            checkedThumbColor = colorBackground,
+                            checkedTrackColor = colorForeground,
+                            uncheckedBorderColor = colorForeground,
+                            uncheckedIconColor = colorBackground,
+                            uncheckedThumbColor = colorBackground,
+                            uncheckedTrackColor = colorForeground
+                        ))
+                }
+            }
+            Column(
+                Modifier
+                    .padding(1.dp)
+                    .fillMaxWidth()
+                    .weight(4f)) {
+                Row(Modifier.fillMaxWidth()) {
+                    val text = "$strWhole: $count\n $strApp: ${appCount}, $strServer: $serverCount"
+                    Text(text, Modifier.fillMaxWidth(), color = colorForeground, textAlign = TextAlign.Center)
+                }
+            }
+        }
+    } else {
+        app = true
+        server = true
+        onAppChange(true)
+        onServerChange(server)
+
+        Row(Modifier.fillMaxWidth()) {
+            Text("$strWhole: $count", Modifier.fillMaxWidth(), color = colorForeground, textAlign = TextAlign.Center)
+        }
+    }
+    HorizontalDivider(color = colorForeground)
+}
+
+@Composable
+fun PortraitNotificationItem(
+    notification: Notification,
+    colorBackground: Color,
+    colorForeground: Color,
+    onIconLoad: (Notification) -> String,
+    onChatScreen: (Int, String) -> Unit) {
+
     val uriHandler = LocalUriHandler.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -245,10 +356,20 @@ fun NotificationItem(notification: Notification, colorBackground: Color, colorFo
         Column(modifier = Modifier
             .padding(5.dp)
             .weight(9f)) {
-            Text(notification.subject, fontWeight= FontWeight.Bold, modifier = Modifier.padding(5.dp), color = colorForeground)
             Text(
-                "${notification.app}: ${notification.message}",
-                modifier = Modifier.padding(5.dp), color = colorForeground
+                notification.subject,
+                fontWeight= FontWeight.Bold,
+                modifier = Modifier.padding(5.dp).basicMarquee(),
+                color = colorForeground
+            )
+            val item =
+                if(notification.message.trim() != "")
+                    "${notification.app}: ${notification.message}"
+                else notification.app
+            Text(
+                item,
+                modifier = Modifier.padding(5.dp).basicMarquee(),
+                color = colorForeground
             )
         }
     }
@@ -282,6 +403,106 @@ fun NotificationItem(notification: Notification, colorBackground: Color, colorFo
 }
 
 @Composable
+fun LandscapeNotificationItem(
+    notification: Notification,
+    colorBackground: Color,
+    colorForeground: Color,
+    onIconLoad: (Notification) -> String,
+    onChatScreen: (Int, String) -> Unit) {
+
+    val uriHandler = LocalUriHandler.current
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(colorBackground)
+            .clickable {
+                if (notification.link != "") {
+                    uriHandler.openUri(notification.link)
+                }
+            }) {
+        val icon = onIconLoad(notification)
+        if(icon=="") {
+            Image(
+                Icons.Outlined.Notifications,
+                notification.subject,
+                modifier = Modifier
+                    .padding(1.dp)
+                    .weight(1f),
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.tint(colorForeground)
+            )
+        } else {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .decoderFactory(SvgDecoder.Factory())
+                    .data(icon)
+                    .scale(Scale.FIT)
+                    .build(),
+                notification.subject,
+                modifier = Modifier
+                    .padding(1.dp)
+                    .weight(1f),
+                contentScale = ContentScale.Crop,
+                colorFilter = ColorFilter.tint(colorForeground)
+            )
+        }
+
+        Column(modifier = Modifier
+            .padding(1.dp)
+            .weight(if(notification.actions.isNotEmpty()) 9f else 18f)) {
+            Text(
+                notification.subject,
+                fontWeight= FontWeight.Bold,
+                modifier = Modifier.padding(1.dp).basicMarquee(),
+                color = colorForeground
+            )
+            Text(
+                "${notification.app}: ${notification.message}",
+                modifier = Modifier.padding(1.dp).basicMarquee(),
+                color = colorForeground
+            )
+        }
+        if(notification.actions.isNotEmpty()) {
+            Column(
+                modifier = Modifier.weight(9f)
+            ) {
+                Row {
+                    notification.actions.forEach { action ->
+                        val actionProcess = if(notification.app == "spreed" && notification.object_type == "chat") {
+                            {
+                                val id = notification.object_id
+                                onChatScreen(1, if(id.contains("/")) id.split("/")[0] else id)
+                            }
+                        } else {
+                            {uriHandler.openUri(action.link)}
+                        }
+
+                        Button(
+                            onClick = { actionProcess() },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorForeground,
+                                contentColor = colorBackground
+                            ),
+                            modifier = Modifier.padding(1.dp)
+                        ) {
+                            Text(
+                                action.label,
+                                fontWeight = if(action.primary) FontWeight.Bold else FontWeight.Normal,
+                                color = colorBackground,
+                                fontSize = 9.sp
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+    HorizontalDivider(color = colorForeground)
+}
+
+@Composable
 fun NotificationItem(notification: NotificationItem, colorBackground: Color, colorForeground: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -306,25 +527,60 @@ fun NotificationItem(notification: NotificationItem, colorBackground: Color, col
         .height(1.dp)) {}
 }
 
-@Preview(showBackground = true)
+@PreviewScreenSizes
 @Composable
-fun NotificationScreenPreview() {
+private fun NotificationScreenPreview() {
     NotificationScreen(listOf(fake(1), fake(2), fake(3)), true, { "" },
         isConnected = true, hasAuthentications = true, colorBackground = Color.Blue, colorForeground = Color.White, {}) {_,_->}
 }
 
 @Preview(showBackground = true)
 @Composable
-fun NotificationItemPreview() {
-    NotificationItem(fake(1).notification!!, colorBackground = Color.Blue, colorForeground = Color.White, { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }) {_,_->}
+private fun PortraitNotificationItemPreview() {
+    CloudAppTheme {
+        PortraitNotificationItem(
+            fake(1).notification!!,
+            colorBackground = Color.Blue,
+            colorForeground = Color.White,
+            { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
+        ) {_,_->}
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun HeaderPreview() {
+private fun LandscapeNotificationItemPreview() {
+    CloudAppTheme {
+        LandscapeNotificationItem(
+            fake(1).notification!!,
+            colorBackground = Color.Blue,
+            colorForeground = Color.White,
+            { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
+        ) {_,_->}
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PortraitHeaderPreview() {
     CloudAppTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            Header(
+            PortraitHeader(
+                rooms = listOf(fake(1), fake(2), fake(3)),
+                allTypes = true,
+                colorBackground = Color.Blue,
+                colorForeground = Color.White,
+                onAppChange = {}) {}
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LandscapeHeaderPreview() {
+    CloudAppTheme {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            LandscapeHeader(
                 rooms = listOf(fake(1), fake(2), fake(3)),
                 allTypes = true,
                 colorBackground = Color.Blue,

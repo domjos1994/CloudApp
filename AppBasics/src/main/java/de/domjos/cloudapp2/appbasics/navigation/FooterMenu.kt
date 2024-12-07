@@ -6,7 +6,12 @@
 
 package de.domjos.cloudapp2.appbasics.navigation
 
-import androidx.compose.material3.BadgedBox
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -16,18 +21,34 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import de.domjos.cloudapp2.appbasics.helper.rememberWindowSize
+import de.domjos.cloudapp2.appbasics.ui.theme.CloudAppTheme
 
 @Composable
 fun FooterMenu(view: View, footerItems: List<FooterItem>, navController: NavController, updateNavBar: () -> Unit, visible: Boolean = true) {
     var selectedTabIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
+    val config = rememberWindowSize()
 
     if(visible) {
-        NavigationBar {
+        val modifier = if(config.landscape) {
+            Modifier.padding(2.dp).height(if(view==View.IconAndText) 70.dp else 50.dp)
+        } else {
+            Modifier
+        }
+
+        NavigationBar(
+            modifier = modifier,
+            windowInsets = WindowInsets(0.dp)
+        ) {
             // looping over each tab to generate the views and navigation for each item
             footerItems.forEachIndexed { index, footerItem ->
                 if(footerItem.visible) {
@@ -55,7 +76,9 @@ fun FooterMenu(view: View, footerItems: List<FooterItem>, navController: NavCont
                                     fontSize = 10.sp
                                 )
                             }
-                        })
+                        },
+                        modifier = Modifier.padding(0.dp)
+                    )
                 }
             }
         }
@@ -84,11 +107,20 @@ fun TabBarIconView(
     unselectedIcon: ImageVector,
     title: String
 ) {
-    BadgedBox(
-        badge = {}) {
-        Icon(
-            imageVector = if (isSelected) {selectedIcon} else {unselectedIcon},
-            contentDescription = title
-        )
+    Icon(
+        imageVector = if (isSelected) {selectedIcon} else {unselectedIcon},
+        contentDescription = title
+    )
+}
+
+@PreviewScreenSizes
+@Composable
+private fun TabBarIcon() {
+    val items = mutableListOf<FooterItem>()
+    items.add(FooterItem("1", "Test-1", Icons.Filled.Place, Icons.Outlined.Place, "Test-1"))
+    items.add(FooterItem("2", "Test-2", Icons.Filled.Place, Icons.Outlined.Place, "Test-2"))
+    items.add(FooterItem("3", "Test-3", Icons.Filled.Place, Icons.Outlined.Place, "Test-3"))
+    CloudAppTheme {
+        FooterMenu(View.Icon, items, rememberNavController(), {})
     }
 }
