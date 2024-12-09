@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.compose.ui.tooling.preview.datasource.LoremIpsum
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -530,7 +531,7 @@ fun NotificationItem(notification: NotificationItem, colorBackground: Color, col
 @PreviewScreenSizes
 @Composable
 private fun NotificationScreenPreview() {
-    NotificationScreen(listOf(fake(1), fake(2), fake(3)), true, { "" },
+    NotificationScreen(listOf(fake(), fake(), fake()), true, { "" },
         isConnected = true, hasAuthentications = true, colorBackground = Color.Blue, colorForeground = Color.White, {}) {_,_->}
 }
 
@@ -538,12 +539,14 @@ private fun NotificationScreenPreview() {
 @Composable
 private fun PortraitNotificationItemPreview() {
     CloudAppTheme {
-        PortraitNotificationItem(
-            fake(1).notification!!,
-            colorBackground = Color.Blue,
-            colorForeground = Color.White,
-            { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
-        ) {_,_->}
+        Column(Modifier.fillMaxWidth()) {
+            PortraitNotificationItem(
+                fake().notification!!,
+                colorBackground = Color.Blue,
+                colorForeground = Color.White,
+                { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
+            ) {_,_->}
+        }
     }
 }
 
@@ -551,12 +554,14 @@ private fun PortraitNotificationItemPreview() {
 @Composable
 private fun LandscapeNotificationItemPreview() {
     CloudAppTheme {
-        LandscapeNotificationItem(
-            fake(1).notification!!,
-            colorBackground = Color.Blue,
-            colorForeground = Color.White,
-            { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
-        ) {_,_->}
+        Column(Modifier.fillMaxWidth()) {
+            LandscapeNotificationItem(
+                fake().notification!!,
+                colorBackground = Color.Blue,
+                colorForeground = Color.White,
+                { "https://cloud.cz-dillingen.de/apps/updatenotification/img/notification.svg" }
+            ) {_,_->}
+        }
     }
 }
 
@@ -564,9 +569,9 @@ private fun LandscapeNotificationItemPreview() {
 @Composable
 private fun PortraitHeaderPreview() {
     CloudAppTheme {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxWidth()) {
             PortraitHeader(
-                rooms = listOf(fake(1), fake(2), fake(3)),
+                rooms = listOf(fake(), fake(), fake()),
                 allTypes = true,
                 colorBackground = Color.Blue,
                 colorForeground = Color.White,
@@ -581,7 +586,7 @@ private fun LandscapeHeaderPreview() {
     CloudAppTheme {
         Column(modifier = Modifier.fillMaxWidth()) {
             LandscapeHeader(
-                rooms = listOf(fake(1), fake(2), fake(3)),
+                rooms = listOf(fake(), fake(), fake()),
                 allTypes = true,
                 colorBackground = Color.Blue,
                 colorForeground = Color.White,
@@ -590,20 +595,20 @@ private fun LandscapeHeaderPreview() {
     }
 }
 
-private fun fake(id: Long): NotificationItem {
-    val action1 = Action("Action 1", "https://google.com", "POST", true)
-    val action2 = Action("Action 2", "https://yahoo.com", "DELETE", false)
+private fun fake(): NotificationItem {
+    val action1 = Action(LoremIpsum(3).values.joinToString(" "), "https://google.com", "POST", true)
+    val action2 = Action(LoremIpsum(3).values.joinToString(" "), "https://yahoo.com", "DELETE", false)
 
     return NotificationItem(
         NotificationItem.Type.Server, Notification(
-        id,
+        1L,
         "contacts",
         "domjos",
         "2024-03-18T08:52+33:00",
-        "test $id",
-        "$id",
-        "Test $id",
-        "This is test $id!",
+        "test 1",
+        "1",
+        LoremIpsum(20).values.joinToString(" "),
+        LoremIpsum(50).values.joinToString(" "),
         "https://microsoft.com",
         "/apps/survey_client/img/app-dark.svg",
         true,
